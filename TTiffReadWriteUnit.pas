@@ -39,7 +39,6 @@ TTiffReadWrite = class
     procedure   ReadTiffInfo(FilenameTiff : String) ;  // this reads up to ImageFileDirectory position and all header info
     procedure   CopyData(outputStr : TMemoryStream; SDPrec : integer) ; // SDPrec = 4 for single 8 for double
   private
-    procedure   ReverseByteOrder( p1 : PByteArray ; size : integer) ;
 end;
 
 
@@ -79,32 +78,6 @@ begin
 end;
 
 
-procedure TTiffReadWrite.ReverseByteOrder( p1 : PByteArray ; size : integer) ;
-var
-  b1, b2, b3, b4 : byte ;
-begin
-  if size = 4 then
-  begin
-      b1 := p1[3]  ;
-      b2 := p1[2] ;
-      b3 := p1[1] ;
-      b4 := p1[0] ;
-      p1[0] := b1 ;
-      p1[1] := b2 ;
-      p1[2] := b3 ;
-      p1[3] := b4 ;
-  end
-  else
-  if size = 2 then
-  begin
-      b1 := p1[1]  ;
-      b2 := p1[0]  ;
-      p1[0] := b1 ;
-      p1[1] := b2 ;
-  end ;
-end ;
-
-{$T-}
 procedure   TTiffReadWrite.ReadTiffInfo(FilenameTiff : String) ;  // this reads up to ImageFileDirectory position and all header info
 // SDPrec = 4 for single precision  = 8 for double
 var
@@ -130,12 +103,10 @@ begin
 
     inputTiff.Seek(4,soFromBeginning)  ;
     inputTiff.Read(offset,4) ;
-    if byteOrder = 1 then ReverseByteOrder(@offset,4) ;
     inputTiff.Seek(offset,soFromBeginning)  ;
 
     // read number of directory entries - individual Integer type value
     inputTiff.Read(numDirEntries,2) ;
-    if byteOrder = 1 then ReverseByteOrder(@numDirEntries,2) ;
 //    messagedlg('number of directory entries='+inttostr(numDirEntries),mtInformation,[mbOK],0) ;
 
     for t1 := 1 to numDirEntries do
@@ -144,21 +115,11 @@ begin
       inputTiff.Read(fieldDataType,2) ;
       inputTiff.Read(numberOfVals,4) ;
       inputTiff.Read(valInt,4) ;
-      if byteOrder = 1 then
-      begin
-        ReverseByteOrder(@fieldTag,2) ;
-        ReverseByteOrder(@fieldDataType,2) ;
-        ReverseByteOrder(@numberOfVals,4) ;
-        if fieldDataType = 3 then
-          ReverseByteOrder(@valInt,2)
-        else
-        if fieldDataType = 4 then
-          ReverseByteOrder(@valInt,4) ;
-      end ;
+
       case fieldTag of
           256:  ImageWidth := valInt ;
           257:  ImageLength:= valInt ;  // tag =257
-          258:  BitsPerSample:= valInt ; // tag= 258 should equal 8 or 16  or 32 (for single float)
+          258:  BitsPerSample:= valInt ; // tag= 258 should equal 8 or 16
           259:  Compression:= valInt ; // tag = 259  (available values 1 (none) or 32773 (packbits)
           262:  PhotometricInterp := valInt ; //tag=262 (0 or 1)
           273:  begin
@@ -173,11 +134,6 @@ begin
                   StripByteCounts:= valInt ; //tag=  279
                   if fieldDataType = 3 then typeofPointer2 := 2
                   else if fieldDataType = 4 then typeofPointer2 := 4 ;
-                  if NumberOfStrips=1 then
-                  begin
-                    if StripByteCounts <> ((BitsPerSample/8)*ImageWidth*ImageLength ) then
-                      StripByteCounts :=  (BitsPerSample div 8)*ImageWidth*ImageLength ;
-                  end;
                 end;
           282:  XResolution:= valInt ; // tag= 282 (rational)
           283:  YResolution:= valInt ; // tag= 283 (rational)
@@ -186,7 +142,7 @@ begin
     end;
 
     // exit if data is compressed or samples per pixel is > 1 (i.e. picture not greyscale)
-    if (Compression > 1) or (SamplesPerPixel > 1) then
+    if (Compression <> 1) or (SamplesPerPixel > 1) then
     begin
       inputTiff.Free ;
       exit ;
@@ -194,8 +150,8 @@ begin
 
       arrayOfStripOffsets        := TMemoryStream.Create ;
       arrayOfStripByteCounts     := TMemoryStream.Create ;
-      arrayOfStripOffsets.SetSize(NumberofStrips*4);    // the code below forces all pointers to 32 bit integers
-      arrayOfStripByteCounts.SetSize(NumberofStrips*4); // the code below forces all size data to 32 bit integers
+      arrayOfStripOffsets.SetSize(NumberofStrips*4);    // the code below forces all data to 32 bit integers
+      arrayOfStripByteCounts.SetSize(NumberofStrips*4); // the code below forces all data to 32 bit integers
 
       if NumberofStrips > 1  then  // =>  StripOffsets points to a list of pointers to the data
       begin
@@ -204,7 +160,6 @@ begin
       begin
         if typeofPointer1 = 2 then
         begin
-          offsetShort := 0 ;
           inputTiff.Read(offsetShort,typeofPointer1) ;  // i'm not sure if reading in 2 bytes into a 4 byte integer will work
           offset := offsetShort ;
           arrayOfStripOffsets.Write(offset,4) ;  ;  // go to strip t1
@@ -225,7 +180,7 @@ begin
         end;
         if typeofPointer2 = 4 then
         begin
-          inputTiff.Read(offset,typeofPointer2) ;  //
+          inputTiff.Read(offset,typeofPointer2) ;  // i'm not sure if reading in 2 bytes into a 4 byte integer will work
           arrayOfStripByteCounts.Write(offset,typeofPointer2) ;  ;  // go to strip t1
         end;
       end;
@@ -241,9 +196,9 @@ begin
       arrayOfStripOffsets.Seek(0,soFromBeginning) ;
       arrayOfStripByteCounts.Seek(0,soFromBeginning) ;
 
-end ;
 
-{$T+}
+
+end ;
 
 procedure   TTiffReadWrite.CopyData(outputStr : TMemoryStream; SDPrec : integer) ; // SDPrec = 4 for single 8 for double
 // data is saved only if it is a factor of ScaleFactor
@@ -254,7 +209,6 @@ var
    d1                         : double ;
    so, bc                     : integer ;  // stripoffset and bytecount of data in tiff file
    offsetShort                : word ;
-
 begin
    
       // this reads in the Strip offset pointers and how long the strips are (StripByteCount)
@@ -274,8 +228,10 @@ begin
           for t2 := 1 to bc  do  // for each byte in the strip
           begin
              inputTiff.Read(b1,1) ;
+
              s1 := b1 ;
              outputStr.Write(s1,SDPrec) ;
+
           end;
         end
         else
@@ -284,22 +240,10 @@ begin
           for t2 := 1 to (bc div 2)  do   // for each word in the strip
           begin
              inputTiff.Read(offsetShort,2) ;
-             if self.byteOrder = 1 then
-               self.ReverseByteOrder(PByteArray(@offsetShort),2) ;
+
              s1 := offsetShort ;
              outputStr.Write(s1,SDPrec) ;
-          end
-        end
-        else
-        if BitsPerSample = 32 then  // float data
-        begin
-          for t2 := 1 to (bc div 4)  do   // for each float in the strip
-          begin
-             inputTiff.Read(s1,4) ;
-             if self.byteOrder = 1 then
-               ReverseByteOrder(PByteArray(@s1),4) ;
-             //s1 := offsetShort ;
-             outputStr.Write(s1,SDPrec) ;
+
           end;
         end;
         end
@@ -311,8 +255,10 @@ begin
           for t2 := 1 to bc  do  // for each byte in the strip
           begin
              inputTiff.Read(b1,1) ;
+
              d1 := b1 ;
              outputStr.Write(d1,SDPrec) ;
+
           end;
         end
         else
@@ -321,30 +267,15 @@ begin
           for t2 := 1 to (bc div 2)  do   // for each word in the strip
           begin
              inputTiff.Read(offsetShort,2) ;
-             if self.byteOrder = 1 then
-               ReverseByteOrder(PByteArray(@offsetShort),2) ;
+
              d1 := offsetShort ;
              outputStr.Write(d1,SDPrec) ;
-          end;
-        end
-        else
-        if BitsPerSample = 32 then  // float data
-        begin
-          for t2 := 1 to (bc div 4)  do   // for each float in the strip
-          begin
-             inputTiff.Read(s1,4) ;
-             if self.byteOrder = 1 then
-               ReverseByteOrder(PByteArray(@s1),4) ;
-             d1 := s1 ;
-             outputStr.Write(d1,SDPrec) ;
+
           end;
         end;
         end;
         
       end;
-
-
-
 
 
 end ;

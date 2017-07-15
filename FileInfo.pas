@@ -4,11 +4,10 @@ interface
 
 uses
   Windows, OpenGL, Messages, SysUtils, Classes, Graphics, Controls, Clipbrd, Forms, Dialogs,
-  Grids, ComCtrls, StdCtrls, Menus, ShellAPI, ExtCtrls, Math, BLASLAPACKfreePas, TMatrixObject, TSpectraRangeObject,
-  TBatch, TIRPolAnalysisObject2, TPCABatchObject, T2DCorrelObject, SPCFileUnit,  TMatrixOperations,
+  Grids, ComCtrls, StdCtrls, Menus, ShellAPI, ExtCtrls, Math, AtlusBLASLAPACLibrary, TMatrixObject, TSpectraRangeObject,
+  TBatch, TIRPolAnalysisObject2, TPCABatchObject, T2DCorrelObject, SPCFileUnit,
   TStringListExtUnit, TPLMAnalysisUnit1, TDichroicRatioUnit, TPCRPredictBatchUnit, TPLSPredictBatchUnit,
-  TPLSYPredictTestBatchUnit, TRotateFactorsUnit, TTiffReadWriteUnit, TPassBatchFileToExecutableUnit, TASMTimerUnit,
-  netCDFFileImport ;
+  TPLSYPredictTestBatchUnit, TRotateFactorsUnit, TTiffReadWriteUnit ;
 
 type AverageOrSkip = (average, skip);
 
@@ -24,6 +23,7 @@ type
     Panel1: TPanel;
     CheckBox8: TCheckBox;
     CheckBox7: TCheckBox;
+    CheckBox6: TCheckBox;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
     Open1: TMenuItem;
@@ -58,6 +58,7 @@ type
     Transpose1: TMenuItem;
     ColorDialog1: TColorDialog;
     Colour1: TMenuItem;
+    Extract1: TMenuItem;
     Processing1: TMenuItem;
     MeanCentre1: TMenuItem;
     VarianceScale1: TMenuItem;
@@ -74,40 +75,10 @@ type
     ExtractAverage1: TMenuItem;
     ViewVariance1: TMenuItem;
     ExtractVariance1: TMenuItem;
-    Timer1: TTimer;
-    All2: TMenuItem;
-    Selected2: TMenuItem;
-    CombineAll1: TMenuItem;
-    CombineSelected1: TMenuItem;
-    As2DPlots1: TMenuItem;
-    Integration1: TMenuItem;
-    UseAsXcoords1: TMenuItem;
-    ScaledXCoords1: TMenuItem;
-    UseRingsToStretchToYear: TMenuItem;
-    ExtractAveXdata1: TMenuItem;
-    UseLastTraceXasXCoordonallothers1: TMenuItem;
-    XSeparateCoordData1: TMenuItem;
-    Variogram1: TMenuItem;
-    Variogramv21: TMenuItem;
-    FlipXinmemory1: TMenuItem;
-    Inverse1: TMenuItem;
-    Datadetails1: TMenuItem;
-    ScaleXCoordsToYear1: TMenuItem;
-    UsePositionsofyearBoundarytoMapEnviro1: TMenuItem;
-    ParetoScale1: TMenuItem;
-    Scaling1: TMenuItem;
-    VastScale1: TMenuItem;
-    LevelScale1: TMenuItem;
-    RotateRight1: TMenuItem;
-    MeanDivide: TMenuItem;
-    NumericalDifferentiation1: TMenuItem;
-    DynamicTimeWarp: TMenuItem;
-    UseLastTraceXrangeasXCoords1: TMenuItem;
-    CorrelationOptimisedWarping1: TMenuItem;
-    UseLastTraceXclosesesttochooseYdata1: TMenuItem;
     procedure StringGrid1Click(Sender: TObject);
     procedure StringGrid1DrawCell(Sender: TObject; Col, Row: Integer;
       Rect: TRect; State: TGridDrawState);
+    procedure CheckBox6Click(Sender: TObject);
     procedure close1Click(Sender: TObject);
     procedure Save1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -142,11 +113,14 @@ type
     procedure OpenFiles1Click(Sender: TObject);
     procedure GraphicsWindow1Click(Sender: TObject);
     procedure CheckBox8Click(Sender: TObject);
+    procedure Combine1Click(Sender: TObject);
+    procedure separate1Click(Sender: TObject);
     procedure N2Ddisplay1Click(Sender: TObject);
     procedure CutText1Click(Sender: TObject);
     procedure Flip1Click(Sender: TObject);
     procedure Transpose1Click(Sender: TObject);
     procedure Colour1Click(Sender: TObject);
+    procedure Extract1Click(Sender: TObject);
     procedure MeanCentre1Click(Sender: TObject);
     procedure VarianceScale1Click(Sender: TObject);
     procedure Unmeancentre1Click(Sender: TObject);
@@ -158,40 +132,7 @@ type
     procedure ViewAverageClick(Sender: TObject);
     procedure ExtractAverage1Click(Sender: TObject);
     procedure ViewVariance1Click(Sender: TObject);
-    procedure ExtractVariance1Click(Sender: TObject);
-    procedure Timer1Timer(Sender: TObject);
-    procedure Selected2Click(Sender: TObject);
-    procedure All2Click(Sender: TObject);
-    procedure CombineSelected1Click(Sender: TObject);
-    procedure CombineAll1Click(Sender: TObject);
-    procedure Revert1Click(Sender: TObject);
-    procedure As2DPlots1Click(Sender: TObject);
-    procedure Integration1Click(Sender: TObject);
-    procedure UseAsXcoords1Click(Sender: TObject);
-    procedure ScaledXCoords1Click(Sender: TObject);
-    procedure UseRingsToStretchToYearClick(Sender: TObject);  // Density trace is in 1st selected column and ring boundaries are in 2nd selected column
-    procedure StringGrid1KeyPress(Sender: TObject; var Key: Char);
-    procedure FormKeyPress(Sender: TObject; var Key: Char);
-    procedure ExtractAveXdata1Click(Sender: TObject);
-    procedure UseLastTraceXasXCoordonallothers1Click(Sender: TObject);
-    procedure XSeparateCoordData1Click(Sender: TObject);
-    procedure Variogram1Click(Sender: TObject);
-    procedure Variogramv21Click(Sender: TObject);
-    procedure FlipXinmemory1Click(Sender: TObject);
-    procedure Inverse1Click(Sender: TObject);
-    procedure Datadetails1Click(Sender: TObject);
-    procedure ScaleXCoordsToYear1Click(Sender: TObject);
-    procedure UsePositionsofyearBoundarytoMapEnviro1Click(Sender: TObject);
-    procedure ParetoScale1Click(Sender: TObject);
-    procedure VastScale1Click(Sender: TObject);
-    procedure LevelScale1Click(Sender: TObject);
-    procedure RotateRight1Click(Sender: TObject);
-    procedure MeanDivideClick(Sender: TObject);
-    procedure DynamicTimeWarpClick(Sender: TObject);
-    procedure UseLastTraceXrangeasXCoords1Click(Sender: TObject);
-    procedure CorrelationOptimisedWarping1Click(Sender: TObject);
-    procedure UseLastTraceXclosesesttochooseYdata1Click(Sender: TObject);
-    procedure OpenDialog1SelectionChange(Sender: TObject);// OVXMax,OVXMin,OVYMax,OVYMin : GLFloat
+    procedure ExtractVariance1Click(Sender: TObject);// OVXMax,OVXMin,OVYMax,OVYMin : GLFloat
   private
     { Private declarations }
   public
@@ -199,10 +140,10 @@ type
     procedure InitialiseDataGrid ;
 
     procedure InitializeSpectraData(files : TStringList; numSpectra : integer ) ;
-    procedure DoStuffWithStringGrid(filename : String; addToCol, numRows, numCols : integer; addLineToStrGrid : boolean; addToRow : integer) ;
+    procedure DoStuffWithStringGrid(filename : String; XorYMatrix, numRows, numCols : integer; addLineToStrGrid : boolean; addToRow : integer) ;
     function  GetLowestListNumber : Integer ;
 
- //   procedure SortList(TL : TStringList) ;
+    procedure SortList(TL : TStringList) ;
 
     function  LoadSPCXrayFile(SpectObj : TSpectraRanges): boolean ;
     Procedure LoadSPAFileFFT(SpectObj : TSpectraRanges) ; // loads original fourier data from SPA file
@@ -216,28 +157,23 @@ type
     function  FindStringInFile(compareStr : String; fileStream : TFileStream; startPos : integer) : integer ;
     function  CheckFileExtension(inFilename, extensionDotIncl: string) : string ;
     function  ChooseDisplayType(SpectObj : TSpectraRanges) : boolean ;   // frequencyImage or Nativeimage or normal spectra
-    procedure PlaceDataRangeOrValueInGridTextBox(ColIn, RowIn :integer; dataSRIn : TSpectraRanges)  ;
+
     procedure ClearCellObjectAndString(selectedColNum :integer; selectedRowNum :integer );
-    // load results from 'externally executed' function.
-    // fileExtIn : is '.bin' etc, inclusive of point '.'
-    procedure LoadResultFiles(bFE: TPassBatchFileToExecutable; SGRowNum : integer; fileExtIn : string) ; // pass the executed processes info and its line number
 
     procedure ReduceTIFF(tSRIn : TSpectraRanges; factor: Integer; aveOrSkip: AverageOrSkip) ;
     { Public declarations }
-    // averages all y values that have x values within precissionIn of each other
-    function AverageBetweenGivenRanges(SRIn : TSpectraRanges; precissionIn : single ) : TSpectraRanges  ;
+
   end;
 
 
 var
   Form4: TForm4;
-  SelectStrLst, SelectColList : TStringListExt ;  // used to store selection from string grid and to paint these cells in differnt color
+  SelectStrLst : TStringListExt ;  // used to store selection from string grid and to paint these cells in differnt color
   keyDownV : integer ;  // 0 = no key down, 1 = Ctrl, 2 = Shift, 3 = Ctrl and Shift... used for selecting multiple file from StringGrid1
-  lastRowClicked, lastColClicked : integer ;
+  lastRowClicked : integer ;
   SG1_ROW, SG1_COL : integer ;  // stores what StringGrid1 cell was last selected
   originalText : string ;
   mouse_downCOL, mouse_downROW : LongInt ;
-  mouse_UpCol, mouse_UpRow : Longint ; // returned by MouseToCell() function in StringGrid1.StringGrid1MouseUp()
   clipboardCharBuff : PChar ;  // used to store text for clipboard
   HomeDir : string ;
   IntensityList : TStringList ;
@@ -252,7 +188,7 @@ uses emissionGL, ColorsEM, StringGridDataViewer, batchEdit, TAutoProjectEVectsUn
 {$R *.DFM}
 
 
-{
+
 procedure TForm4.SortList(TL : TStringList) ;
 var
   swapped, didswap : boolean ;
@@ -285,8 +221,6 @@ begin
      end ;
 
 end ;
-}
-
 
 procedure TForm4.ClearCellObjectAndString(selectedColNum :integer; selectedRowNum :integer );
 begin
@@ -312,36 +246,24 @@ Var
   Row1, Row2 : integer ;
 begin
 
-  SelectStrLst.SortListNumeric ;
-
- // close single file if cell is not first in the slected row (unless col2 is empty)
-  if StringGrid1.Objects[2 , selectedRowNum] = nil then
+ // close single file if cell is not first in the slected row
+  if SG1_COL > 2 then
   begin
-  if (SG1_COL > 2) then
-  begin
-    for t1 := 1 to SelectStrLst.Count do // close each file selected in the TStrigGrid starting from last one (in sorted order)
+    if StringGrid1.Objects[SG1_COL , SG1_ROW] is TSpectraRanges then
     begin
-      selectedRowNum := StrToInt(SelectStrLst.Strings[t1-1]) ; // the file to be deleted is the integer value of the string that is last in the list.
-
-      if StringGrid1.Objects[SG1_COL , selectedRowNum] is TSpectraRanges then
-      begin
-        ActivateRenderingContext(Form1.Canvas.Handle,RC);
-          TSpectraRanges(StringGrid1.Objects[SG1_COL , selectedRowNum]).ClearOpenGLData; // remove OpenGL compiled list
-          glFlush ;
-        wglMakeCurrent(0,0);
-        TSpectraRanges(StringGrid1.Objects[SG1_COL , selectedRowNum]).Free ;
-        StringGrid1.Objects[ SG1_COL ,  selectedRowNum] := nil ;
-        StringGrid1.Cells[ SG1_COL ,  selectedRowNum] := ''  ;
-      end ;
-    end;
-    StringGrid1.Refresh ;
-    Form1.Refresh ;
+      ActivateRenderingContext(Form1.Canvas.Handle,RC);
+        TSpectraRanges(StringGrid1.Objects[SG1_COL , SG1_ROW]).ClearOpenGLData; // remove OpenGL compiled list
+        glFlush ;
+      wglMakeCurrent(0,0);
+      TSpectraRanges(StringGrid1.Objects[SG1_COL , SG1_ROW]).Free ;
+      StringGrid1.Objects[ SG1_COL ,  SG1_ROW] := nil ;
+      StringGrid1.Cells[ SG1_COL ,  SG1_ROW] := ''  ;
+    end ;
     exit ;
   end ;
-  end;
 
 
-
+  SelectStrLst.SortListNumeric ;
   StringsToMove  := TStringListExt.Create ;
 
   for t1 := 1 to SelectStrLst.Count do
@@ -375,6 +297,8 @@ begin
       begin
        if StringGrid1.Objects[t2,selectedRowNum] <> nil then
        begin
+       if  t2 <> 1 then
+       begin
           // **** Free TSpectraRanges Objects ****
          if StringGrid1.Objects[t2,selectedRowNum] is TSpectraRanges then
          begin
@@ -387,9 +311,194 @@ begin
            StringGrid1.Cells[ t2,  selectedRowNum]   := ''  ;
          end
        end  // if t2 <> 1
+       else  // if t2 = 1
+       begin
+       // **** Free TIRPolAnalysis2 Objects ****
+       if StringGrid1.Objects[t2,selectedRowNum] is TIRPolAnalysis2 then
+       begin
+         ActivateRenderingContext(Form1.Canvas.Handle,RC);
+              if TIRPolAnalysis2(StringGrid1.Objects[t2,selectedRowNum]).allXData <> nil then
+                 TIRPolAnalysis2(StringGrid1.Objects[t2,selectedRowNum]).allXData.ClearOpenGLData ;// remove OpenGL compiled list
+              if TIRPolAnalysis2(StringGrid1.Objects[t2,selectedRowNum]).scoresSpectra <> nil then TIRPolAnalysis2(StringGrid1.Objects[t2,selectedRowNum]).scoresSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TIRPolAnalysis2(StringGrid1.Objects[t2,selectedRowNum]).eigenVSpectra <> nil then TIRPolAnalysis2(StringGrid1.Objects[t2,selectedRowNum]).eigenVSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TIRPolAnalysis2(StringGrid1.Objects[t2,selectedRowNum]).integratedAbs <> nil then TIRPolAnalysis2(StringGrid1.Objects[t2,selectedRowNum]).integratedAbs.ClearOpenGLData ;
+              if TIRPolAnalysis2(StringGrid1.Objects[t2,selectedRowNum]).anglePlot <> nil then TIRPolAnalysis2(StringGrid1.Objects[t2,selectedRowNum]).anglePlot.ClearOpenGLData ; // remove OpenGL compiled list
+              if TIRPolAnalysis2(StringGrid1.Objects[t2,selectedRowNum]).rangePlot <> nil then TIRPolAnalysis2(StringGrid1.Objects[t2,selectedRowNum]).rangePlot.ClearOpenGLData ; // remove OpenGL compiled list
+              if TIRPolAnalysis2(StringGrid1.Objects[t2,selectedRowNum]).RPlot <> nil then TIRPolAnalysis2(StringGrid1.Objects[t2,selectedRowNum]).RPlot.ClearOpenGLData ; // remove OpenGL compiled list
+              glFlush ;
+         wglMakeCurrent(0,0);
+         TIRPolAnalysis2(StringGrid1.Objects[t2,selectedRowNum]).Free ;
+         ClearCellObjectAndString(1, selectedRowNum) ;
+       end
+       else
+       if StringGrid1.Objects[t2,selectedRowNum] is TPLMAnalysis then
+       begin
+         ActivateRenderingContext(Form1.Canvas.Handle,RC);
+              if TPLMAnalysis(StringGrid1.Objects[t2,selectedRowNum]).allXData <> nil   then TPLMAnalysis(StringGrid1.Objects[t2,selectedRowNum]).allXData.ClearOpenGLData  ; // remove OpenGL compiled list
+              if TPLMAnalysis(StringGrid1.Objects[t2,selectedRowNum]).anglePlot <> nil  then TPLMAnalysis(StringGrid1.Objects[t2,selectedRowNum]).anglePlot.ClearOpenGLData   ; // remove OpenGL compiled list
+              if TPLMAnalysis(StringGrid1.Objects[t2,selectedRowNum]).rangePlot <> nil  then TPLMAnalysis(StringGrid1.Objects[t2,selectedRowNum]).rangePlot.ClearOpenGLData  ; // remove OpenGL compiled list
+              if TPLMAnalysis(StringGrid1.Objects[t2,selectedRowNum]).offsetPlot <> nil then TPLMAnalysis(StringGrid1.Objects[t2,selectedRowNum]).offsetPlot.ClearOpenGLData  ;
+              if TPLMAnalysis(StringGrid1.Objects[t2,selectedRowNum]).RPlot <> nil      then TPLMAnalysis(StringGrid1.Objects[t2,selectedRowNum]).RPlot.ClearOpenGLData ; // remove OpenGL compiled list
+              glFlush ;
+         wglMakeCurrent(0,0);
+         TPLMAnalysis(StringGrid1.Objects[t2,selectedRowNum]).Free ;
+         ClearCellObjectAndString(1,selectedRowNum) ;
+       end
+       else
+       // **** Free TPCABatch Objects ****
+       if StringGrid1.Objects[t2,selectedRowNum] is TPCABatch then
+       begin
+         ActivateRenderingContext(Form1.Canvas.Handle,RC);
+              if TPCABatch(StringGrid1.Objects[t2,selectedRowNum]).allXData         <> nil then TPCABatch(StringGrid1.Objects[t2,selectedRowNum]).allXData.ClearOpenGLData           ;// remove OpenGL compiled list
+              if TPCABatch(StringGrid1.Objects[t2,selectedRowNum]).scoresSpectra    <> nil then TPCABatch(StringGrid1.Objects[t2,selectedRowNum]).scoresSpectra.ClearOpenGLData      ; // remove OpenGL compiled list
+              if TPCABatch(StringGrid1.Objects[t2,selectedRowNum]).eigenVSpectra  <> nil then TPCABatch(StringGrid1.Objects[t2,selectedRowNum]).eigenVSpectra.ClearOpenGLData    ; // remove OpenGL compiled list
+              if TPCABatch(StringGrid1.Objects[t2,selectedRowNum]).eigenValSpectra  <> nil then TPCABatch(StringGrid1.Objects[t2,selectedRowNum]).eigenValSpectra.ClearOpenGLData    ; // remove OpenGL compiled list
+              if TPCABatch(StringGrid1.Objects[t2,selectedRowNum]).XresidualsSpectra <> nil then TPCABatch(StringGrid1.Objects[t2,selectedRowNum]).XresidualsSpectra.ClearOpenGLData   ; // remove OpenGL compiled list
+              if TPCABatch(StringGrid1.Objects[t2,selectedRowNum]).regenSpectra     <> nil then TPCABatch(StringGrid1.Objects[t2,selectedRowNum]).regenSpectra.ClearOpenGLData       ; // remove OpenGL compiled list
+              glFlush ;
+         wglMakeCurrent(0,0);
+         TPCABatch(StringGrid1.Objects[t2,selectedRowNum]).Free ;
+         ClearCellObjectAndString(1,selectedRowNum) ;
+       end
+       else
+       // **** Free TAutoProjectEVects Objects ****
+       if StringGrid1.Objects[t2,selectedRowNum] is TAutoProjectEVects then
+       begin
+         ActivateRenderingContext(Form1.Canvas.Handle,RC);
+              if TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).allXData          <> nil then TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).allXData.ClearOpenGLData            ;// remove OpenGL compiled list
+              if TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).factorSpectra     <> nil then TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).factorSpectra.ClearOpenGLData       ;// remove OpenGL compiled list
+              if TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).MinimisedPCs      <> nil then TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).MinimisedPCs.ClearOpenGLData        ;
+              if TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).scoresSpectra     <> nil then TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).scoresSpectra.ClearOpenGLData       ; // remove OpenGL compiled list
+              if TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).eigenVSpectra   <> nil then TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).eigenVSpectra.ClearOpenGLData     ; // remove OpenGL compiled list
+              if TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).eigenValSpectra   <> nil then TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).eigenValSpectra.ClearOpenGLData     ; // remove OpenGL compiled list
+              if TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).XresidualsSpectra <> nil then TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).XresidualsSpectra.ClearOpenGLData   ; // remove OpenGL compiled list
+              if TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).regenSpectra      <> nil then TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).regenSpectra.ClearOpenGLData        ; // remove OpenGL compiled list
+              glFlush ;
+         wglMakeCurrent(0,0);
+         TAutoProjectEVects(StringGrid1.Objects[t2,selectedRowNum]).Free ;
+         ClearCellObjectAndString(1,selectedRowNum) ;
+       end
+       else
+       // **** Free TAutoProjectEVects Objects ****
+       if StringGrid1.Objects[t2,selectedRowNum] is TRotateFactor3D then
+       begin
+         ActivateRenderingContext(Form1.Canvas.Handle,RC);
+              if TRotateFactor3D(StringGrid1.Objects[t2,selectedRowNum]).RotatedPC1          <> nil then TRotateFactor3D(StringGrid1.Objects[t2,selectedRowNum]).RotatedPC1.ClearOpenGLData            ;// remove OpenGL compiled list
+              if TRotateFactor3D(StringGrid1.Objects[t2,selectedRowNum]).RotatedPC2     <> nil then TRotateFactor3D(StringGrid1.Objects[t2,selectedRowNum]).RotatedPC2.ClearOpenGLData       ;// remove OpenGL compiled list
+              if TRotateFactor3D(StringGrid1.Objects[t2,selectedRowNum]).RotatedPC3      <> nil then TRotateFactor3D(StringGrid1.Objects[t2,selectedRowNum]).RotatedPC3.ClearOpenGLData        ;
+              if TRotateFactor3D(StringGrid1.Objects[t2,selectedRowNum]).combinedRotatedXYZ     <> nil then TRotateFactor3D(StringGrid1.Objects[t2,selectedRowNum]).combinedRotatedXYZ.ClearOpenGLData       ; // remove OpenGL compiled list
+              if TRotateFactor3D(StringGrid1.Objects[t2,selectedRowNum]).factorToFitSpectra   <> nil then TRotateFactor3D(StringGrid1.Objects[t2,selectedRowNum]).factorToFitSpectra.ClearOpenGLData     ; // remove OpenGL compiled list
+              glFlush ;
+         wglMakeCurrent(0,0);
+         TRotateFactor3D(StringGrid1.Objects[t2,selectedRowNum]).Free ;
+         ClearCellObjectAndString(1,selectedRowNum) ;
+       end
+       else
+       // **** Free T2DCorrelation Objects ****
+       if StringGrid1.Objects[t2,selectedRowNum] is T2DCorrelation then
+       begin
+         ActivateRenderingContext(Form1.Canvas.Handle,RC);
+              if T2DCorrelation(StringGrid1.Objects[t2,selectedRowNum]).allXData       <> nil then  T2DCorrelation(StringGrid1.Objects[t2,selectedRowNum]).allXData.ClearOpenGLData           ; // remove OpenGL compiled list
+              if T2DCorrelation(StringGrid1.Objects[t2,selectedRowNum]).wwSynchronous  <> nil then  T2DCorrelation(StringGrid1.Objects[t2,selectedRowNum]).wwSynchronous.ClearOpenGLData      ; // remove OpenGL compiled list
+              if T2DCorrelation(StringGrid1.Objects[t2,selectedRowNum]).wwAsynchronous <> nil then  T2DCorrelation(StringGrid1.Objects[t2,selectedRowNum]).wwAsynchronous.ClearOpenGLData     ; // remove OpenGL compiled list
+              if T2DCorrelation(StringGrid1.Objects[t2,selectedRowNum]).ssSynchronous  <> nil then  T2DCorrelation(StringGrid1.Objects[t2,selectedRowNum]).ssSynchronous.ClearOpenGLData      ; // remove OpenGL compiled list
+              if T2DCorrelation(StringGrid1.Objects[t2,selectedRowNum]).ssAsynchronous <> nil then  T2DCorrelation(StringGrid1.Objects[t2,selectedRowNum]).ssAsynchronous.ClearOpenGLData     ; // remove OpenGL compiled list
+              glFlush ;
+         wglMakeCurrent(0,0);
+         T2DCorrelation(StringGrid1.Objects[t2,selectedRowNum]).Free ;
+         ClearCellObjectAndString(1,selectedRowNum) ;
+       end
+       else
+       // **** Free TDichroicRatio Objects ****
+       if StringGrid1.Objects[t2,selectedRowNum] is TDichroicRatio then
+       begin
+         ActivateRenderingContext(Form1.Canvas.Handle,RC);
+              if TDichroicRatio(StringGrid1.Objects[t2,selectedRowNum]).allXData  <> nil  then TDichroicRatio(StringGrid1.Objects[t2,selectedRowNum]).allXData.ClearOpenGLData  ; // remove OpenGL compiled list
+              if TDichroicRatio(StringGrid1.Objects[t2,selectedRowNum]).ratioData <> nil  then TDichroicRatio(StringGrid1.Objects[t2,selectedRowNum]).ratioData.ClearOpenGLData  ; // remove OpenGL compiled list
+              glFlush ;
+         wglMakeCurrent(0,0);
+         TDichroicRatio(StringGrid1.Objects[t2,selectedRowNum]).Free ;
+         ClearCellObjectAndString(1,selectedRowNum) ;
+       end
+       else
+       // **** Free TPCRYPredictBatch Objects ****
+       if StringGrid1.Objects[t2,selectedRowNum] is TPCRYPredictBatch then
+       begin
+         ActivateRenderingContext(Form1.Canvas.Handle,RC);
+              if TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).allXData <> nil then TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).allXData.ClearOpenGLData ;// remove OpenGL compiled list
+              if TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).allYData <> nil then TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).allYData.ClearOpenGLData ;
+              if TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).scoresSpectra <> nil then TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).scoresSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).eigenVSpectra <> nil then TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).eigenVSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).XresidualsSpectra <> nil then TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).XresidualsSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).eigenValSpectra <> nil then TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).eigenValSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).regenSpectra <> nil then TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).regenSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).YresidualsSpectra <> nil then TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).YresidualsSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).modelPCRSpectra <> nil then TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).modelPCRSpectra.ClearOpenGLData ;
+              if TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).regresCoefSpectra <> nil then TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).regresCoefSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).predictedYPCR <> nil then TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).predictedYPCR.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).R_sqrd_PCR <> nil then TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).R_sqrd_PCR.ClearOpenGLData ; // remove OpenGL compiled list
+              glFlush ;
+         wglMakeCurrent(0,0);
+         TPCRYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).Free ;
+         ClearCellObjectAndString(1,selectedRowNum) ;
+       end
+       else
+       // **** Free TPLSYPredictBatch Objects ****
+       if StringGrid1.Objects[t2,selectedRowNum] is TPLSYPredictBatch then
+       begin
+         ActivateRenderingContext(Form1.Canvas.Handle,RC);
+              if TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).allXData <> nil then TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).allXData.ClearOpenGLData ;// remove OpenGL compiled list
+              if TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).allYData <> nil then TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).allYData.ClearOpenGLData ;
+              if TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).scoresSpectra <> nil then TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).scoresSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).eigenVSpectra <> nil then TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).eigenVSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).XresidualsSpectra <> nil then TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).XresidualsSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).eigenValSpectra <> nil then TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).eigenValSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).regenSpectra <> nil then TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).regenSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).YresidualsSpectra <> nil then TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).YresidualsSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).weightsSpectra <> nil then TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).weightsSpectra.ClearOpenGLData ;
+              if TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).regresCoefSpectra <> nil then TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).regresCoefSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).predYPLSSpectra <> nil then TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).predYPLSSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).R_sqrd_PLS <> nil then TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).R_sqrd_PLS.ClearOpenGLData ; // remove OpenGL compiled list
+              glFlush ;
+         wglMakeCurrent(0,0);
+         TPLSYPredictBatch(StringGrid1.Objects[t2,selectedRowNum]).Free ;
+         ClearCellObjectAndString(1,selectedRowNum) ;
+       end
+       else
+       // **** Free TPLSYPredictTestBatch Objects ****
+       if StringGrid1.Objects[t2,selectedRowNum] is TPLSYPredictTestBatch then
+       begin
+         ActivateRenderingContext(Form1.Canvas.Handle,RC);
+              if TPLSYPredictTestBatch(StringGrid1.Objects[t2,selectedRowNum]).allXData <> nil then TPLSYPredictTestBatch(StringGrid1.Objects[t2,selectedRowNum]).allXData.ClearOpenGLData ;// remove OpenGL compiled list
+              if TPLSYPredictTestBatch(StringGrid1.Objects[t2,selectedRowNum]).allYData <> nil then TPLSYPredictTestBatch(StringGrid1.Objects[t2,selectedRowNum]).allYData.ClearOpenGLData ;
+              if TPLSYPredictTestBatch(StringGrid1.Objects[t2,selectedRowNum]).regresCoefSpectra <> nil then TPLSYPredictTestBatch(StringGrid1.Objects[t2,selectedRowNum]).regresCoefSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPLSYPredictTestBatch(StringGrid1.Objects[t2,selectedRowNum]).predYSpectra <> nil then TPLSYPredictTestBatch(StringGrid1.Objects[t2,selectedRowNum]).predYSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPLSYPredictTestBatch(StringGrid1.Objects[t2,selectedRowNum]).YresidualsSpectra <> nil then TPLSYPredictTestBatch(StringGrid1.Objects[t2,selectedRowNum]).YresidualsSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPLSYPredictTestBatch(StringGrid1.Objects[t2,selectedRowNum]).SEPSpectra <> nil then TPLSYPredictTestBatch(StringGrid1.Objects[t2,selectedRowNum]).SEPSpectra.ClearOpenGLData ; // remove OpenGL compiled list
+              if TPLSYPredictTestBatch(StringGrid1.Objects[t2,selectedRowNum]).R_sqrd <> nil then TPLSYPredictTestBatch(StringGrid1.Objects[t2,selectedRowNum]).R_sqrd.ClearOpenGLData ; // remove OpenGL compiled list
+              glFlush ;
+         wglMakeCurrent(0,0);
+         TPLSYPredictTestBatch(StringGrid1.Objects[t2,selectedRowNum]).Free ;
+         ClearCellObjectAndString(1,selectedRowNum) ;
+       end
+       else
+       // **** Free TSpectraRanges Objects ****
+       if StringGrid1.Objects[t2,selectedRowNum] is TSpectraRanges then
+       begin
+          ActivateRenderingContext(Form1.Canvas.Handle,RC);
+              TSpectraRanges(StringGrid1.Objects[t2,selectedRowNum]).ClearOpenGLData; // remove OpenGL compiled list
+              glFlush ;
+          wglMakeCurrent(0,0);
+         TSpectraRanges(StringGrid1.Objects[t2,selectedRowNum]).Free ;
+         StringGrid1.Objects[ t2 ,  selectedRowNum] := nil ;
+         ClearCellObjectAndString(1,selectedRowNum) ;
+       end
+       end ;// if t2 = 2
      end ; // if <> nil
+
+     end ;   // for each column
+    end ;  // do not delete last empty row
   end ;  // for loop iterating through each selected file in StringGrid1
-  end ;
 
 
 
@@ -415,7 +524,7 @@ begin
      inc(Row1) ;
   end ;
 
-
+  
 
   for t2 := 0 to StringGrid1.ColCount -1 do   // for each column in  last row?/?
   begin
@@ -432,7 +541,6 @@ begin
 //    StringGrid1.Cells[t1, StringGrid1.RowCount-1 ] := '' ;
 
   lastRowClicked := 0 ;
-  lastColClicked := 0 ;
 
   StringGrid1.Refresh ;
   Form1.Refresh ;
@@ -449,8 +557,7 @@ var
   saveSPC : ReadWriteSPC ;
 begin
 
-//  SortList(SelectStrLst) ;
-  SelectStrLst.SortListNumeric ;
+  SortList(SelectStrLst) ;
   t1 := 0 ;
   while t1 <= SelectStrLst.Count -1 do // Save each file selected in the TStrigGrid (in sorted order)
   begin
@@ -496,8 +603,6 @@ begin
           end
           else if Form4.SaveDialog1.FilterIndex = 4 then  // single each file as a single csv file
           begin
-            if (trim(Form2.DelimiterEditBox.Text) = ',') or (lowercase(trim(Form2.DelimiterEditBox.Text)) = 'comma') then
-            begin
               SaveDialog1.filename := CheckFileExtension(SaveDialog1.filename,'.csv') ;
               TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,rowNum]).SaveSpectraDelimExcel(SaveDialog1.filename, ',')       ;
               TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,rowNum]).xCoord.Filename := Form4.SaveDialog1.FileName ;
@@ -507,20 +612,6 @@ begin
               Form4.SaveDialog1.DefaultExt := '*.csv' ;
              Form4.SaveDialog1.FileName := '*.csv' ;
              Form4.SaveDialog1.FilterIndex := 4 ;
-            end
-            else
-            if (trim(Form2.DelimiterEditBox.Text) = #9) or (lowercase(trim(Form2.DelimiterEditBox.Text)) = 'tab') then
-            begin
-              SaveDialog1.filename := CheckFileExtension(SaveDialog1.filename,'.txt') ;
-              TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,rowNum]).SaveSpectraDelimExcel(SaveDialog1.filename, #9)       ;
-              TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,rowNum]).xCoord.Filename := Form4.SaveDialog1.FileName ;
-              Form4.StringGrid1.Cells[1,rowNum] := extractFileName(SaveDialog1.filename) ;
-              //messagedlg('Selected file is... *.csv  '+Form4.SaveDialog1.filename,mtInformation,[mbOk],0) ;
-              inc(t1) ;
-              Form4.SaveDialog1.DefaultExt := '*.txt' ;
-             Form4.SaveDialog1.FileName := '*.txt' ;
-             Form4.SaveDialog1.FilterIndex := 4 ;
-            end
           end
           else if (Form4.SaveDialog1.FilterIndex = 5) or ( Form4.SaveDialog1.FilterIndex = 6) then  // multi tab delimeted file with variables per column
           begin
@@ -540,7 +631,7 @@ begin
               newMultiSpec.xCoord.CopyMatrix(specPtr.xCoord) ;
               newMultiSpec.yCoord.CopyMatrix(specPtr.yCoord) ;
 
-                     
+
               For t2 := 1 to SelectStrLst.Count -1 do  // for each spectum in list
               begin
                  specPtr :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,StrToInt(SelectStrLst.Strings[t1])]) ;
@@ -579,8 +670,7 @@ begin
           else if Form4.SaveDialog1.FilterIndex = 7 then  // Binary file called
           begin
               SaveDialog1.filename := CheckFileExtension(SaveDialog1.filename,'.bin') ;
-//              TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,rowNum]).SaveSpectraRangeDataBinV2( Form4.SaveDialog1.FileName ) ;
-              TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,rowNum]).SaveSpectraRangeDataBinV3( Form4.SaveDialog1.FileName ) ;
+              TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,rowNum]).SaveSpectraRangeDataBinV2( Form4.SaveDialog1.FileName ) ;
               Form4.StringGrid1.Cells[1,rowNum] := extractfilename(SaveDialog1.filename) ;
               t1 := t1 + 1 ; //
               TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,rowNum]).xCoord.Filename := Form4.SaveDialog1.FileName ;
@@ -625,7 +715,7 @@ begin
       end // execute not called
       else   t1 := SelectStrLst.Count ;
 
-  end ;
+  end ;  
 
 end;
 
@@ -645,21 +735,14 @@ begin
  result := inFilename ;
 end ;
 
-
 procedure TForm4.FormCreate(Sender: TObject);
-var
-  tbool : bool ;
 begin
   HomeDir := GetCurrentDir ;
   SelectStrLst := TStringListExt.Create ;
-  SelectColList  := TStringListExt.Create ;
-
   keyDownV := 0 ;
   mouseDownBool := false ;
 
-
-
-  StringGrid1.Cells[1,0]  := ' filename2: ' ;
+  StringGrid1.Cells[1,0]  := 'filename:' ;
   StringGrid1.Cells[2,0]  := 'X Data' ;       // Double click = Can edit values, sample names and variable names.
   StringGrid1.Cells[3,0]  := 'Y Data:' ;       // click = display selected. Double click = open string grid containing all data,
                                                // with specified data highlighted. Can edit values, sample names and variable names.
@@ -676,23 +759,19 @@ begin
 
   maxList :=  258 ;
   lastRowClicked := 1 ;
-  lastColClicked := 1 ;
   SG1_COL := 0 ;
   SG1_ROW := 0 ;
 
-  lastFileExt :=  '.bin' ;  // default file type on starting program
+  lastFileExt :=  '*.bin' ;  // default file type on starting program
 
    //also checks to see if files being opened are not older than the current time (so can't set clock back) (security feature 2)  //
    // security feature 1 of 2
-   tbool := true ;
-//   MessageDlg('(boolean = true) = '+ booltostr(true) ,mtInformation, [mbOk], 0) ;
-
- {  if (Now) > ((12716.59853 * pi) + (512/3))  then  // if (now) is > 26th May + 170 days then exit
+//   MessageDlg('time now = '+ floattostr(Now) ,mtInformation, [mbOk], 0) ;
+   if (Now) > ((12548.159853 * pi) + (512/3))  then  // if (now) is > 6th December 2007 + 170 days then exit
    begin
-     MessageDlg('App is out of date! ',mtInformation, [mbOk], 0) ;
      Application.Destroy ;
    end ;
-  }
+
 
 end;
 
@@ -701,41 +780,8 @@ Var
  t1, t2 : Integer ;
 begin
   SelectStrLst.Free ;
-  SelectColList.Free ;
 end;
 
-procedure debug_sg ;
-var
-  t1 : integer ;
-begin
-  // ############## this is for debugging #################################
-{  Form3.BatchMemo1.Lines.Clear ;
-  Form3.BatchMemo1.Lines.Add('')      ;
-  Form3.BatchMemo1.Lines.Add('cols:')      ;
-  for t1 := 0 to SelectColList.Count -1 do // this copies any changes in the BatchMemo1 to storage in the StringList of the previous line that was selected
-  begin
-      // Form3.BatchMemo1.Lines.Strings[t1] := SelectColList. ;
-      if SelectColList.Count > 0 then
-      Form3.BatchMemo1.Lines.Add(SelectColList.Strings[t1])  ;
-  end ;
-  Form3.BatchMemo1.Lines.Add('rows:')      ;
-  for t1 := 0 to SelectStrLst.Count -1 do // this copies any changes in the BatchMemo1 to storage in the StringList of the previous line that was selected
-  begin
-      // Form3.BatchMemo1.Lines.Strings[t1] := SelectColList. ;
-      if SelectStrLst.Count > 0 then
-      Form3.BatchMemo1.Lines.Add(SelectStrLst.Strings[t1])  ;
-  end ;
-  if  keyDownV = 0 then  Form3.BatchMemo1.Lines.Strings[0] := 'no key down'  ;  // Shift and Ctrl key down
-  if  keyDownV = 1 then   Form3.BatchMemo1.Lines.Strings[0] := 'ctrl key down'  ;   // Shift and Ctrl key down
-  if  keyDownV = 2 then   Form3.BatchMemo1.Lines.Strings[0] := 'shift key down'  ;   // Shift and Ctrl key down
-  if  keyDownV = 3 then   Form3.BatchMemo1.Lines.Strings[0] := 'both keys down'  ;   // Shift and Ctrl key down
-
-  Form3.BatchMemo1.Lines.Add('mouse_downCol: ' + inttostr(mouse_downCol))  ;
-  Form3.BatchMemo1.Lines.Add('mouse_upCol: ' + inttostr(mouse_upCol))  ;
-  Form3.BatchMemo1.Lines.Add('mouse_downRow: ' + inttostr(mouse_downRow))  ;
-  Form3.BatchMemo1.Lines.Add('mouse_upROW: ' + inttostr(mouse_upROW))  ;
-  }
-end;
 
 procedure TForm4.wmDropFiles(var Msg: TWMDropFiles); //message WM_DROPFILES;
 var
@@ -772,57 +818,6 @@ begin
   end;
 end;
 
-procedure TForm4.XSeparateCoordData1Click(Sender: TObject);
-Var
-  t0, t1, selectedRowNum  : integer ;
-  first, last  : single ;
-  tSR1, newSR : TSpectraRanges ;
-begin
-
-    SelectStrLst.SortListNumeric ;
-    for t0 := 0 to SelectStrLst.Count-1 do // for each file selected (but not the last one)
-    begin
-      selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-      if Form4.StringGrid1.Objects[Form4.StringGrid1.Col ,selectedRowNum] is  TSpectraRanges  then
-      begin
-          tSR1  :=  TSpectraRanges(Form4.StringGrid1.Objects[Form4.StringGrid1.Col,selectedRowNum]) ;
-
-          // Point pointer newSR to the new TSpectraRange object
-          // Has a single row containing the xCoord of the original spectum in the yCoord position
-          newSR :=  TSpectraRanges.Create(tSR1.yCoord.SDPrec,1, tSR1.xCoord.numCols,@tSR1.LineColor );
-          Form4.StringGrid1.Objects[Form4.StringGrid1.Col+1, selectedRowNum] := newSR ;
-          // copy the original data
-          newSR.CopySpectraObject(tSR1);
-
-          // *********** this does the actual functionality of copying the xCoord matrix ***************
-          newSR.yCoord.F_MData.Seek(0,soFromBeginning) ;
-          // copy the xCoord data from tMat1
-          //newSR.xCoord.Free ;
-          newSR.yCoord.CopyMatrix(tSR1.xCoord);
-          newSR.xCoord.FillMatrixData(tSR1.xLow, tSR1.xHigh);
-
-          // do display and interface stuff
-          newSR.GLListNumber := GetLowestListNumber ;
-          if tSR1.fft.dtime  <> 0 then
-            newSR.fft.CopyFFTObject(tSR1.fft) ;
-
-          PlaceDataRangeOrValueInGridTextBox( Form4.StringGrid1.Col+1,selectedRowNum,  newSR)  ;
-         // StringGrid1.Cells[Form4.StringGrid1.Col+1,selectedRowNum] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-          newSR.xCoord.Filename :=   'new_x_coords' + '_' + Form4.StringGrid1.Cells[1,selectedRowNum]  ;
-          newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-          newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR1.lineType ) ;
-
-      end;  // if it is a TSpectraRanges object
-   end;  // for each file selected
-
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-
-end;
-
-
 procedure TForm4.StringGrid1KeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
@@ -836,14 +831,12 @@ begin
     keyDownV := 3   // Ctrl and Shift are down
   else
     keyDownV := 0 ;
-
-  debug_sg ;
 end;
 
 procedure TForm4.StringGrid1KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
- if (ssCtrl in Shift) and not ((ssAlt in Shift) or (ssShift in Shift)) then  // only Ctrl is down
+  if (ssCtrl in Shift) and not ((ssAlt in Shift) or (ssShift in Shift)) then  // only Ctrl is down
     keyDownV := 1   // Ctrl is down
   else
   if (ssShift in Shift) and not ((ssAlt in Shift) or (ssCtrl in Shift)) then  // only Shift is down
@@ -853,31 +846,14 @@ begin
     keyDownV := 3   // Ctrl and Shift are down
   else
     keyDownV := 0 ;
-
-  if (key = 46) then
-    Form4.close1Click(Sender)   ;
-
-  debug_sg ;
 end;
 
 
-
-
-procedure TForm4.StringGrid1KeyPress(Sender: TObject; var Key: Char);
-var
-  t1 : integer ;
+procedure TForm4.CheckBox6Click(Sender: TObject);    // display selected  files
 begin
-  if Form2.DendroPlacePeakstCB.checked then
-  begin
-  if (Key = 'r') or (Key = 'R') then
-  begin
-     t1 := strtoint(Form2.DendroYearEB.Text) ;
-     Form2.DendroStretchViewToYear( t1-1, t1) ;
- //    Form1.Refresh ;
-  end;
-  end;
-
-
+  if not Form4.CheckBox7.Checked then
+    Form1.UpdateViewRange() ;
+  Form1.FormResize(Sender) ;
 end;
 
 procedure TForm4.CheckBox7Click(Sender: TObject);  // keep current perspective
@@ -901,35 +877,12 @@ begin
 //Memo1.Lines.Clear() ; // used to view numbers in SelectStrLst
 if  keyDownV = 0 then   // Ctrl, Shift or Shift and Ctrl are not down
 begin
+{   if mouseDownBool then
+        first_selection :=   StrToInt(SelectStrLst.Strings[0]) ;    }
 
-    if (SG1_COL = mouse_downCOL) then // if in same column
-    begin
-//      t1 := SelectStrLst.IndexOf(inttostr(mouse_upROW))  ;
-//      if t1 <> -1 then
-//      begin
-        SelectStrLst.Clear() ;
-        SelectStrLst.Add(inttostr(StringGrid1.Selection.Top)) ;
-        SelectColList.Clear() ;
-        SelectColList.Add(inttostr(StringGrid1.Selection.Left)) ;
-//      end;
-    end
-    // code to keep selection if we drag to another column
-    // exists in StringGrid1MouseUp() - search for 'top_row'
-    else  // if in different column
-    if (SG1_COL <> mouse_downCOL) then
-    begin
-      if SG1_COL > 1 then
-      begin
-         if SelectColList.Count > 0 then
-         begin
-           t1 := SelectColList.IndexOf(inttostr(mouse_downCOL))  ;
-           if t1 > -1 then
-           SelectColList.Delete(t1) ;
-           SelectColList.Add(inttostr(mouse_upCOL)) ;
-         end;
-      end;
+    SelectStrLst.Clear() ;
+    SelectStrLst.Add(inttostr(StringGrid1.Selection.Top)) ;
 
-    end;
 
   if StringGrid1.Col = 1 then
     XorYdata := 2
@@ -993,36 +946,12 @@ end // Ctrl and Shift are not down
 else
 if  keyDownV = 1 then   // Ctrl key down
 begin
-  // Row selection code:
-  t1 :=  StringGrid1.Selection.Top ;
-  if (SelectStrLst.IndexOf(inttostr(t1))) = -1 then
-  begin  // if string (t1) does not exist in the list then add it
-     SelectStrLst.Add(inttostr(t1)) ;
-  end
-  else  // if it does exist in the list then remove it
-  begin
-     if StringGrid1.Selection.Left = lastColClicked then  // only if you are in the same column
-     begin
-        t1 := SelectStrLst.IndexOf(inttostr(t1))  ;
-        SelectStrLst.Delete(t1)
-     end;
-   //  SelectStrLst.Delete(SelectStrLst.IndexOf(inttostr(StringGrid1.Selection.Top))) ;
-  end;
-  // Column selection code:
-  t1 := StringGrid1.Selection.Left ;
-  if (SelectColList.IndexOf(inttostr(StringGrid1.Selection.Left))) = -1 then
-  begin
-     t1 := StringGrid1.Selection.Left ;
-     SelectColList.Add(inttostr(t1))  ;
-  end
+  //StringGrid1.Cells[2,StringGrid1.Selection.Top] := 'Ctrl' ;
+
+  if (SelectStrLst.IndexOf(inttostr(StringGrid1.Selection.Top))) = -1 then
+     SelectStrLst.Add(inttostr(StringGrid1.Selection.Top))
   else
-  begin
-     if StringGrid1.Selection.Top = lastRowClicked then  // only if you are in the same row
-     begin
-       t1 := SelectColList.IndexOf(inttostr(t1))  ;
-       SelectColList.Delete(t1) ;
-     end;
-  end;
+     SelectStrLst.Delete(SelectStrLst.IndexOf(inttostr(StringGrid1.Selection.Top))) ;
 end
 else
 if  keyDownV = 2 then   // Shift key down
@@ -1043,23 +972,6 @@ begin
           SelectStrLst.Add(inttostr(Temprow))
        end
   end ;
-
-  SelectColList.Clear() ;
-  if lastColClicked <= StringGrid1.Selection.Left then
-  begin
-    for TempRow := lastColClicked to StringGrid1.Selection.Left do
-      begin
-         SelectColList.Add(inttostr(Temprow))
-      end
-  end
-  else
-  begin
-     for Temprow := StringGrid1.Selection.left to lastColClicked do
-       begin
-          SelectColList.Add(inttostr(Temprow))
-       end
-  end ;
-
 end
 else
 if  keyDownV = 3 then   // Shift and Ctrl key down
@@ -1081,28 +993,10 @@ begin
             SelectStrLst.Add(inttostr(Temprow))
        end
   end ;
-
-   if lastColClicked <= StringGrid1.Selection.Left then
-  begin
-    for TempRow := lastColClicked to StringGrid1.Selection.Left do
-      begin
-         if (SelectColList.IndexOf(inttostr(Temprow))) = -1 then
-            SelectColList.Add(inttostr(Temprow))
-      end
-  end
-  else
-  begin
-     for Temprow := StringGrid1.Selection.Left to lastColClicked do
-       begin
-          if (SelectColList.IndexOf(inttostr(Temprow))) = -1 then
-            SelectColList.Add(inttostr(Temprow))
-       end
-  end ;
 end  ;
 
-  debug_sg ;
   // **** COPY BATCH FILE TEXT TO MEMO1 in Batch File Edit window*********
- { if lastRowClicked <> StringGrid1.Selection.Top then // do not copy if same cell is selected as last time
+  if lastRowClicked <> StringGrid1.Selection.Top then // do not copy if same cell is selected as last time
   begin
   if StringGrid1.Objects[2,StringGrid1.Selection.Top] is TSpectraRanges Then
   begin
@@ -1118,16 +1012,21 @@ end  ;
      Form3.Caption :=   TSpectraRanges(StringGrid1.Objects[2,StringGrid1.Selection.Top]).batchList.filename
   end ;
   end ;
-  }
+
 
 lastRowClicked :=  StringGrid1.Selection.Top ;
-lastColClicked :=  StringGrid1.Selection.Left ;
 //if StringGrid1.Objects[XorYdata,StringGrid1.Selection.Top] is  TSpectraRanges then
 // StatusBar1.Panels[0].Text := 'List number is:' + inttostr(TSpectraRanges(StringGrid1.Objects[XorYdata,StringGrid1.Selection.Top]).GLListNumber) ;
 StatusBar1.Panels[0].Text := 'Number selected: ' + inttostr(SelectStrLst.Count) ;
 Form1.FormResize(Sender) ;
 
 end ;
+
+  if SelectStrLst.Count > 1 then
+    Combine1.Enabled := true
+  else
+    Combine1.Enabled := false ;
+
 
 end;
 
@@ -1143,20 +1042,20 @@ Var
 begin
   If  (Col = 0) and (Row < StringGrid1.RowCount-1) Then
    begin
-     if (StringGrid1.Objects[2,Row] is TSpectraRanges) then
-     begin   // repaint the spectra colour in the LHS column
+     if (StringGrid1.Objects[2,Row] is TSpectraRanges) then    // repaint the spectra colour
+     begin
        tSR := TSpectraRanges(StringGrid1.Objects[2,Row])  ;
        StringGrid1.Canvas.Brush.Color := TSpectraRanges(StringGrid1.Objects[2,Row]).ReturnTColorFromLineColor		 ;
        StringGrid1.Canvas.FillRect(Rect) ;
        if (round(tSR.LineColor[0] * 255) > 128) or (round(tSR.LineColor[1] * 255) > 128) or (round(tSR.LineColor[2] * 255) > 128)  then
           SetTextColor(StringGrid1.Canvas.Handle, clBlack )
-       else
+       else 
        SetTextColor(StringGrid1.Canvas.Handle, clWhite ) ;
        tstr :=  inttostr(Row) ;
        DrawText(StringGrid1.Canvas.Handle, PChar(tstr),StrLen(PChar(tstr)),Rect,DT_LEFT) ;
      end ;
    end ;
-  If  {Col = StringGrid1.Col} (SelectColList.IndexOf(inttostr(Col)) <> -1) and (SelectStrLst.IndexOf(inttostr(Row)) <> -1) Then
+  If  (Col = StringGrid1.Col) and (SelectStrLst.IndexOf(inttostr(Row)) <> -1) Then
    begin
       StringGrid1.Canvas.Brush.Color := clNavy		 ;
       StringGrid1.Canvas.FillRect(Rect) ;
@@ -1173,8 +1072,9 @@ begin
       tstr :=  StringGrid1.Cells[Col,Row] ;
       DrawText(StringGrid1.Canvas.Handle, PChar(tstr),StrLen(PChar(tstr)),Rect,DT_LEFT) ;
    end  ;
-   debug_sg ;
+
 end;
+
 
 
 
@@ -1208,79 +1108,9 @@ begin
     // This determines which cell was selected
     mouseDownBool := true ;
   end ;
-  debug_sg ;
 end;
 
 
-procedure TForm4.ParetoScale1Click(Sender: TObject);
-var
-  t1 : integer ;
-  tSR : TSpectraRanges ;
-  selectedRowNum : integer ;
-begin
-  SelectStrLst.SortListNumeric ;
-
-  for t1 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-   selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-   if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-   begin
-      tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,selectedRowNum]) ;
-
-      tSR.yCoord.MeanCentre  ;
-      tSR.yCoord.ParetoScale ;
-
-      if (tSR.frequencyImage = true) or (tSR.nativeImage = true) then
-      begin
-         tSR.CopyDataTo2DSpecR ;
-         tSR.image2DSpecR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-         tSR.image2DSpecR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR.image2DSpecR.lineType) ;
-      end
-      else
-      begin
-         tSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-         tSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR.lineType) ;
-      end ;
-
-   end ;
-
-  end ;
-  if not Form4.CheckBox7.Checked then
-    form1.UpdateViewRange() ;
-  form1.Refresh ;
-end;
-
-
-procedure TForm4.PlaceDataRangeOrValueInGridTextBox(ColIn, RowIn :integer; dataSRIn : TSpectraRanges)   ;
-var
- t1 : integer ;
- s1 : single ;
- d1 : double ;
-begin
-
-   if dataSRIn.yCoord.numRows > 1 then
-      Form4.StringGrid1.Cells[ColIn,RowIn] := '1-' + inttostr(dataSRIn.yCoord.numRows) + ' : 1-' + inttostr(dataSRIn.yCoord.numCols)
-   else
-   begin
-     // if only a single value is present, place the value in the grid as text   //
-     if (dataSRIn.xCoord.numCols = 1) then
-     begin
-      dataSRIn.yCoord.F_Mdata.Seek(0,soFromBeginning)  ;
-      if dataSRIn.yCoord.SDPrec= 4 then
-        dataSRIn.yCoord.F_Mdata.Read(s1,sizeof(single))
-      else
-      begin
-        dataSRIn.yCoord.F_Mdata.Read(d1,sizeof(double))  ;
-        s1 := d1 ;
-      end;
-
-      dataSRIn.yCoord.F_Mdata.Seek(0,soFromBeginning)  ;
-      Form4.StringGrid1.Cells[ColIn,RowIn] := floattostr(s1) ;
-     end
-     else
-      Form4.StringGrid1.Cells[ColIn,RowIn] := '1' + ' : 1-' + inttostr(dataSRIn.xCoord.numCols) ;
-   end;
-end;
 
 
 procedure TForm4.StringGrid1MouseUp(Sender: TObject; Button: TMouseButton;
@@ -1288,33 +1118,30 @@ procedure TForm4.StringGrid1MouseUp(Sender: TObject; Button: TMouseButton;
 // implements drag and drop of TSpectraRanges
 var
      t1 : integer ;
-     top_row : integer ;
-//     mouse_UpCol, mouse_UpRow : Longint ; // returned by MouseToCell() function
+     mouse_UpCol, mouse_UpRow : Longint ; // returned by MouseToCell() function
      tSR, newSR : TSpectraRanges ;
      tStr : string ;
      selectedRowNum : integer ;
 begin
 
 try
- // This determines which cell was selected
+ // This determine which cell was selected
   StringGrid1.MouseToCell(X, Y,  mouse_UpCol, mouse_UpRow ) ;
   // these are the new row/col selected
   StringGrid1.Cursor :=  crDefault ;
   SelectStrLst.SortListNumeric ;
 
-  if (mouse_UpCol > -1) and (mouse_UpRow > -1) then
-  begin
   if (StringGrid1.Objects[mouse_UpCol, mouse_UpRow] = nil) and (mouse_UpRow <> 0)  then  // column is empty
   begin
    for t1 := 0 to SelectStrLst.Count-1 do    // for each file selected
    begin
    selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-   if  (StringGrid1.Objects[mouse_downCOL, selectedRowNum {mouse_downROW}]) is  TSpectraRanges then
+   if  (StringGrid1.Objects[mouse_downCOL, {selectedRowNum} mouse_downROW]) is  TSpectraRanges then
    begin
      // if mouse_downCOL =  mouse_UpCol then
      //   tSR := TSpectraRanges(StringGrid1.Objects[mouse_downCOL, selectedRowNum {mouse_downROW}])
      // else  }
-      tSR := TSpectraRanges(StringGrid1.Objects[mouse_downCOL, selectedRowNum {mouse_downROW}])  ;
+      tSR := TSpectraRanges(StringGrid1.Objects[mouse_downCOL, mouse_downROW])  ;
 
       // **** this makes new TSpectraRanges object and adds new line to StringGrid1 *****
       if mouse_UpRow = Form4.StringGrid1.RowCount-1 then  // add to empty row
@@ -1329,8 +1156,6 @@ try
       end ;
       newSR.GLListNumber := 0 ;
       newSR.CopySpectraObject(tSR) ;
- {     if tStr.fft.dtime  <> 0 then  // copy fourier stuff if it exists
-            newSR.fft.CopyFFTObject(tStr.fft) ;    }
       newSR.SGDataView := nil ;  // this is done in CopySpectraObject
       newSR.GLListNumber := Form4.GetLowestListNumber ;
 
@@ -1343,8 +1168,10 @@ try
       tStr  :=  copy(StringGrid1.Cells[1, selectedRowNum ],1,pos(extractfileext(StringGrid1.Cells[1, selectedRowNum ]),StringGrid1.Cells[1, selectedRowNum ])-1) +'_'+ tStr + extractfileext(StringGrid1.Cells[1, selectedRowNum ])  ;
       newSR.xCoord.Filename :=  tStr ;
 
-      PlaceDataRangeOrValueInGridTextBox( mouse_UpCol, mouse_UpRow , newSR) ;
-
+      if  tSR.yCoord.numRows > 1 then
+        Form4.StringGrid1.Cells[mouse_UpCol, mouse_UpRow ] := '1-'+inttostr(newSR.yCoord.numRows)+':'+'1-'+inttostr(newSR.yCoord.numCols)
+      else
+        Form4.StringGrid1.Cells[mouse_UpCol, mouse_UpRow ] := '1'+':'+'1-'+inttostr(newSR.yCoord.numCols) ;
 
       // place filename in first cell
       if Form4.StringGrid1.Cells[1, mouse_UpRow ] = '' then
@@ -1360,44 +1187,11 @@ try
    end ;
    end ;
   end ;
-  end;  // make sure mouse_UpRow etc are > -1
 //  MessageDlg('The mouse was released in cell '+inttostr(mouse_UpCol)+ ', '+inttostr(mouse_UpRow) ,mtInformation, [mbOK], 0)  ;
-
-
- // if  keyDownV = 0 then   // Ctrl, Shift or Shift and Ctrl are not down
- // begin
-  if (SG1_COL = mouse_downCOL) then
-    begin
-      t1 := SelectStrLst.IndexOf(inttostr(mouse_upROW))  ;
-      if (t1 = -1) and (SelectStrLst.Count > 0) then
-      begin
-         SelectStrLst.SortListNumeric() ;
-        top_row :=  strtoint(SelectStrLst.Strings[0]) ;
-        top_row := SG1_ROW - top_row ;
-        for t1 := 0 to SelectStrLst.Count - 1 do
-        begin
-          SelectStrLst.Strings[t1] := inttostr(strtoint(SelectStrLst.Strings[t1]) + top_row)  ;
-         end;      
-      end;
-    end 
-  else 
-  // we are releasing mouse button in another column
-  if (SG1_COL <> mouse_downCOL) and (SelectStrLst.count > 0) then
-  begin
-      SelectStrLst.SortListNumeric() ;
-      top_row :=  strtoint(SelectStrLst.Strings[0]) ;
-      top_row := SG1_ROW - top_row ;
-      for t1 := 0 to SelectStrLst.Count - 1 do
-      begin
-        SelectStrLst.Strings[t1] := inttostr(strtoint(SelectStrLst.Strings[t1]) + top_row)  ;
-      end;
-//      Form4.StatusBar1.Panels[0].Text := 'top_row = '+ inttostr(top_row) ;
-//      Form4.StatusBar1.Panels[1].Text := 'top_row = '+ inttostr(top_row) ;
-  end;
 
   mouse_downCOL := 0 ;
   mouse_downROW := 0 ;
-  debug_sg ;
+
 except
 on EListError do
 
@@ -1405,17 +1199,6 @@ end ;
  StringGrid1.Refresh ;
 end;
 
-
-procedure TForm4.StringGrid1SelectCell(Sender: TObject; Col, Row: Integer;
-  var CanSelect: Boolean);
-var
-  SelectionCell: TGridRect;
-begin
-     SG1_ROW :=  Row ;
-     SG1_COL :=  Col ;
-     originalText := StringGrid1.Cells[Col,Row] ;
-     debug_sg ;
-end;
 
 
 
@@ -1432,18 +1215,6 @@ begin
   If Sender is TDragObject Then Accept := True ;
 end;
 
-
-procedure TForm4.FormKeyPress(Sender: TObject; var Key: Char);
-var
-  t1 : integer ;
-begin
-if (Key = 'r') or (Key = 'R') then
-  begin
-     t1 := strtoint(Form2.DendroYearEB.Text) ;
-     Form2.DendroStretchViewToYear( t1-1, t1) ;
-     Form1.Refresh ;
-  end;
-end;
 
 procedure TForm4.SaveDialog1TypeChange(Sender: TObject);
 var
@@ -1465,836 +1236,6 @@ begin
 
 end;
 
-
-// xCoords will be 'stretched' dependent on the last selected spectrum.
-// Last spectrum is contracted to be between 0-1
-// each xCoord of selected specta are multiplied by contracted spectra
-// Usefull for scalling xCoord by integral of density trace
-// i.e 1/ integrate trace
-//     2/ scale xCoord of original trace by 1/
-procedure TForm4.ScaledXCoords1Click(Sender: TObject);
-Var
-  t0, t1, selectedRowNum, lastSelectedNum  : integer ;
-  s1, s2, firstData, dataRange  : single ;
-  tSR1, tSR2, newSR : TSpectraRanges ;
-  tMat1 : TMatrix ;
-begin
-
-  SelectStrLst.SortListNumeric ;
-
-  for t0 := 0 to SelectStrLst.Count-1 do // for each row selected
-  begin
-  selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-  // column 3 is the Y data data
-  if Form4.StringGrid1.Objects[ 3 ,selectedRowNum] is  TSpectraRanges  then
-  begin
-  // column 2 is the X data data
-  if Form4.StringGrid1.Objects[ 2 ,selectedRowNum] is  TSpectraRanges  then
-  begin
-    // The first row of the Y data (tSR1 = column 3)
-    // will be the xCoord data for the TSpectra in the X Data column
-    tSR1  :=  TSpectraRanges(Form4.StringGrid1.Objects[ 3,selectedRowNum]) ;
-    // this TMatrix will hold the data wanted
-    tMat1 := TMatrix.Create2(tSR1.yCoord.SDPrec,1,tSR1.yCoord.numCols) ;
-    tSR1.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-    tMat1.F_Mdata.Seek(0,soFromBeginning) ;
-     // copy over the first row of the last TSpectra
-    for t1 := 0 to tSR1.yCoord.numCols - 1 do
-    begin
-       tSR1.yCoord.F_Mdata.Read(s1, tSR1.yCoord.SDPrec) ;
-       tMat1.F_Mdata.Write(s1, tSR1.yCoord.SDPrec)
-    end;
-    tSR1.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-    tMat1.F_Mdata.Seek(0,soFromBeginning) ;
-    // Scale data from 0 to 1 - get first and last value
-    //(assumes sequential order in magnitude)
-
-    tMat1.F_Mdata.Read(firstData, tSR1.yCoord.SDPrec) ;
-    tMat1.F_Mdata.Seek(-tMat1.SDPrec,soFromEnd) ;
-    tMat1.F_Mdata.Read(dataRange, tSR1.yCoord.SDPrec) ;
-    tMat1.F_Mdata.Seek(0,soFromBeginning) ;
-    dataRange := (dataRange - firstData) ;
-    for t1 := 0 to tMat1.numCols - 1 do
-    begin
-       tMat1.F_Mdata.Read(s1, tSR1.yCoord.SDPrec) ;
-       s1 := (s1 - firstData) / dataRange ;
-       tMat1.F_Mdata.Seek(-tMat1.SDPrec,soFromCurrent) ;
-       tMat1.F_Mdata.Write(s1, tMat1.SDPrec) ;
-    end;
-    tMat1.F_Mdata.Seek(0,soFromBeginning) ;
-
-
-        tSR2  :=  TSpectraRanges(Form4.StringGrid1.Objects[2,selectedRowNum]) ;
-        if tSR2.xCoord.numCols = tSR1.xCoord.numCols then // if they have the same number of columns
-        begin
-
-          // create new line in stringgrid and create TSpectraRanges object for each TSpectraRanges selected (one at a time)
-          // DoStuffWithStringGrid('', 2, tSR2.yCoord.numRows, tSR2.yCoord.numCols , true, StringGrid1.RowCount-1 ) ;
-          newSR :=  TSpectraRanges.Create(tSR2.yCoord.SDPrec,tSR2.yCoord.numRows, tSR2.yCoord.numCols,@tSR2.LineColor );
-          // point pointer newSR to the new TSpectraRange object
-          Form4.StringGrid1.Objects[4, selectedRowNum] := newSR ;
-          // copy the original data
-          newSR.CopySpectraObject(tSR2);
-
-          // *********** this does the actual functionality ***************
-          newSR.xCoord.F_MData.Seek(0,soFromBeginning) ;
-          tMat1.F_Mdata.Seek(0,soFromBeginning) ;
-          // scale the xCoord data using the values in the tMat1 matrix
-          for t1 := 0 to tMat1.numCols - 1 do
-          begin
-            tMat1.F_Mdata.Read(s1, tSR1.yCoord.SDPrec) ;
-            newSR.xCoord.F_Mdata.Read(s2, tSR1.yCoord.SDPrec) ;
-            s1 := s1 * s2 ;
-            newSR.xCoord.F_Mdata.Seek(-tMat1.SDPrec,soFromCurrent) ;
-            newSR.xCoord.F_Mdata.Write(s1, tMat1.SDPrec) ;
-          end;
-
-          // do display and interface stuff
-          newSR.GLListNumber := GetLowestListNumber ;
-          if tSR2.fft.dtime  <> 0 then
-            newSR.fft.CopyFFTObject(tSR2.fft) ;
-
-          PlaceDataRangeOrValueInGridTextBox( 4, selectedRowNum,  newSR)  ;
-         // StringGrid1.Cells[4, selectedRowNum ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-          newSR.xCoord.Filename :=  'xCoord_scaled_integratedx.bin'   ;
-          newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-          newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR2.lineType) ;
-        end ; //  if they have dsame number of columns
-        Form4.StatusBar1.Panels[1].Text := 'Error: X data and Y data differ in number of columns'  ;
-        tMat1.Free ;
-      end;  // if it is a TSpectraRanges object
-      end ; // if it is a TSpectraRanges object
-   end;  // for each row selected
-
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-end;
-
-
-procedure TForm4.ScaleXCoordsToYear1Click(Sender: TObject);
-Var
-  t0, t1, t2, selectedRowNum, remappedCol, numSamplesCol  : integer ;
-  numSamplesInYear, totalSamplesRead : integer ;
-  s1, s2, year  : single ;
-  remappedSR, numSamplesSR, newSR : TSpectraRanges ;
-  tMS1 : TMemoryStream ;
-begin
-// this whole function just works out the position in terms of xCoord values of the ring boundaries
-// according to the number of values into the matrix as stored in numSamplesSR
-  SelectStrLst.SortListNumeric ;
-  SelectColList.SortListNumeric ;
-  if SelectColList.Count = 2 then   // make sure only 2 columns are selected
-  begin
-  remappedCol := StrToInt(SelectColList.Strings[0]);
-  numSamplesCol  := StrToInt(SelectColList.Strings[1]);
-  for t0 := 0 to SelectStrLst.Count-1 do // for each row selected
-  begin
-  selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-  // 1st column is the Y data data
-  if Form4.StringGrid1.Objects[ remappedCol ,selectedRowNum] is  TSpectraRanges  then
-  begin
-  // 2nd column 2 is the X data data
-  if Form4.StringGrid1.Objects[ numSamplesCol ,selectedRowNum] is  TSpectraRanges  then
-  begin
-    // The first row of the Y data (tSR1 = column 3)
-    // will be the xCoord data for the TSpectra in the X Data column
-    remappedSR  :=  TSpectraRanges(Form4.StringGrid1.Objects[ remappedCol,selectedRowNum]) ;
-    numSamplesSR   :=  TSpectraRanges(Form4.StringGrid1.Objects[ numSamplesCol ,selectedRowNum]) ;
-
-    remappedSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-    numSamplesSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-    tMS1 := TMemoryStream.Create ;
-    tMS1.SetSize(numSamplesSR.xCoord.numCols);
-
-
-    for t1 := 0 to numSamplesSR.yCoord.numCols - 1 do  // for each ring
-    begin
-         numSamplesSR.yCoord.F_Mdata.Read(s1, sizeof(single)) ;
-         numSamplesInYear := round(s1) ;
-         remappedSR.xCoord.F_Mdata.Seek((numSamplesInYear-1) * sizeof(single) ,soFromCurrent) ;
-         remappedSR.xCoord.F_Mdata.Read(s1,sizeof(single) ) ;
-         tMS1.Write(s1, sizeof(single))  ;
-    end;
-
-
-    if  Form4.StringGrid1.Objects[numSamplesCol+1, selectedRowNum] = nil then
-    begin
-      // create new line in stringgrid and create TSpectraRanges object for each TSpectraRanges selected (one at a time)
-      newSR :=  TSpectraRanges.Create(numSamplesSR.yCoord.SDPrec,1, numSamplesSR.yCoord.numCols,@numSamplesSR.LineColor );
-       // point pointer newSR to the new TSpectraRange object
-      Form4.StringGrid1.Objects[numSamplesCol+1, selectedRowNum] := newSR ;
-
-      // copy the new data
-      newSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      newSR.yCoord.F_Mdata.LoadFromStream(tMS1);
-      newSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      newSR.xCoord.FillMatrixData(1,newSR.xCoord.numCols);
-      // do display and interface stuff
-      newSR.GLListNumber := GetLowestListNumber ;
-      if numSamplesSR.fft.dtime  <> 0 then
-        newSR.fft.CopyFFTObject(numSamplesSR.fft) ;
-      PlaceDataRangeOrValueInGridTextBox( numSamplesCol+1, selectedRowNum ,  newSR)  ;
-      //StringGrid1.Cells[RingCol+1, selectedRowNum ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-      newSR.xCoord.Filename :=  'xCoord_stretched_to_year.bin'   ;
-      newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), numSamplesSR.lineType) ;
-
-    end;
-     //   Form4.StatusBar1.Panels[1].Text := 'Error: X data and Y data differ in number of columns'  ;
-     tMS1.Free ;
-   end;  // if it is a TSpectraRanges object
-   end ; // if it is a TSpectraRanges object
-   end;  // for each row selected
-   end
-   else
-   begin
-        Form4.StatusBar1.Panels[1].Text := 'Error: Need to select 2 columns of data only'  ;
-   end;
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-
-end;
-
-// Density trace is in 1st selected column and ring boundaries are in 2nd selected column
-//
-procedure TForm4.UseRingsToStretchToYearClick(Sender: TObject);
-Var
-  t0, t1, t2, selectedRowNum, TraceCol, RingCol  : integer ;
-  numSamplesInYear, totalSamplesRead : integer ;
-  s1, s2, year  : single ;
-  TraceSR, RingSR, newSR, numSamplesSR : TSpectraRanges ;
-  tMS1 : TMemoryStream ;
-begin
-
-  SelectStrLst.SortListNumeric ;
-  SelectColList.SortListNumeric ;
-  if SelectColList.Count = 2 then   // make sure only 2 columns are selected
-  begin
-  TraceCol := StrToInt(SelectColList.Strings[0]);
-  RingCol  := StrToInt(SelectColList.Strings[1]);
-  for t0 := 0 to SelectStrLst.Count-1 do // for each row selected
-  begin
-  selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-  // 1st column is the Y data data
-  if Form4.StringGrid1.Objects[ TraceCol ,selectedRowNum] is  TSpectraRanges  then
-  begin
-  // 2nd column 2 is the X data data
-  if Form4.StringGrid1.Objects[ RingCol ,selectedRowNum] is  TSpectraRanges  then
-  begin
-    // The first row of the Y data (tSR1 = column 3)
-    // will be the xCoord data for the TSpectra in the X Data column
-    TraceSR  :=  TSpectraRanges(Form4.StringGrid1.Objects[ TraceCol,selectedRowNum]) ;
-    RingSR   :=  TSpectraRanges(Form4.StringGrid1.Objects[ RingCol ,selectedRowNum]) ;
-
-    // this TMatrix will hold the number of points in the trace that occurs within a ring increment
-    tMS1 := TMemoryStream.Create ;
-    tMS1.SetSize(RingSR.xCoord.numCols);
-    totalSamplesRead := 0 ;
-    TraceSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-    RingSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-    for t1 := 0 to RingSR.xCoord.numCols - 1 do  // for each ring
-    begin
-       numSamplesInYear := 0 ;
-       RingSR.xCoord.F_Mdata.Read(s1, RingSR.yCoord.SDPrec) ;
-       TraceSR.xCoord.F_Mdata.Read(s2, TraceSR.yCoord.SDPrec) ;
-       while (s2 < s1) and (totalSamplesRead < TraceSR.xCoord.numCols) do  // for each ring
-       begin  // count number of data points that are within the ring
-          inc(numSamplesInYear) ;
-          inc(totalSamplesRead) ;
-          TraceSR.xCoord.F_Mdata.Read(s2, TraceSR.xCoord.SDPrec) ;
-       end;
-       inc(numSamplesInYear) ;
-       inc(totalSamplesRead) ;
-       tMS1.Write(numSamplesInYear, sizeof(integer))  ;
-
-    end;
-
-    if  Form4.StringGrid1.Objects[RingCol+1, selectedRowNum] = nil then
-    begin
-      // create new line in stringgrid and create TSpectraRanges object for each TSpectraRanges selected (one at a time)
-      newSR :=  TSpectraRanges.Create(TraceSR.yCoord.SDPrec,TraceSR.yCoord.numRows, TraceSR.yCoord.numCols,@TraceSR.LineColor );
-      // numSamples is the number of data points within each year and can  be used to stretch environmental data too ne time scales
-      numSamplesSR  :=  TSpectraRanges.Create(TraceSR.yCoord.SDPrec, 1 , RingSR.yCoord.numCols, @RingSR.LineColor );
-      // point pointer newSR to the new TSpectraRange object
-      Form4.StringGrid1.Objects[RingCol+1, selectedRowNum] := newSR ;
-      Form4.StringGrid1.Objects[RingCol+2, selectedRowNum] := numSamplesSR ;
-      // copy the original data
-      newSR.CopySpectraObject(TraceSR);
-
-      tMS1.Seek(0, soFromBeginning)  ;
-      newSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      year := 0 ;
-      for t1 := 0 to RingSR.xCoord.numCols - 1 do  // for each ring
-      begin
-         s2 := 0 ;
-         tMS1.Read(numSamplesInYear, sizeof(integer))  ;
-         for t2 := 0 to numSamplesInYear -1 do
-         begin
-           s2 := year + ( t2/ numSamplesInYear ) ;
-           newSR.xCoord.F_Mdata.Write(s2, newSR.xCoord.SDPrec) ;
-         end;
-         year := year + 1 ;
-         s2   :=   numSamplesInYear ;
-         numSamplesSR.yCoord.F_Mdata.Write(s2, sizeof(single)) ;
-      end;
-
-      // set up the num samples SpectraRange          tMS1.Write(numSamplesInYear, sizeof(integer))  ;
-      numSamplesSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      numSamplesSR.xCoord.FillMatrixData(1,RingSR.yCoord.numCols);
-      // do display and interface stuff
-      newSR.GLListNumber := GetLowestListNumber ;
-      if TraceSR.fft.dtime  <> 0 then
-        newSR.fft.CopyFFTObject(TraceSR.fft) ;
-
-      PlaceDataRangeOrValueInGridTextBox( RingCol+1, selectedRowNum ,  newSR)  ;
-      //StringGrid1.Cells[RingCol+1, selectedRowNum ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-      newSR.xCoord.Filename :=  'xCoord_stretched_to_year.bin'   ;
-      newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), TraceSR.lineType) ;
-
-       numSamplesSR.GLListNumber := GetLowestListNumber ;
-       PlaceDataRangeOrValueInGridTextBox( RingCol+2, selectedRowNum ,  numSamplesSR)  ;
-      //StringGrid1.Cells[RingCol+1, selectedRowNum ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-      numSamplesSR.xCoord.Filename :=  'number_data_points_within_years.bin'   ;
-      numSamplesSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      numSamplesSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), TraceSR.lineType) ;
-
-    end;
-     //   Form4.StatusBar1.Panels[1].Text := 'Error: X data and Y data differ in number of columns'  ;
-     tMS1.Free ;
-   end;  // if it is a TSpectraRanges object
-   end ; // if it is a TSpectraRanges object
-   end;  // for each row selected
-   end
-   else
-   begin
-        Form4.StatusBar1.Panels[1].Text := 'Error: Need to select 2 columns of data only'  ;
-   end;
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-end;
-
-
-
-
-
-procedure TForm4.Integration1Click(Sender: TObject);
-Var
-  t0, t1, selectedRowNum, currentSpecNum, initialColNum  : integer ;
-  X1, Y1, X2, Y2  : single ;
-  area1, area2, area_ave, area_total : single ;
-  tSR, newSR : TSpectraRanges ;
-begin
-  currentSpecNum := 0 ;
-  initialColNum  := Form4.StringGrid1.Col ;
-  for t0 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-    selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-    
-    if Form4.StringGrid1.Objects[initialColNum ,selectedRowNum] is  TSpectraRanges  then
-    begin
-    if Form4.StringGrid1.Objects[initialColNum+1 ,selectedRowNum] = nil then  // this is the new column
-    begin
-    
-      tSR  :=  TSpectraRanges(Form4.StringGrid1.Objects[initialColNum,selectedRowNum]) ;
-      // create new line in stringgrid and create TSpectraRanges object for each TSpectraRanges selected (one at a time)
-      DoStuffWithStringGrid('', initialColNum+1, tSR.yCoord.numRows, tSR.yCoord.numCols , false, selectedRowNum ) ;
-      // point pointer newSR to the new TSpectraRange object
-      newSR :=  TSpectraRanges(Form4.StringGrid1.Objects[initialColNum+1, selectedRowNum]) ;
-      // copy the original data
-      newSR.CopySpectraObject(tSR);
-
-
-      tSR.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      newSR.yCoord.F_MData.Seek(0,soFromBeginning) ;
-
-      for  currentSpecNum := 1 to tSR.yCoord.numRows do  // for each row in the selected TSpectraRanges object
-      begin
-        area_total := 0 ;
-        tSR.xCoord.F_MData.Seek(0,soFromBeginning) ; // retieve the 1st x value each iteration
-        tSR.xCoord.F_MData.Read(X1,4) ;
-        tSR.yCoord.F_MData.Read(Y1,4) ;
-        tSR.xCoord.F_MData.Read(X2,4) ;
-        tSR.yCoord.F_MData.Read(Y2,4) ;
-        area_total := ((Y1 + Y2)/2) * (X2-X1) ;   // = area per unit x
- //       area2 :=    area_total ;
-        // the first value is not averaged as we do not know what is before it
-        newSR.yCoord.F_MData.Write(area_total,newSR.yCoord.SDPrec) ;
-        for t1 := 1 to tSR.yCoord.numCols - 1 do
-        begin
-           X1 := X2 ;
-           Y1 := Y2 ;
-           tSR.xCoord.F_MData.Read(X2,4) ;
-           tSR.yCoord.F_MData.Read(Y2,4) ;
-
-           area1 := ((Y1 + Y2)/2) * (X2-X1) ;  // = area per unit x
-
-           // This averaging is so we get a value that represents the xCoord data point,
-           // not a half step between each.
-//           area_ave := ((area1 + area2) / 2) ;
-//           area_total := area_total + area_ave ;
-           area_total := area_total + area1 ;
-           newSR.yCoord.F_MData.Write(area_total,newSR.yCoord.SDPrec) ;
-
- //          area2 := area1 ;
-           Form4.StatusBar1.Panels[0].Text :=  't1 = ' + inttostr(t1) ;
-        end;  // end for each col
-        // the last value is not averaged either as we do not know what is after it
- //       newSR.yCoord.F_MData.Write(area_total,newSR.yCoord.SDPrec) ;
-
-      end ;  // end for each row
-
-      // do display and interface
-      newSR.GLListNumber := GetLowestListNumber ;
-      if tSR.fft.dtime  <> 0 then
-        newSR.fft.CopyFFTObject(tSR.fft) ;
-       PlaceDataRangeOrValueInGridTextBox( initialColNum+1, selectedRowNum ,  newSR)  ;
-     // StringGrid1.Cells[initialColNum+1, selectedRowNum ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-   //   StringGrid1.Cells[1, selectedRowNum ] :=  'integrated' + '_' + Form4.StringGrid1.Cells[1,selectedRowNum] ; // this is the file name displayed in column 2 ;
-     // newSR.xyScatterPlot := true ;
-      newSR.xCoord.Filename :=  extractfilename(newSR.xCoord.Filename )  ;
-      newSR.xCoord.Filename :=  copy(newSR.xCoord.Filename,1,length(newSR.xCoord.Filename))+ '_integratedx.bin'   ;
-      newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1) ;
-
-   end ; // is the next column is not taken   
-   end ; //if it is a TSpectraRanges object
-   
-   end;  // for each file selected
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-end;
-
-
-procedure TForm4.Inverse1Click(Sender: TObject);
-var
-  tSR1 : TSpectraRanges   ;
-  mo  : TMatrixOps  ;
-begin
-
-    try
-      mo     := TMatrixOps.Create  ;
-
-      tSR1      := TSpectraRanges(Form4.StringGrid1.Objects[Form4.StringGrid1.Col,Form4.StringGrid1.Row]) ;
-//      if (tSR1.yCoord.numRows = tSR1.yCoord.numCols) then
-//           mo.MatrixInverseSymmetric(tSR1.yCoord)
-//     else
-      mo.MatrixInverseGeneral(tSR1.yCoord) ;
-
-      tSR1.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ;
-      if (tSR1.lineType > MAXDISPLAYTYPEFORSPECTRA) or (tSR1.lineType < 1)  then tSR1.lineType := 1 ;  //
-      tSR1.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(),  tSR1.lineType )   ;
-      Form4.StringGrid1.Cells[Form4.StringGrid1.Col,Form4.StringGrid1.Row] := '1-'+ inttostr(tSR1.yCoord.numRows) +' : 1-' + inttostr(tSR1.yCoord.numCols) ;
-
-
-    finally
-    begin
-      mo.Free ;
-    end;
-    end ;
-
-end;
-
-{
-procedure TForm4.Integration1Click(Sender: TObject);
-Var
-  t0, t1, selectedRowNum, currentSpecNum  : integer ;
-  X1, Y1, X2, Y2  : single ;
-  area1, area2, area_ave, area_total : single ;
-  tSR, newSR : TSpectraRanges ;
-begin
-  currentSpecNum := 0 ;
-  for t0 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-    selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-
-    if Form4.StringGrid1.Objects[Form4.StringGrid1.Col ,selectedRowNum] is  TSpectraRanges  then
-    begin
-      tSR  :=  TSpectraRanges(Form4.StringGrid1.Objects[Form4.StringGrid1.Col,selectedRowNum]) ;
-      // create new line in stringgrid and create TSpectraRanges object for each TSpectraRanges selected (one at a time)
-      DoStuffWithStringGrid('', 2, tSR.yCoord.numRows, tSR.yCoord.numCols , true, StringGrid1.RowCount-1 ) ;
-      // point pointer newSR to the new TSpectraRange object
-      newSR :=  TSpectraRanges(Form4.StringGrid1.Objects[2, StringGrid1.RowCount-2]) ;
-      // copy the original data
-      newSR.CopySpectraObject(tSR);
-
-
-      tSR.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      newSR.yCoord.F_MData.Seek(0,soFromBeginning) ;
-
-      for  currentSpecNum := 1 to tSR.yCoord.numRows do  // for each row in the selected TSpectraRanges object
-      begin
-        area_total := 0 ;
-        tSR.xCoord.F_MData.Seek(0,soFromBeginning) ; // retieve the 1st x value each iteration
-        tSR.xCoord.F_MData.Read(X1,4) ;
-        tSR.yCoord.F_MData.Read(Y1,4) ;
-        tSR.xCoord.F_MData.Read(X2,4) ;
-        tSR.yCoord.F_MData.Read(Y2,4) ;
-        area_total := ((Y1 + Y2)/2) * (X2-X1) ;   // = area per unit x
- //       area2 :=    area_total ;
-        // the first value is not averaged as we do not know what is before it
-        newSR.yCoord.F_MData.Write(area_total,newSR.yCoord.SDPrec) ;
-        for t1 := 1 to tSR.yCoord.numCols - 1 do
-        begin
-           X1 := X2 ;
-           Y1 := Y2 ;
-           tSR.xCoord.F_MData.Read(X2,4) ;
-           tSR.yCoord.F_MData.Read(Y2,4) ;
-
-           area1 := ((Y1 + Y2)/2) * (X2-X1) ;  // = area per unit x
-
-           // This averaging is so we get a value that represents the xCoord data point,
-           // not a half step between each.
-//           area_ave := ((area1 + area2) / 2) ;
-//           area_total := area_total + area_ave ;
-           area_total := area_total + area1 ;
-           newSR.yCoord.F_MData.Write(area_total,newSR.yCoord.SDPrec) ;
-
- //          area2 := area1 ;
-           Form4.StatusBar1.Panels[0].Text :=  't1 = ' + inttostr(t1) ;
-        end;  // end for each col
-        // the last value is not averaged either as we do not know what is after it
- //       newSR.yCoord.F_MData.Write(area_total,newSR.yCoord.SDPrec) ;
-
-      end ;  // end for each row
-
-      // do display and interface
-      newSR.GLListNumber := GetLowestListNumber ;
-      if tSR.fft.dtime  <> 0 then
-        newSR.fft.CopyFFTObject(tSR.fft) ;
-      StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-      StringGrid1.Cells[1, StringGrid1.RowCount-2 ] :=  'integrated' + '_' + Form4.StringGrid1.Cells[1,selectedRowNum] ; // this is the file name displayed in column 2 ;
-     // newSR.xyScatterPlot := true ;
-      newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1) ;
-
-   end ; //if it is a TSpectraRanges object
-   end;  // for each file selected
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-end;
-
-     }
-
-
-
-procedure TForm4.CombineAll1Click(Sender: TObject);
-var
-  t1 : integer ;
-  newSR : TSpectraRanges ;
-  tSR   : TSpectraRanges ;
-  numVars1, numVars2 : integer ;
-  selectedRowNum : integer ;
-  tStr : string ;
-  tbool, hasImaginary : boolean ;
-  tMat : TMatrix ;
-
-begin
-  tbool := true ;
-
-  SelectStrLst.SortListNumeric ;
-  selectedRowNum := StrToInt(SelectStrLst.Strings[0]) ;
-  hasImaginary := false ;
-  tSr :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
-  numVars1 := tSr.xCoord.numCols ;
-  if tSr.yImaginary <> nil then
-       hasImaginary := true ;
-  for t1 := 1 to SelectStrLst.Count-1 do
-  begin
-     selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-     tSr :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
-     numVars2 := tSr.xCoord.numCols ;
-     if numVars1 <> numVars2 then
-       tbool := false ;
-     if tSR.yImaginary <> nil then
-       hasImaginary := true ;
-  end ;
-
-  if (tbool = false) then
-  begin
-    MessageDlg('At least one file has a different number of variables.'#13'can not complete combine operation',mtError, [mbOK], 0)  ;
-    exit ;
-  end ;
-
-  // create new line in stringgrid and create TSpectraRanges object
-  DoStuffWithStringGrid('', 2, 1, numVars1, true, StringGrid1.RowCount-1 ) ;
-
-  newSR :=  TSpectraRanges(Form4.StringGrid1.Objects[2, StringGrid1.RowCount-2 ]) ;  // this is the new combined data in new row of list
-
-  selectedRowNum := StrToInt(SelectStrLst.Strings[0]) ;
-  tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-  newSR.yCoord.CopyMatrix(tSR.yCoord) ;  // copy the first matrix
-  // the files to be combined are the int value of the string that are in the list.
-  // Add files rows to the new TSpectraRanges object
-  for t1 := 1 to SelectStrLst.Count-1 do
-  begin
-     selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-     tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-     newSR.yCoord.AddRowsToMatrix(tSR.yCoord,1,tSR.yCoord.numRows) ;
-  end ;
-
-  if hasImaginary then
-  begin
-     selectedRowNum := StrToInt(SelectStrLst.Strings[0]) ;
-     tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-     if newSR.yImaginary = nil then
-       newSR.yImaginary := TMatrix.Create(newSR.yCoord.SDPrec div 4) ;  // create the Imaginary matrix
-     if tSR.yImaginary <> nil then
-       newSR.yImaginary.CopyMatrix(tSR.yImaginary) ;  // copy the first matrix
-     // the files to be combined are the int value of the string that are in the list.
-     // Add files rows to the new TSpectraRanges object
-     for t1 := 1 to SelectStrLst.Count-1 do
-     begin
-        selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-        tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-        if tSR.yImaginary <> nil then
-        begin
-          newSR.yImaginary.AddRowsToMatrix(tSR.yImaginary,1,tSR.yImaginary.numRows) ;
-        end
-        else
-        begin
-          tMat := TMatrix.Create2(newSR.yCoord.SDPrec div 4,tSR.yCoord.numRows,tSR.yCoord.numCols) ;
-          tMat.Zero(tMat.F_Mdata) ;
-          newSR.yImaginary.AddRowsToMatrix(tMat,1,tMat.numRows) ;
-          tMat.Free ;
-        end ;
-     end ;
-  end ;
-
-
-  newSR.xCoord.CopyMatrix(tSR.xCoord) ;
-
-  PlaceDataRangeOrValueInGridTextBox( 2, StringGrid1.RowCount-2  ,  newSR)  ;
-  //StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-  StringGrid1.Cells[1, StringGrid1.RowCount-2 ] :=  'Combined.bin'   ;
-  newSR.xCoord.Filename :=  'Combined.bin'   ;
-
-  newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-  newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR.lineType ) ;
-
-
-end;
-
-
-
-
-procedure TForm4.CombineSelected1Click(Sender: TObject);
-var
-  t1, t2, t3, t4 : integer ;
-  maxCols, totalRows : integer ;
-  currentCols, currentRows : integer ;
-  s1  : single ;
-  numVarList, numSpectList : TStringList ;
-  tSR, tSR2, tSR3   : TSpectraRanges ;
-  rowToDisplay : TMemoryStream ;
-  selectedRowNum, numSpectra : integer ;
-  rowRange : string ;
-  colRange : string;
-  tStr     : string ;
-  addedXData : boolean ;
-  tMat1 : TMatrix    ;
-
-begin
-
-  SelectStrLst.SortListNumeric ;
-
-  if SelectStrLst.Count >= 1 then // make sure a spectrum is selected
-  begin
-  try
-    numVarList   :=  TStringList.Create ;
-    numSpectList :=  TStringList.Create ;
-
-    for t1 := 0 to SelectStrLst.Count-1 do  // 1. count the number of variables in each spectraRange
-    begin
-      selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-      if TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]).frequencyImage then
-        tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]).image2DSpecR
-      else
-        tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-      numVarList.Add(inttostr(tSR.yCoord.numCols))  ;
-    end ;
-
-    for t1 := 0 to SelectStrLst.Count-1 do  // 2. count number of spectra selected in each spectraRange selected
-    begin
-      selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-      rowToDisplay := TMemoryStream.Create ;
-
-      if TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]).frequencyImage then
-        tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]).image2DSpecR 
-      else
-        tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-
-      rowRange := '' ;
-      if tSR.SGDataView <> nil then
-        rowRange := tSR.SGDataView.RowStrTextTB.Text ;  //2.1 these are the selected spectra out of a group
-
-      if trim(rowRange) = '1-' then                      //2.2 otherwise, all the spectra are considered selected
-        rowRange := rowRange + inttostr(tSR.yCoord.numRows)
-      else
-      if trim(rowRange) = '' then
-        rowRange := '1-' + inttostr(tSR.yCoord.numRows) ;
-
-      numSpectra := tSR.yCoord.GetTotalRowsColsFromString(rowRange,rowToDisplay) ;  // rowToDisplay is a TMemoryStream ;
-      numSpectList.Add(inttostr(numSpectra))  ;
-      rowToDisplay.Free ;
-    end ;
-
-
-
-    maxCols := 0 ;
-    for t1 := 0 to  SelectStrLst.Count-1 do
-    begin
-      if strtoint(numVarList.Strings[t1])  > maxCols then
-        maxCols :=  strtoint(numVarList.Strings[t1]) ;
-    end ;
-
-    totalRows := 0 ;
-    for t1 := 0 to  SelectStrLst.Count-1 do
-    begin
-        totalRows := totalRows + strtoint(numSpectList.Strings[t1]) ;
-    end ;
-
-
-
-    DoStuffWithStringGrid('', 2, 0, maxCols, true, StringGrid1.RowCount-1 ) ;
-    tSR2 :=  TSpectraRanges(Form4.StringGrid1.Objects[2, StringGrid1.RowCount-2 ]) ;  // this is the new combined data in new row of list
-
-     // 4. place data in new TSpectraRange
-    for t1 := 0 to SelectStrLst.Count-1 do
-    begin
-      selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-
-      if (TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]).frequencyImage) or (TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]).nativeImage ) then
-        tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]).image2DSpecR
-      else
-        tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-        
-      rowRange := '' ;
-      if tSR.SGDataView <> nil then
-        rowRange := tSR.SGDataView.RowStrTextTB.Text ;
-
-      currentRows :=  strtoint(numSpectList.Strings[t1]) ;
-      currentCols :=  strtoint(numVarList.Strings[t1])   ;
-
-      if trim(rowRange) = '1-' then
-        rowRange := rowRange + numSpectList.Strings[t1]
-      else
-      if trim(rowRange) = '' then
-        rowRange := '1-' + numSpectList.Strings[t1] ;
-
-      colRange := '1-' + numVarList.Strings[t1] ;
-
-      tSR3 := TSpectraRanges.Create(tSR.xCoord.SDPrec div 4, currentRows,  currentCols ,  nil) ;
-      tSR3.yCoord.FetchDataFromTMatrix(rowRange, colRange, tSR.yCoord ) ;
-
-
-      if tSR3.yCoord.numCols < tSR2.yCoord.numCols then  // Add extra columns to the tSR3 so that it matches the largest one present in list
-      begin
-         tSR3.Transpose ;
-         tMat1 := TMatrix.Create2(tSR3.yCoord.SDPrec,1,(tSR3.yCoord.numCols)) ;
-         tMat1.Zero(tMat1.F_Mdata);
-         for t2 := 1 to (tSR2.yCoord.numCols-tSR3.yCoord.numRows) do
-         begin
-          // tSR3.yCoord.AddVectToMatrixRows(rowToDisplay)
-            tSR3.yCoord.AddRowToEndOfData(tMat1,1,tMat1.numCols);
-         end;
-         tMat1.Free ;
-         tSR3.Transpose ;
-      end;
-
-      // ****  This does the adding part to the combined tSpectraRange ****
-      tSR2.yCoord.AddRowsToMatrix(tSR3.yCoord,1,currentRows) ;
-
-      tSR3.Free ;
-    end ;
-
-    // make sure XCoord data is possibly correct
-    t1 := 0 ;
-    addedXData := false ;
-    while  addedXData = false do
-    begin
-      selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-      if (TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]).frequencyImage) or (TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]).nativeImage ) then
-        tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]).image2DSpecR
-      else
-        tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-
-      if tSR.yCoord.numCols = tSR2.yCoord.numCols then
-      begin
-         tSR2.xCoord.CopyMatrix(tSR.xCoord);
-      end;
-      addedXData := true ;
-      inc(t1) ;
-    end;
-
-
-  finally
-    numVarList.Free ;
-    numSpectList.Free ;
-  end ;
-
-  PlaceDataRangeOrValueInGridTextBox( 2, StringGrid1.RowCount-2  ,  tSR2)  ;
-//  StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(tSR2.yCoord.numRows)+' : '+'1-'+inttostr(tSR2.yCoord.numCols) ;
-  StringGrid1.Cells[1, StringGrid1.RowCount-2 ] :=  'Combined.bin'   ;
-  tSR2.xCoord.Filename :=  'Combined.bin'   ;
-
-  tSR2.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-  tSR2.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR.lineType ) ;
-
-
-
-  end ;
-
-  Form1.refresh ;
-
-
-
-end;
-
-procedure TForm4.Selected2Click(Sender: TObject);
-var
-  t1, t2 : integer ;
-  s1 : single ;
-  tStr : string ;
-  tSR, newSR : TSpectraRanges ;
-  selectedRowNum : integer ;
-  tempStream : TMemoryStream ;
-begin
-try
-  tempStream := TMemoryStream.Create ;
-  SelectStrLst.SortListNumeric ;
-  for t1 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-     selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-     if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-     begin
-        // this is the file to be split up into scatter plots
-        tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
-
-     end;
-  end;
-
-  if not Form4.CheckBox7.Checked then
-  Form1.UpdateViewRange() ;
-  Form1.Refresh ;
-
-finally
-   tempStream.Free ;
-end;
-
-end;
 
 procedure TForm4.FormResize(Sender: TObject);
 begin
@@ -2343,6 +1284,15 @@ begin
 
 end ;
 
+procedure TForm4.StringGrid1SelectCell(Sender: TObject; Col, Row: Integer;
+  var CanSelect: Boolean);
+var
+  SelectionCell: TGridRect;
+begin
+     SG1_ROW :=  Row ;
+     SG1_COL :=  Col ;
+     originalText := StringGrid1.Cells[Col,Row] ;
+end;
 
 
 procedure TForm4.InitialiseDataGrid ;
@@ -2374,7 +1324,7 @@ end ;
 
 
 procedure TForm4.StringGrid1DblClick(Sender: TObject);
-// **** Creates a new StringGridDataViewer and fills in data in string grid *****
+// **** Creates a new form with string grid, fills in data in string grid *****
 begin
   if (SG1_COL = 1) and not (StringGrid1.Objects[2,SG1_ROW] is TSpectraRanges) then  // click on 'filename:' and open dialog appears
   begin
@@ -2387,7 +1337,7 @@ begin
      Form4.Open1Click(Sender) ;
   end
   else
-  if (SG1_COL >= 2) and (StringGrid1.Objects[SG1_COL,SG1_ROW] is TSpectraRanges) then
+  if ((SG1_COL = 2) or (SG1_COL = 3) or (SG1_COL >= 4)) and (StringGrid1.Objects[SG1_COL,SG1_ROW] is TSpectraRanges) then
   // click on 'X data:' or 'Y Data:' etc creates and fills a new form with the data of the TSpectraRange object
   begin
      InitialiseDataGrid
@@ -2403,9 +1353,9 @@ end;
 procedure TForm4.Open1Click(Sender: TObject);
 begin
   Form4.OpenDialog1.Title := 'Open spectral file' ;
-  Form4.OpenDialog1.Filter := 'binary (*.bin)|*.bin|comma delimited (*.csv, *.txt, *.asc)|*.txt;*.csv;*.asc| netCDF (*.nc)|omnic spectral files (*.spa)|*.spa|GRAMS SPC (*.spc)|*.spc|JCAMP (*.dx, *.jdx)|*.dx,*.jdx|raw (*.raw)|*.raw|all files (*.*)|*.*' ;
+  Form4.OpenDialog1.Filter := 'binary (*.bin)|*.bin|comma delimited (*.csv, *.txt, *.asc)|*.txt;*.csv;*.asc|omnic spectral files (*.spa)|*.spa|GRAMS SPC (*.spc)|*.spc|JCAMP (*.dx, *.jdx)|*.dx,*.jdx|raw (*.raw)|*.raw|all files (*.*)|*.*' ;
   Form4.OpenDialog1.DefaultExt := lastFileExt ;   // '*.bin' ;
-  Form4.OpenDialog1.filename :=  '*'+ lastFileExt ; // '*.bin' ;
+  Form4.OpenDialog1.filename :=  {'*'+} lastFileExt ; // '*.bin' ;
   if Sender = Open1 then  // if true then MainMenu 'Open' item sent message and only open X Data
   begin
     SG1_COL := 1 ;  // do this so we can confirm that the Open1 Menu item was selected and cells were not double clicked
@@ -2435,11 +1385,6 @@ begin
 end;
 
 
-
-procedure TForm4.OpenDialog1SelectionChange(Sender: TObject);
-begin
-    //  OpenDialog1.DefaultExt :=    
-end;
 
 procedure TForm4.StringGrid1SetEditText(Sender: TObject; ACol,  ARow: Integer; const Value: String);
 // OnSetEditText does not occur unless the Options property includes goEditing
@@ -2515,104 +1460,6 @@ begin
   Form1.refresh ;
 end;
 
-procedure TForm4.CorrelationOptimisedWarping1Click(Sender: TObject);
-Var
-  t0, t1, t2, selectedRowNum, currentSpecNum, initialColNum, num  : integer ;
-  sum1, stretch1, shift1    : single ;
-  tYRef1, tNIR1, tYSections, tParams, tStartpos, outSR1 : TSpectraRanges ;
-  rowpos, colpos : integer ;
-begin
-  currentSpecNum := 0 ;
-  initialColNum  := Form4.StringGrid1.Col ;
-  for t0 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-    selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-    
-    if Form4.StringGrid1.Objects[2 ,selectedRowNum] is  TSpectraRanges  then
-    begin
-    if Form4.StringGrid1.Objects[3 ,selectedRowNum] is  TSpectraRanges  then
-    begin
-    if Form4.StringGrid1.Objects[4 ,selectedRowNum] = nil then  // this is the new column
-    begin
-
-
-      tYRef1  :=  TSpectraRanges(Form4.StringGrid1.Objects[3,selectedRowNum]) ;   // this is the reference spectrum
-      tNIR1  :=  TSpectraRanges(Form4.StringGrid1.Objects[2,selectedRowNum]) ;   // this will be the warped spectrum
-
-
-      DoStuffWithStringGrid('', 4, 1, tNIR1.yCoord.numCols , false, selectedRowNum ) ;
-      outSR1  :=  TSpectraRanges(Form4.StringGrid1.Objects[4,selectedRowNum]) ;   // this will be the warped spectrum
-      outSR1.xCoord.FillMatrixData(1.0,tNIR1.yCoord.numCols);
-      outSR1.yCoord.MultiplyByScalar(0.0);
-
-      tYSections := TSpectraRanges.Create(1,  10, tNIR1.yCoord.numCols div 10, nil) ;
-      tParams    := TSpectraRanges.Create(1, 1100, 2,                           nil) ;
-      tStartpos  := TSpectraRanges.Create(1,  10, 1,                           nil) ;
-
-      tNIR1.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      tNIR1.xCoord.F_MData.Seek(0,soFromBeginning) ;
-      tYRef1.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      // 1/ split the NIR Y data into 10 sections and record the start position (startpos) of each segment
-      for t1 := 0 to 10 -1 do  // == newSR.yCoord.numRows
-      begin
-        tNIR1.xCoord.F_Mdata.Read(sum1,4) ;
-        tStartpos.xCoord.F_Mdata.Write(sum1,4) ;
-        for t2 := 0 to (tNIR1.yCoord.numCols div 10) - 1 do  // == newSR.yCoord.numCols
-        begin
-           tNIR1.yCoord.F_Mdata.Read(sum1,4) ;
-           tYSections.yCoord.F_Mdata.Write(sum1,4) ;
-           tNIR1.xCoord.F_Mdata.Read(sum1,4) ;
-        end;
-      end;
-
-      // 2/ create parameters for each section
-      tParams.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      stretch1 := -0.1 ;  // implys a 10% compression in step size from start to finish
-      shift1   := -0.0 ;  // units in mm    // first selection cannot go 'backwards'
-      for t1 := 0 to 10  do   // 11 stretch increments
-      begin
-        for t2 := 1 to 100 do  // +-5 mm with 10 positions in each mm
-        begin
-           tParams.yCoord.F_Mdata.Write(stretch1,4) ;
-           tParams.yCoord.F_Mdata.Write(shift1,4) ;
-           shift1 := shift1 + 0.1 ;
-        end;
-        stretch1 := stretch1 + 0.02 ;
-        shift1   := -5.0 ;  // reset shift value
-      end;
-
-     // 3/ Create Y test data
-
-
-
-      tNIR1.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      tYRef1.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      outSR1.yCoord.F_MData.Seek(0,soFromBeginning) ;
-
-
-
-
-       outSR1.GLListNumber := GetLowestListNumber ;
-      if tNIR1.fft.dtime  <> 0 then
-        outSR1.fft.CopyFFTObject(tNIR1.fft) ;
-
-      PlaceDataRangeOrValueInGridTextBox( 4, selectedRowNum ,  outSR1)  ;
-      outSR1.xCoord.Filename :=  extractfilename(outSR1.xCoord.Filename )  ;
-      outSR1.xCoord.Filename :=  copy(outSR1.xCoord.Filename,1,length(outSR1.xCoord.Filename))+ 'Euclidean_matrix.bin'   ;
-      outSR1.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      outSR1.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1) ;
-    end; // is the next column is not taken
-   end ; //if it is a TSpectraRanges object
-   end ; //if it is a TSpectraRanges object
-
-   end;  // for each file selected
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-
-end;
-
 procedure TForm4.Background1Click(Sender: TObject);
 begin
   Form2.visible := true ;    
@@ -2685,82 +1532,7 @@ End ; //***********
 
 // called within InitilizeSpectraData()
 // ***  Creates the new TSpectraRanges object ***
-procedure TForm4.Datadetails1Click(Sender: TObject);
-var
-  outputStr : string ;
-  selectedRowNum : integer ;
-  t1 : integer ;
-  tSR : TSpectraRanges ;
-begin
-    SelectStrLst.SortListNumeric ;
-    for t1 := 0 to SelectStrLst.Count-1 do  // 1. count number of variables in each spectraRange selected
-    begin
-    selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-
-      if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-      begin
-        tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
-        outputStr := 'Name: ' + (tSR.xCoord.Filename)  + #13  ;
-        outputStr := outputStr + 'xCoord: ' + inttostr(tSR.xCoord.F_Mdata.Size) + ' bytes' + #13  ;
-        outputStr := outputStr + 'numRows: ' + inttostr(tSR.xCoord.numRows) + #13      ;
-        outputStr := outputStr + 'numCols: ' + inttostr(tSR.xCoord.numCols) + #13     ;
-        outputStr := outputStr + 'SDPrec: ' + inttostr(tSR.xCoord.SDPrec) + #13        ;
-        outputStr := outputStr + 'complexMat: ' + inttostr(tSR.xCoord.complexMat) + #13  ;
-        outputStr := outputStr + 'expected bytes: ' + inttostr(tSR.xCoord.numRows*tSR.xCoord.numCols*tSR.xCoord.SDPrec*tSR.xCoord.complexMat) + #13  ;
-        outputStr := outputStr  + #13 ;
-
-        outputStr := outputStr + 'yCoord: ' + inttostr(tSR.yCoord.F_Mdata.Size) + ' bytes' + #13    ;
-        outputStr := outputStr + 'predYdataYOffsetRegCoef (real) '  + floattostr(tSR.predYdataYOffsetRegCoef[1]) + #13  ;      ;
-        outputStr := outputStr + 'numRows: ' + inttostr(tSR.yCoord.numRows) + #13               ;
-        outputStr := outputStr + 'numCols: ' + inttostr(tSR.yCoord.numCols) + #13          ;
-        outputStr := outputStr + 'SDPrec: ' + inttostr(tSR.yCoord.SDPrec) + #13            ;
-        outputStr := outputStr + 'complexMat: ' + inttostr(tSR.yCoord.complexMat) + #13     ;
-        outputStr := outputStr + 'meanCentred: ' + booltostr(tSR.yCoord.meanCentred) + #13    ;
-        outputStr := outputStr + 'colStandardized: ' + booltostr(tSR.yCoord.colStandardized) + #13  ;
-        outputStr := outputStr + 'expected bytes: ' + inttostr(tSR.yCoord.numRows*tSR.yCoord.numCols*tSR.yCoord.SDPrec*tSR.yCoord.complexMat) + #13  ;
-        outputStr := outputStr  + #13 ;
-
-        if (tSR.yImaginary <> nil) then
-        begin
-          outputStr := outputStr + 'yImaginary: ' + inttostr(tSR.yImaginary.F_Mdata.Size)+ ' bytes' + #13   ;
-          outputStr := outputStr + 'predYdataYOffsetRegCoef (imag.) '  + floattostr(tSR.predYdataYOffsetRegCoef[2]) + #13             ;
-          outputStr := outputStr + 'numRows: ' + inttostr(tSR.yImaginary.numRows) + #13          ;
-          outputStr := outputStr + 'numCols: ' + inttostr(tSR.yImaginary.numCols) + #13          ;
-          outputStr := outputStr + 'SDPrec: ' + inttostr(tSR.yImaginary.SDPrec) + #13            ;
-          outputStr := outputStr + 'complexMat: ' + inttostr(tSR.yImaginary.complexMat) + #13    ;
-          outputStr := outputStr + 'meanCentred: ' + booltostr(tSR.yImaginary.meanCentred) + #13  ;
-          outputStr := outputStr + 'colStandardized: ' + booltostr(tSR.yImaginary.colStandardized) + #13  ;
-          outputStr := outputStr + 'expected bytes: ' + inttostr(tSR.yImaginary.numRows*tSR.yImaginary.numCols*tSR.yImaginary.SDPrec*tSR.yImaginary.complexMat) + #13  ;
-          outputStr := outputStr  + #13 ;
-        end;
-
-        outputStr := outputStr + 'xPix: ' + inttostr(tSR.xPix) + #13                     ;
-        outputStr := outputStr + 'yPix: ' + inttostr(tSR.yPix) + #13                    ;
-        outputStr := outputStr + 'nativeImage: ' + booltostr(tSR.nativeImage) + #13        ;
-        outputStr := outputStr + 'frequencyImage: ' + booltostr(tSR.frequencyImage) + #13  ;
-        outputStr := outputStr + 'xPixSpacing: ' + floattostr(tSR.xPixSpacing) + #13        ;
-        outputStr := outputStr + 'yPixSpacing: ' + floattostr(tSR.yPixSpacing) + #13         ;
-        outputStr := outputStr + 'currentImageNumber: ' + inttostr(tSR.currentImageNumber) + #13   ;
-        outputStr := outputStr + 'xLow: ' + floattostr(tSR.xLow) + #13                             ;
-        outputStr := outputStr + 'xHigh: ' + floattostr(tSR.xHigh) + #13                        ;
-        outputStr := outputStr + 'yLow: ' + floattostr(tSR.yLow ) + #13                          ;
-        outputStr := outputStr + 'yHigh: ' + floattostr(tSR.yHigh) + #13                           ;
-        outputStr := outputStr + 'interleaved: ' + inttostr(tSR.interleaved) + #13                  ;
-        outputStr := outputStr + 'varianceIsDisplayed: ' + booltostr(tSR.varianceIsDisplayed) + #13  ;
-        outputStr := outputStr + 'averageIsDisplayed: ' + booltostr(tSR.averageIsDisplayed) + #13   ;
-        outputStr := outputStr  + #13 ;
-
-        MessageDlg(outputStr,mtInformation,[mbOK],0) ;
-
-      end;
-
-
-    end;
-
-
-end;
-
-procedure TForm4.DoStuffWithStringGrid(filename : String; addToCol, numRows, numCols : integer; addLineToStrGrid : boolean; addToRow : integer) ;
+procedure TForm4.DoStuffWithStringGrid(filename : String; XorYMatrix, numRows, numCols : integer; addLineToStrGrid : boolean; addToRow : integer) ;
 // XorYMatrix = 2 if X data; 3 if Y data (i.e. for regression); 5 if scores ;  if EVects ; 7 eigenvals ; 8 if residuals etc
 Var
    GR : TGridRect ;
@@ -2807,20 +1579,26 @@ begin
       // Now create the TSpectraRanges object
       if  addLineToStrGrid then // new X data added into column #2
       begin
-        Objects[addToCol,Form4.StringGrid1.RowCount-1] := TSpectraRanges.Create(1,numRows,numCols, @LineColor)  ; // Create spectra object
-        t1 := GetLowestListNumber ; // gets lowest GLListNumber
-        TSpectraRanges(Objects[addToCol,Form4.StringGrid1.RowCount-1]).GLListNumber := t1 ;
-        TSpectraRanges(Objects[addToCol,Form4.StringGrid1.RowCount-1]).xCoord.Filename := filename ;
-        if addToCol = 2 then
+        Objects[XorYMatrix,Form4.StringGrid1.RowCount-1] := TSpectraRanges.Create(1,numRows,numCols, @LineColor)  ; // Create spectra object
+        if (Objects[2,Form4.StringGrid1.RowCount-2] is TSpectraRanges) and (Objects[1,Form4.StringGrid1.RowCount-2] = nil) then
+        begin
+          TSpectraRanges(Objects[XorYMatrix,Form4.StringGrid1.RowCount-1]).GLListNumber := GetLowestListNumber ;
+        end
+        else
+        begin
+          t1 := GetLowestListNumber ; // gets lowest GLListNumber
+          TSpectraRanges(Objects[XorYMatrix,Form4.StringGrid1.RowCount-1]).GLListNumber := t1 ;
+        end ;
+        TSpectraRanges(Objects[XorYMatrix,Form4.StringGrid1.RowCount-1]).xCoord.Filename := filename ;
         Cells[1,Form4.StringGrid1.RowCount-1] := ExtractFileName(filename) ;  // place "filename" in string grid box
         Form4.StringGrid1.RowCount := Form4.StringGrid1.RowCount + 1 ;  // add extra line to stringgrid1 ;
       end
       else // addLineToStrGrid = false
       begin
-         Objects[addToCol,addToRow] := TSpectraRanges.Create(1,numRows,numCols, @LineColor)  ; // Create spectra object
+         Objects[XorYMatrix,addToRow] := TSpectraRanges.Create(1,numRows,numCols, @LineColor)  ; // Create spectra object
          t1 := GetLowestListNumber ; // gets lowest GLListNumber
-         TSpectraRanges(Objects[addToCol,addToRow]).GLListNumber := t1 ;
-         TSpectraRanges(Objects[addToCol,addToRow]).xCoord.Filename := filename ;
+         TSpectraRanges(Objects[XorYMatrix,addToRow]).GLListNumber := t1 ;
+         TSpectraRanges(Objects[XorYMatrix,addToRow]).xCoord.Filename := filename ;
       end ;
 
       //  select the spectra just created
@@ -2834,247 +1612,12 @@ begin
         GR.Top    := addToRow - 1 ;
         GR.Bottom := addToRow - 1 ;
       end ;
-      GR.Left   := addToCol ;
-      GR.Right  := addToCol ;
+      GR.Left   := XorYMatrix ;
+      GR.Right  := XorYMatrix ;
       StringGrid1.Selection := GR ;    // select currently loaded file in stringlist
     end ;
 end ;
 
-
-
-
-
-procedure TForm4.DynamicTimeWarpClick(Sender: TObject);
-Var
-  t0, t1, t2, selectedRowNum, currentSpecNum, initialColNum, num  : integer ;
-  ij, im1j, im1jm1, ijm1  : single ;  // predecessors
-  sum1, sum2, sum3    : single ;
-  tR1, tT1, ldistSR, cdistSR2, outSR1 : TSpectraRanges ;
-  rowpos, colpos : integer ;
-begin
-  currentSpecNum := 0 ;
-  initialColNum  := Form4.StringGrid1.Col ;
-  for t0 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-    selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-    
-    if Form4.StringGrid1.Objects[2 ,selectedRowNum] is  TSpectraRanges  then
-    begin
-    if Form4.StringGrid1.Objects[3 ,selectedRowNum] is  TSpectraRanges  then
-    begin
-    if Form4.StringGrid1.Objects[4 ,selectedRowNum] = nil then  // this is the new column
-    begin
-
-
-      tT1  :=  TSpectraRanges(Form4.StringGrid1.Objects[2,selectedRowNum]) ;   // this is the reference spectrum
-      tR1  :=  TSpectraRanges(Form4.StringGrid1.Objects[3,selectedRowNum]) ;   // this will be the warped spectrum
-
-      // create new line in stringgrid and create TSpectraRanges object for each TSpectraRanges selected (one at a time)
-       // 30 is the M value in paper Pravdova V Analytica Chimica Acta 2002 456 77-92
-      DoStuffWithStringGrid('', 4, tR1.yCoord.numCols, tT1.yCoord.numCols , false, selectedRowNum ) ;
-      // point pointer newSR to the new TSpectraRange object
-      ldistSR :=  TSpectraRanges(Form4.StringGrid1.Objects[4, selectedRowNum]) ;
-      ldistSR.xCoord.FillMatrixData(1.0,tT1.yCoord.numCols);
-      ldistSR.yCoord.MultiplyByScalar(0.0);
-      ldistSR.yCoord.AddScalar(-1.0);
-
-      DoStuffWithStringGrid('', 5, tR1.yCoord.numCols, tT1.yCoord.numCols , false, selectedRowNum ) ;
-      cdistSR2  :=  TSpectraRanges(Form4.StringGrid1.Objects[5,selectedRowNum]) ;   // this will be the warped spectrum
-      cdistSR2.xCoord.FillMatrixData(1.0,tT1.yCoord.numCols);
-      cdistSR2.yCoord.MultiplyByScalar(0.0);
-
-      DoStuffWithStringGrid('', 6, 1, tT1.yCoord.numCols , false, selectedRowNum ) ;
-      outSR1  :=  TSpectraRanges(Form4.StringGrid1.Objects[6,selectedRowNum]) ;   // this will be the warped spectrum
-      outSR1.xCoord.FillMatrixData(1.0,tT1.yCoord.numCols);
-      outSR1.yCoord.MultiplyByScalar(0.0);
-
-      tT1.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      tR1.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      ldistSR.yCoord.F_MData.Seek(0,soFromBeginning) ;
-
-      // calculate full (local) Eucidean distance profile
-      for t1 := 1 to tR1.yCoord.numCols do  // == newSR.yCoord.numRows
-      begin
-        tR1.yCoord.F_Mdata.Read(sum1,4) ;
-        for t2 := 1 to tT1.yCoord.numCols do  // == newSR.yCoord.numCols
-        begin
-            tT1.yCoord.F_Mdata.Read(sum2,4)    ;
-            sum3 := sum1-sum2 ;
-            if sum3 <> 0.0 then
-              sum3 := log10(sqrt(sum3*sum3))
-            else
-              sum3 := 0.0 ;
-            ldistSR.yCoord.F_Mdata.Write(sum3,4) ;
-           //  p1+(t1*newSR.yCoord.numCols + t2) := sqrt(((pT1+t2)-(pR1+t1))*((pT1+t2)-(pR1+t1)) ;
-          // s0 := single(inPointer^) ;
-        end;
-         tT1.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      end;
-
-
-      tT1.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      tR1.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      ldistSR.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      cdistSR2.yCoord.F_MData.Seek(0,soFromBeginning) ;
-
-       // calculate Cumlative Eucidean distances
-       // first row
-       sum1 := 0.0 ;
-       for t1 := 1 to tT1.yCoord.numCols do  // == ldistSR.yCoord.numCols
-        begin
-            ldistSR.yCoord.F_Mdata.Read(im1jm1,4) ;
-            sum1 := sum1 + im1jm1 ;
-            cdistSR2.yCoord.F_Mdata.Write(sum1,4) ;
-        end;
-
-        // first col
-       ldistSR.yCoord.F_MData.Seek(0,soFromBeginning) ;
-       cdistSR2.yCoord.F_MData.Seek(0,soFromBeginning) ;
-       sum1 := 0.0 ;
-       for t1 := 1 to tR1.yCoord.numCols do  // == ldistSR.yCoord.numRows
-        begin
-            ldistSR.yCoord.F_Mdata.Read(im1jm1,4) ;
-            ldistSR.yCoord.F_Mdata.Seek(t1 * ldistSR.yCoord.numCols * 4, soFromBeginning) ;
-            sum1 := sum1 + im1jm1 ;
-            cdistSR2.yCoord.F_Mdata.Write(sum1,4) ;
-            cdistSR2.yCoord.F_Mdata.Seek(t1 * cdistSR2.yCoord.numCols * 4, soFromBeginning) ;
-        end;
-
-      // second row on and second column onwards
-     // ldistSR.yCoord.F_MData.Seek(0,soFromBeginning) ;
-     // cdistSR2.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      for t1 := 0 to tR1.yCoord.numCols - 2 do  // == newSR.yCoord.numRows
-      begin
-        for t2 := 0 to tT1.yCoord.numCols - 2 do  // == newSR.yCoord.numCols
-        begin
-            cdistSR2.yCoord.F_MData.Seek(((t1)*cdistSR2.yCoord.numCols*4)+(t2*4) , soFromBeginning) ;
-            cdistSR2.yCoord.F_Mdata.Read(im1jm1,4) ;
-            cdistSR2.yCoord.F_Mdata.Read(ijm1,4) ;
-            cdistSR2.yCoord.F_MData.Seek(((t1+1)*cdistSR2.yCoord.numCols*4)+(t2*4) , soFromBeginning) ;
-            cdistSR2.yCoord.F_Mdata.Read(im1j,4) ;
-            ldistSR.yCoord.F_MData.Seek(((t1+1)*cdistSR2.yCoord.numCols*4)+((t2+1)*4) , soFromBeginning) ;
-            ldistSR.yCoord.F_Mdata.Read(ij,4) ;
-
-            sum1 := im1jm1 + ij ;
-            sum2 := ijm1 + ij ;
-            sum3 := im1j + ij ;
-            sum1 := min(sum1,sum2) ;
-            sum1 := min(sum1,sum3) ;
-
-            cdistSR2.yCoord.F_Mdata.Write(sum1,4) ;
-        end;
-      end;
-
-
-
-      tT1.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      tR1.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      ldistSR.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      cdistSR2.yCoord.F_MData.Seek(0,soFromBeginning) ;
-      outSR1.yCoord.F_MData.Seek(0,soFromBeginning) ;
-
-
-      // spin the matrix
-      cdistSR2.yCoord.AverageSmooth(15);
-      cdistSR2.yCoord.RotateRight() ;
-      cdistSR2.yCoord.AverageSmooth(15);
-      cdistSR2.yCoord.RotateRight() ;
-
-      // find the minimal path through the culmulative distance matrix
-      // store diagonal paths
-      rowpos := 0 ;
-      colpos := 0 ;
-      num := 0 ;
-      sum1 := 0.0 ;
-      while ( (rowpos < cdistSR2.yCoord.numRows-1) or (colpos < cdistSR2.yCoord.numCols-1) )// == newSR.yCoord.numRows
-      do
-      begin
-          cdistSR2.yCoord.F_MData.Seek(((rowpos)*cdistSR2.yCoord.numCols*4)+(colpos*4) , soFromBeginning) ;
-          cdistSR2.yCoord.F_Mdata.Read(im1jm1,4) ; // this is the current positon
-          cdistSR2.yCoord.F_Mdata.Read(ijm1,4) ;
-          cdistSR2.yCoord.F_MData.Seek(((rowpos+1)*cdistSR2.yCoord.numCols*4)+(colpos*4) , soFromBeginning) ;
-          cdistSR2.yCoord.F_Mdata.Read(im1j,4) ;
-          cdistSR2.yCoord.F_Mdata.Read(ij,4) ;
-
-          if (im1j <= ij)and (im1j <= ijm1) then  // down column (vertical transition)
-          begin
-            inc(rowpos) ;
-            inc(num) ;
-            tR1.yCoord.F_MData.Seek((rowpos-1)*4,soFromBeginning) ;
-            tR1.yCoord.F_MData.Read(sum2,4) ;
-            sum1 := sum1 + sum2 ;
-          end
-          else
-          if (ij <= im1j)and (ij <= ijm1) then   // diagonal transition
-          begin
-            inc(rowpos) ;
-            inc(colpos) ;
-            inc(num) ;
-            tR1.yCoord.F_MData.Seek((rowpos-1)*4,soFromBeginning) ;
-            tR1.yCoord.F_MData.Read(sum2,4) ;
-            sum1 := (sum1 + sum2) / num ;
-            outSR1.yCoord.F_MData.Write(sum1,4) ;
-            sum1 := 0.0 ;
-            num   := 0 ;
-          end
-          else
-          if (ijm1 <= im1j)and (ijm1 <= ij) then  // across row to next column (horizontal transition)
-          begin
-            inc(colpos) ;
-            inc(num) ;
-            tR1.yCoord.F_MData.Seek((rowpos-1)*4,soFromBeginning) ;
-            tR1.yCoord.F_MData.Read(sum2,4) ;
-            sum1 := (sum1 + sum2) / num ;
-            outSR1.yCoord.F_MData.Write(sum1,4) ;
-            sum1 := 0.0 ;
-            num   := 0 ;
-          end;
-
-      end;
-
-
-
-      // do display and interface
-      ldistSR.GLListNumber := GetLowestListNumber ;
-      if tT1.fft.dtime  <> 0 then
-        ldistSR.fft.CopyFFTObject(tT1.fft) ;
-
-      PlaceDataRangeOrValueInGridTextBox( 4, selectedRowNum ,  ldistSR)  ;
-      ldistSR.xCoord.Filename :=  extractfilename(ldistSR.xCoord.Filename )  ;
-      ldistSR.xCoord.Filename :=  copy(ldistSR.xCoord.Filename,1,length(ldistSR.xCoord.Filename))+ 'Euclidean_matrix.bin'   ;
-      ldistSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      ldistSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1) ;
-
-      cdistSR2.GLListNumber := GetLowestListNumber ;
-      if tT1.fft.dtime  <> 0 then
-        cdistSR2.fft.CopyFFTObject(tT1.fft) ;
-
-      PlaceDataRangeOrValueInGridTextBox( 5, selectedRowNum ,  cdistSR2)  ;
-      cdistSR2.xCoord.Filename :=  extractfilename(cdistSR2.xCoord.Filename )  ;
-      cdistSR2.xCoord.Filename :=  copy(cdistSR2.xCoord.Filename,1,length(cdistSR2.xCoord.Filename))+ 'Euclidean_matrix.bin'   ;
-      cdistSR2.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      cdistSR2.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1) ;
-
-      outSR1.GLListNumber := GetLowestListNumber ;
-      if tT1.fft.dtime  <> 0 then
-        outSR1.fft.CopyFFTObject(tT1.fft) ;
-
-      PlaceDataRangeOrValueInGridTextBox( 6, selectedRowNum ,  outSR1)  ;
-      outSR1.xCoord.Filename :=  extractfilename(outSR1.xCoord.Filename )  ;
-      outSR1.xCoord.Filename :=  copy(outSR1.xCoord.Filename,1,length(outSR1.xCoord.Filename))+ 'Euclidean_matrix.bin'   ;
-      outSR1.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      outSR1.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1) ;
-    end; // is the next column is not taken
-   end ; //if it is a TSpectraRanges object
-   end ; //if it is a TSpectraRanges object
-
-   end;  // for each file selected
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-
-end;
 
 procedure TForm4.ReduceTIFF(tSRIn : TSpectraRanges; factor: Integer; aveOrSkip: AverageOrSkip) ;
 var
@@ -3119,39 +1662,8 @@ begin
       tSRIn.yCoord.CopyMatrix(tMat1) ;
       tMat1.Free ;
   end;
-end;
 
 
-procedure TForm4.Revert1Click(Sender: TObject);
-var
-  t1, t2, selectedRowNum : integer ;
-  tSR, tSR2 : TSpectraRanges ;
-
-begin
-
-  SelectStrLst.SortListNumeric ;
-  for t1 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-   selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-   if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-   begin
-      tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,selectedRowNum]) ;
-      if lowercase(extractfileext(tSR.yCoord.Filename)) = '.bin' then
-      begin
-        tSR2 := TSpectraRanges.Create(tSR.yCoord.SDPrec,1,1,@tSR.LineColor) ;
-        tSR2.LoadSpectraRangeDataBinV2(tSR.yCoord.Filename);
-        tSR.CopySpectraObject(tSR2) ;
-
-        tSR.GLListNumber := Form4.GetLowestListNumber ;
-        if (tSR.lineType > MAXDISPLAYTYPEFORSPECTRA) or (tSR.lineType < 1)  then tSR.lineType := 1 ;  //
-          tSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(),  tSR.lineType )   ;
-          tSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ;
-      end;
-   end ;
-
-  end ;  // for each file selected
-
-  form1.Refresh ;
 
 end;
 
@@ -3160,12 +1672,12 @@ end;
 // loads the spectral data, dependent upon file extension
 Procedure TForm4.InitializeSpectraData(files : TStringList; numSpectra : integer ) ;
 Var
- TempRow, currentFile, numSubFiles, numPoints, lineNum, headerSize : Integer ;
+ TempRow, t1, currentFile, numSubFiles, numPoints, lineNum, headerSize : Integer ;
  success : bool ;
  tStrList : TStringList ;
  tSR : TSpectraRanges ;
  firstXVal_, XstepVal : single ;
- t1, t2 : integer ;
+ tMat : TMatrix ;
  s1 : single ;
  d1 : double ;
  XorYMatrixData, rowNumber, initialRowNum : integer ;
@@ -3173,10 +1685,7 @@ Var
  ReturnVal : integer ;
  tTIFFIn : TTiffReadWrite ;
  aveOrSkip: AverageOrSkip ;
- isAnOPUSFileExt  : boolean ;
- tMS  : TMemoryStream ;  // stores byte string to find match for in OPUS file
- tMat1 : TMatrix ;
- c1 : char ;
+
 Begin
 
 
@@ -3207,7 +1716,6 @@ Begin
     begin
        Application.Destroy ;
     end ;
-
 
 
 
@@ -3255,34 +1763,10 @@ Begin
 
         tSR.xString := Form2.Edit30.Text ;
     end
-     else if ( UpperCase(ExtractFileExt(files.Strings[currentFile])) = '.NC') then // netCDF file
-    begin
-
-     {   if  XorYMatrixData = 2 then
-          DoStuffWithStringGrid(files.Strings[currentFile],XorYMatrixData,1,0, true, SG1_ROW)
-        else
-          DoStuffWithStringGrid(files.Strings[currentFile],XorYMatrixData,1,0, false, SG1_ROW) ;
-
-        tSR := TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]) ;
-       }
-     {   spcRead :=  ReadWriteSPC.Create ;
-        numSubFiles :=  spcRead.ReadSPCDataIntoSpectraRange(tSR.xCoord.Filename, tSR) ;
-        spcRead.Free ; }
-
-        NetCDFForm.DirLabel.Caption  := 'Dir : ' +ExtractFilePath(files.Strings[currentFile]) ;
-        NetCDFForm.FileLabel.Caption := 'File: ' +ExtractFilename(files.Strings[currentFile]) ;
-        NetCDFForm.Visible := true ;
-        NetCDFForm.Show() ;
-        NetCDFForm.SetUpnetCDFForm(self,files.Strings[currentFile]) ;
-        break ; // can only set up 1 netCDF file at a time
-
-     //   tSR.xString := Form2.Edit30.Text ;
-     //   ChooseDisplayType(tSR) ;
-
-     //  success := LoadSPCXrayFile(TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,Form4.StringGrid1.RowCount-2])) ;
-    end
     else if ( UpperCase(ExtractFileExt(files.Strings[currentFile])) = '.SPC') then
     begin
+
+
         if  XorYMatrixData = 2 then
           DoStuffWithStringGrid(files.Strings[currentFile],XorYMatrixData,1,0, true, SG1_ROW)
         else
@@ -3366,10 +1850,6 @@ Begin
          // LOAD TIFF DATA INTO NEW TSpectraRange object
          tSR := TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]) ;
          tTIFFIn.CopyData(tSR.yCoord.F_Mdata,tSR.yCoord.SDPrec );
- //        if tTIFFIn.byteOrder = 1 then  // if tiff file is from a mac (or imageJ) then bytes are reversed
- //          tSR.yCoord.ReverseByteOrder ;
-
-
          tTIFFIn.Free ;
 
          // Determine average data or skip data for ReduceTIFF() procedure
@@ -3524,7 +2004,6 @@ Begin
        end ;
     end
     else // load text file data into  TSpectraRanges object  using 'file import' details
-    if ( UpperCase(ExtractFileExt(files.Strings[currentFile])) = '.TXT') or ( UpperCase(ExtractFileExt(files.Strings[currentFile])) = '.CSV') then
     begin
        if  XorYMatrixData = 2 then
           DoStuffWithStringGrid(files.Strings[currentFile],XorYMatrixData,1,0, true, SG1_ROW)
@@ -3545,107 +2024,7 @@ Begin
          Form1.UpdateViewRange() ; // updates  OrthoVarXMax, OrthoVarXMin, OrthoVarYMax, OrthoVarYMin. Used when XY data is modified
 
        TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]).xString := Form2.Edit30.Text ;
-    end
-    else  // try to load OPUS file
-    begin
-        isAnOPUSFileExt := false ;
-        try
-        if strtoint(copy((ExtractFileExt(files.Strings[currentFile])),2,3)) >= 0 then
-           isAnOPUSFileExt := true ;
-        except on E: EConvertError do
-          isAnOPUSFileExt := false ;
-        end;
-       if isAnOPUSFileExt then
-       begin
-       
-         if  XorYMatrixData = 2 then
-          DoStuffWithStringGrid(files.Strings[currentFile],XorYMatrixData,1,0, true, SG1_ROW)
-         else
-          DoStuffWithStringGrid(files.Strings[currentFile],XorYMatrixData,1,0, false, SG1_ROW) ;
-
-       tMS   := TMemoryStream.Create ;
-       tMat1 := TMatrix.Create(4) ;
-       c1 := 'E' ; tMS.Write(c1,1) ;
-       c1 := 'N' ; tMS.Write(c1,1) ;
-       c1 := 'D' ; tMS.Write(c1,1) ;
-       c1 := char( 0 ) ; tMS.Write(c1,1) ; tMS.Write(c1,1) ;  tMS.Write(c1,1) ; tMS.Write(c1,1) ; tMS.Write(c1,1) ;
-       tSR := TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]) ;
-       tMat1.LoadMatrixDataRawBinFile(tSR.xCoord.Filename);
-       t2 := tMat1.FindCharacterData(tMS,5) ; // this finds the end of the (5th copy of the) desired character string in the data
-       tMat1.F_Mdata.Seek(t2,soFromBeginning) ;
-       tSR.SetSize(4,1,strtoint(Form2.NumColsEB1.Text),1);
-       for t1 := 0 to tSR.xCoord.numCols - 1 do
-       begin
-         tMat1.F_Mdata.Read(s1,4) ;
-         tSR.yCoord.F_Mdata.Write(s1,4) ;
-       end;
-       tSR.xCoord.FillMatrixData(0,strtofloat(Form2.NumColsEB1.Text));
-       tSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-       tSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-       tMS.Free ;
-       tMat1.Free ;
-
-{         tMat1 := TMatrix.Create(4) ;
-         tSR := TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]) ;
-         tSR.LoadRawData(tSR.xCoord.Filename,0,1) ;
-//         tSR.yCoord.F_Mdata.Read(s1,3) ;
-         tSR.yCoord.numCols  :=  tSR.yCoord.F_Mdata.size div 4 ;
-         tSR.yCoord.numRows  :=  1 ;
-         tMat1.numCols       :=  tSR.yCoord.numCols ;
-         tMat1.numRows       :=  1  ;
-         for t1 := 0 to tSR.yCoord.numCols - 2 do
-         begin
-           tSR.yCoord.F_Mdata.Read(s1,4) ;
-           try
-
-             if s1 > 100000 then
-             begin
-               s1 := 0.0 ;
-             end
-             else
-             if s1 < -100000 then
-             begin
-               s1 := 0.0 ;
-             end;
-             if (s1 > 3999.0) and (s1 < 4001.0) then
-             begin
-                 MessageDlg('4000cm-1 at position: '+ inttostr(t1),mtInformation, [mbOK], 0)  ;
-             end;
-             if (s1 > 9999.0) and (s1 < 10001.0) then
-             begin
-                 MessageDlg('10000cm-1 at position: '+ inttostr(t1),mtInformation, [mbOK], 0)  ;
-             end;
-             if (s1 > 999.0) and (s1 < 1001.0) then
-             begin
-                 MessageDlg('1000nm at position: '+ inttostr(t1),mtInformation, [mbOK], 0)  ;
-             end;
-             if (s1 > 2499.0) and (s1 < 2501.0) then
-             begin
-                 MessageDlg('2500nm at position: '+ inttostr(t1),mtInformation, [mbOK], 0)  ;
-             end;
-             tMat1.F_Mdata.write(s1,4) ;
-           except
-             s1 := 0.0 ;
-             tMat1.F_Mdata.write(s1,4) ;
-           end;
-
-         end;
-         tSR.FillXCoordData(1,1,1) ;
-         tSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-         tSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-         tSR.yCoord.copyMatrix( tMat1 ) ;
-         tMat1.Free ;
-}
-         TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]).CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1) ;
-         TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]).SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-         if Form4.CheckBox7.Checked = false then  // keep current perspective = false
-           Form1.UpdateViewRange() ; // updates  OrthoVarXMax, OrthoVarXMin, OrthoVarYMax, OrthoVarYMin. Used when XY data is modified
-
-         TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]).xString := Form2.Edit30.Text ;
-      end ;
-    end ;
-
-
+    end  ; // load text file data into  TSpectraRanges object  using 'file import' details
 
 
    Form2.Edit8.Text := FloatToStrf(OrthoVarYMax,ffGeneral,6,6) ;  // Max "Visible Y Range"
@@ -3654,24 +2033,11 @@ Begin
    EyeX := 0 ; EyeY := 0 ; CenterX := 0 ; CenterY := 0 ;
 
    // place text expression of data range in stringgrid1 cell in correct column (=XorYMatrixData)
-   PlaceDataRangeOrValueInGridTextBox(XorYMatrixData,rowNumber, TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]) ) ;
-
- {  if numSubFiles > 1 then
+   if numSubFiles > 1 then
       Form4.StringGrid1.Cells[XorYMatrixData,rowNumber] := '1-' + inttostr(numSubFiles) + ' : 1-' + inttostr(TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]).xCoord.numCols)
    else
-   begin
-     // if only a single value is present, place the value in the grid as text   //
-     if (TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]).xCoord.numCols = 1) then
-     begin
-      TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]).yCoord.F_Mdata.Seek(0,soFromBeginning)  ;
-      TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]).yCoord.F_Mdata.Read(s1,sizeof(single))  ;
-      TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]).yCoord.F_Mdata.Seek(0,soFromBeginning)  ;
-      Form4.StringGrid1.Cells[XorYMatrixData,rowNumber] := floattostr(s1) ;
-     end
-     else
-      Form4.StringGrid1.Cells[XorYMatrixData,rowNumber] := '1' + ' : 1-' + inttostr(TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]).xCoord.numCols) ;
-   end;
-}
+     Form4.StringGrid1.Cells[XorYMatrixData,rowNumber] := '1' + ' : 1-' + inttostr(TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber]).xCoord.numCols) ;
+
     
    Form1.Caption := ExtractFileName(files.Strings[currentFile]) ;
    Form2.Panel2.Color :=  TSpectraRanges(Form4.StringGrid1.Objects[2,rowNumber]).ReturnTColorFromLineColor ;
@@ -3679,18 +2045,11 @@ Begin
    if success = false then
        Form4.close1Click(nil);
 
-    inc(rowNumber) ;
-
-    tSR := TSpectraRanges(Form4.StringGrid1.Objects[XorYMatrixData,rowNumber-1]) ;
-    if (tSR.yCoord.F_Mdata.Size) <> (tSR.yCoord.numRows*tSR.yCoord.numCols*tSR.yCoord.SDPrec*tSR.yCoord.complexMat) then
-    begin
-        messagedlg('Data size (F_MData object) and calculated size are not equal' ,mtError,[mbOK],0) ;
-    end;
-
-
+    inc(rowNumber) ; 
   end ; // repeat for next file in list
 
 end ;
+
 
 
 
@@ -4018,45 +2377,6 @@ end ;
 // loads JDX file data and returns the line number of the ##end= token of last subfile loaded. numFiles is known number of spectra in JDX file
 // Only handles single precision data and TSpectraRanges objects
 // TSpectraRanges has to have number of files and number of X data and memory required set up before sending
-procedure TForm4.LevelScale1Click(Sender: TObject);
-var
-  t1 : integer ;
-  tSR : TSpectraRanges ;
-  selectedRowNum : integer ;
-begin
-  SelectStrLst.SortListNumeric ;
-
-  for t1 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-   selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-   if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-   begin
-      tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,selectedRowNum]) ;
-
-      tSR.yCoord.Average ;
-      tSR.yCoord.LevelScale ;
-
-      if (tSR.frequencyImage = true) or (tSR.nativeImage = true) then
-      begin
-         tSR.CopyDataTo2DSpecR ;
-         tSR.image2DSpecR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-         tSR.image2DSpecR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR.image2DSpecR.lineType) ;
-      end
-      else
-      begin
-         tSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-         tSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR.lineType) ;
-      end ;
-
-   end ;
-
-  end ;
-  if not Form4.CheckBox7.Checked then
-    form1.UpdateViewRange() ;
-  form1.Refresh ;
-end;
-
-
 function TForm4.LoadJDXFile(SpectObj : TSpectraRanges; tStrList : TStringList; numFiles, numPoints, whichFile, lineNum : integer) : integer ;
 Var
   tint1, headerSize, lineNumofEndToken, totalPoints, spacePos, negPos, commaPos : integer ;
@@ -4510,8 +2830,6 @@ try
    begin
     Try
       add(GetCurrentDir) ;   //final directory used
-      add(lastFileExt) ;      //
-      add(Form2.MVA_executable) ;
 //       messagedlg(GetCurrentDir  ,mtinformation,[mbOk],0) ;
       add(Form2.Edit1.Text) ; //background Red%
       add(Form2.Edit2.Text) ; //background Green%
@@ -4556,41 +2874,181 @@ end;
 
 
 
+procedure TForm4.Combine1Click(Sender: TObject);
+var
+  t1 : integer ;
+  newSR : TSpectraRanges ;
+  tSR   : TSpectraRanges ;
+  numVars1, numVars2 : integer ;
+  selectedRowNum : integer ;
+  tStr : string ;
+  tbool, hasImaginary : boolean ;
+  tMat : TMatrix ;
+begin
+  tbool := true ;
+
+  SelectStrLst.SortListNumeric ;
+  selectedRowNum := StrToInt(SelectStrLst.Strings[0]) ;
+  hasImaginary := false ;
+  tSr :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
+  numVars1 := tSr.xCoord.numCols ;
+  if tSr.yImaginary <> nil then
+       hasImaginary := true ;
+  for t1 := 1 to SelectStrLst.Count-1 do
+  begin
+     selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
+     tSr :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
+     numVars2 := tSr.xCoord.numCols ;
+     if numVars1 <> numVars2 then
+       tbool := false ;
+     if tSR.yImaginary <> nil then
+       hasImaginary := true ;
+  end ;
+
+  if (tbool = false) then
+  begin
+    MessageDlg('At least one file has a different number of variables.'#13'can not complete combine operation',mtError, [mbOK], 0)  ;
+    exit ;
+  end ;
+
+  // create new line in stringgrid and create TSpectraRanges object
+  DoStuffWithStringGrid('', 2, 1, numVars1, true, StringGrid1.RowCount-1 ) ;
+
+  newSR :=  TSpectraRanges(Form4.StringGrid1.Objects[2, StringGrid1.RowCount-2 ]) ;  // this is the new combined data in new row of list
+
+  selectedRowNum := StrToInt(SelectStrLst.Strings[0]) ;
+  tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
+  newSR.yCoord.CopyMatrix(tSR.yCoord) ;  // copy the first matrix
+  // the files to be combined are the int value of the string that are in the list.
+  // Add files rows to the new TSpectraRanges object
+  for t1 := 1 to SelectStrLst.Count-1 do
+  begin
+     selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
+     tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
+     newSR.yCoord.AddRowsToMatrix(tSR.yCoord,1,tSR.yCoord.numRows) ;
+  end ;
+
+  if hasImaginary then
+  begin
+     selectedRowNum := StrToInt(SelectStrLst.Strings[0]) ;
+     tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
+     if newSR.yImaginary = nil then
+       newSR.yImaginary := TMatrix.Create(newSR.yCoord.SDPrec div 4) ;  // create the Imaginary matrix
+     if tSR.yImaginary <> nil then
+       newSR.yImaginary.CopyMatrix(tSR.yImaginary) ;  // copy the first matrix
+     // the files to be combined are the int value of the string that are in the list.
+     // Add files rows to the new TSpectraRanges object
+     for t1 := 1 to SelectStrLst.Count-1 do
+     begin
+        selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
+        tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
+        if tSR.yImaginary <> nil then
+        begin
+          newSR.yImaginary.AddRowsToMatrix(tSR.yImaginary,1,tSR.yImaginary.numRows) ;
+        end
+        else
+        begin
+          tMat := TMatrix.Create2(newSR.yCoord.SDPrec div 4,tSR.yCoord.numRows,tSR.yCoord.numCols) ;
+          tMat.Zero(tMat.F_Mdata) ;
+          newSR.yImaginary.AddRowsToMatrix(tMat,1,tMat.numRows) ;
+          tMat.Free ;
+        end ;
+     end ;
+  end ;
+
+
+  newSR.xCoord.CopyMatrix(tSR.xCoord) ;
+
+  StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
+  StringGrid1.Cells[1, StringGrid1.RowCount-2 ] :=  'Combined.bin'   ;
+  newSR.xCoord.Filename :=  'Combined.bin'   ;
+
+  newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
+  newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR.lineType ) ;
+end;
+
+
+
+
+
+procedure TForm4.separate1Click(Sender: TObject);
+// Separates a matrix of spectra into individual spectra in the StringGrid
+var
+  t1, t2 : integer ;
+  newSR : TSpectraRanges ;
+  tSR   : TSpectraRanges ;
+  numVars1, numVars2 : integer ;
+  selectedRowNum : integer ;
+  tStr : string ;
+  tbool : boolean ;
+begin
+
+  if SelectStrLst.Count = 1 then
+  begin
+    selectedRowNum := StrToInt(SelectStrLst.Strings[0]) ;
+    if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
+    begin
+      tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
+      if  tSR.yCoord.numRows > 1 then
+      begin
+        tStr := extractfilename(tSR.xCoord.Filename) ;
+        for t1 := 1 to tSR.yCoord.numRows do
+        begin
+          // create new line in stringgrid and create TSpectraRanges object
+
+          DoStuffWithStringGrid('', 2, 1, tSR.yCoord.numRows , true, StringGrid1.RowCount-1 ) ;
+
+
+          newSR :=  TSpectraRanges(Form4.StringGrid1.Objects[2, StringGrid1.RowCount-2]) ;
+          newSR.yCoord.FetchDataFromTMatrix(inttostr(t1),'1-'+inttostr(tSR.YCoord.numCols),tSR.yCoord) ;
+          if tSR.yImaginary <> nil then
+          begin
+            newSR.yImaginary := TMatrix.Create( newSR.yCoord.SDPrec div 4 ) ; 
+            newSR.yImaginary.FetchDataFromTMatrix(inttostr(t1),'1-'+inttostr(tSR.yImaginary.numCols),tSR.yImaginary) ;
+          end ;
+          newSR.xCoord.CopyMatrix(tSR.xCoord) ;
+          StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
+          StringGrid1.Cells[1, StringGrid1.RowCount-2 ] :=  inttostr(t1)+ '_' + tStr ;
+          newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
+          newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1) ;
+        end ;
+      end ;
+    end ;
+  end ;
+
+end;
+
 procedure TForm4.N2Ddisplay1Click(Sender: TObject);
 // change from linear array to 2D image of data
 var
-  t0, t1 : integer ;
+  t1 : integer ;
   selectedRowNum : integer ;
   tSR : TSpectraRanges ;
   s1 : single ;
 begin
 
-//  if SelectStrLst.Count = 1 then // only for first file in list
-//  begin
-    SelectStrLst.SortListNumeric ;
-    for t0 := 0 to SelectStrLst.Count-1 do  // 1. count number of variables in each spectraRange selected
-    begin
-    selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
+  if SelectStrLst.Count = 1 then // only for first file in list
+  begin
+    selectedRowNum := StrToInt(SelectStrLst.Strings[0]) ;
 
     if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
     begin
       tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
 
-
+      // this forces a change in numRows and numCols of a spectra
+      tSR.yCoord.numRows :=  strtoint(Form2.NumRowsEB1.Text) ;
+      tSR.yCoord.numCols :=  strtoint(Form2.NumColsEB1.Text) ;
+      tSR.xCoord.F_Mdata.SetSize(tSR.yCoord.numCols*tSR.xCoord.SDPrec);
+      tSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
+      tSR.xPixSpacing := strtofloat(Form2.PixelSpaceX_EB.Text) ;
+      for t1 := 0 to tSR.yCoord.numCols-1 do
+      begin
+       s1 :=  t1 * tSR.xPixSpacing ;
+       tSR.xCoord.F_Mdata.Write(s1,4) ;
+      end ;
 
       if  (Form2.Not2DdataRB.Checked) then // this is the Radio Item choosing 1D or 2D dispaly
       begin
-        // this forces a change in numRows and numCols of a spectra
-        tSR.yCoord.numRows :=  strtoint(Form2.NumRowsEB1.Text) ;
-        tSR.yCoord.numCols :=  strtoint(Form2.NumColsEB1.Text) ;
-        tSR.xCoord.F_Mdata.SetSize(tSR.yCoord.numCols*tSR.xCoord.SDPrec);
-        tSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-        tSR.xPixSpacing := strtofloat(Form2.PixelSpaceX_EB.Text) ;
-        for t1 := 0 to tSR.yCoord.numCols-1 do
-        begin
-          s1 :=  t1 * tSR.xPixSpacing ;
-          tSR.xCoord.F_Mdata.Write(s1,4) ;
-        end ;
         tSR.frequencyImage := false ;
         tSR.nativeImage := false ;
  ////       tSR.yCoord.numRows :=  strtoint(Form2.NumRowsEB1.Text) ;
@@ -4599,36 +3057,15 @@ begin
         ChooseDisplayType(tSR) ;
       end
       else
-      if   (Form2.Is2DdataRB.Checked)   then
+      if   (Form2.Not2DdataRB.Checked = false) then
       begin
         if form2.Is2DdataRB.Checked then  tSR.frequencyImage := true ;
-        if form2.IsNative2DdataRB.Checked then  tSR.nativeImage := false ;
-////        tSR.yCoord.numRows :=  strtoint(Form2.NumRowsEB1.Text) ;
-////        tSR.yCoord.numCols :=  strtoint(Form2.NumColsEB1.Text) ;
-
-        ChooseDisplayType(tSR) ;
-      end
-      else
-      if (Form2.IsNative2DdataRB.Checked) then
-      begin
-        // this forces a change in numRows and numCols of a spectra
-        tSR.yCoord.numRows :=  strtoint(Form2.NumRowsEB1.Text) ;
-        tSR.yCoord.numCols :=  strtoint(Form2.NumColsEB1.Text) ;
-        tSR.xCoord.F_Mdata.SetSize(tSR.yCoord.numCols*tSR.xCoord.SDPrec);
-        tSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-        tSR.xPixSpacing := strtofloat(Form2.PixelSpaceX_EB.Text) ;
-        for t1 := 0 to tSR.yCoord.numCols-1 do
-        begin
-          s1 :=  t1 * tSR.xPixSpacing ;
-          tSR.xCoord.F_Mdata.Write(s1,4) ;
-        end ;
-        if form2.Is2DdataRB.Checked then  tSR.frequencyImage := false ;
         if form2.IsNative2DdataRB.Checked then  tSR.nativeImage := true ;
 ////        tSR.yCoord.numRows :=  strtoint(Form2.NumRowsEB1.Text) ;
 ////        tSR.yCoord.numCols :=  strtoint(Form2.NumColsEB1.Text) ;
 
         ChooseDisplayType(tSR) ;
-      end  ;
+      end ;
       
       if ((tSR.frequencyImage) or (tSR.nativeImage)) and ( tSR.image2DSpecR <> nil ) then
          Form4.StringGrid1.Cells[SG1_COL, selectedRowNum] :=  '1-'+inttostr(tSR.image2DSpecR.xPix)+':1-'+inttostr(tSR.image2DSpecR.yPix)
@@ -4636,7 +3073,7 @@ begin
          Form4.StringGrid1.Cells[SG1_COL, selectedRowNum] :=  '1-'+inttostr(tSR.yCoord.numRows)+':1-'+inttostr(tSR.yCoord.numCols)  ;
 
     end ;  // is  TSpectraRanges
- end ; // for each file in list
+ end ; // only for first file in list
  if not Form4.CheckBox7.Checked then
    form1.UpdateViewRange() ;
  form1.Refresh ;
@@ -4645,7 +3082,7 @@ end;
 
 procedure TForm4.CutText1Click(Sender: TObject);
 var
-  t1, t2, t3: integer ;
+  t1, t2, t3, t4 : integer ;
   max : integer ;
   s1  : single ;
   numVarList, numSpectList, tStrOutput : TStringList ;
@@ -4654,10 +3091,10 @@ var
   selectedRowNum, numSpectra : integer ;
   rowRange : string ;
   colRange : string;
-
+  tStr     : string ;
 
 begin
-  SelectStrLst.SortListNumeric ;
+
   if SelectStrLst.Count >= 1 then // make sure a spectrum is selected
   begin
   try
@@ -4687,7 +3124,7 @@ begin
 
       rowRange := '' ;
       if tSR.SGDataView <> nil then
-        rowRange := tSR.SGDataView.RowStrTextTB.Text ;  // these are the selected spectra out of a group
+        rowRange := tSR.SGDataView.RowStrText.Text ;  // these are the selected spectra out of a group
 
       if trim(rowRange) = '1-' then                   // otherwise, all the spectra are considered selected
         rowRange := rowRange + inttostr(tSR.yCoord.numRows)
@@ -4702,7 +3139,7 @@ begin
 
 
     // 3. free old memory and create new data block for text buffer for clipboard
-    // not needed as clipboard calls 'clear' before each cut or copy operation
+    // not needed as clipboard calls 'clear' before each cut or copy opperation
 //    if clipboardCharBuff <> nil then
 //      Dispose(clipboardCharBuff) ;
 
@@ -4734,7 +3171,7 @@ begin
         
       rowRange := '' ;
       if tSR.SGDataView <> nil then
-        rowRange := tSR.SGDataView.RowStrTextTB.Text ;
+        rowRange := tSR.SGDataView.RowStrText.Text ;
 
       if trim(rowRange) = '1-' then
         rowRange := rowRange + inttostr(tSR.yCoord.numRows)
@@ -4757,14 +3194,14 @@ begin
           // Place x coordinate
           tSR.xCoord.F_Mdata.Read(s1,4) ;
           if tStrOutput.Strings[t2] <> '' then
-            tStrOutput.Strings[t2] := tStrOutput.Strings[t2] +#9+ floatToStrF(s1,ffExponent,9,3)
+            tStrOutput.Strings[t2] := tStrOutput.Strings[t2] +#9+ floatToStrF(s1,ffExponent,8,3)
           else
-            tStrOutput.Strings[t2] :=  floatToStrF(s1,ffExponent,9,3) ;
+            tStrOutput.Strings[t2] :=  floatToStrF(s1,ffExponent,8,3) ;
          // Place each y coordinate
           for t3 := 0 to tSR2.yCoord.numCols-1 do
           begin
             tSR2.yCoord.F_Mdata.Read(s1,4) ;
-            tStrOutput.Strings[t2] := tStrOutput.Strings[t2] +#9+ floatToStrF(s1,ffExponent,9,3) ;
+            tStrOutput.Strings[t2] := tStrOutput.Strings[t2] +#9+ floatToStrF(s1,ffExponent,8,3) ;
           end ;
         end
         else
@@ -4845,134 +3282,10 @@ begin
 
 end;
 
-
-procedure TForm4.LoadResultFiles(bFE: TPassBatchFileToExecutable; SGRowNum : integer; fileExtIn : string) ; // pass the executed processes info and its line number
-var
-  t1, t2, t3 : integer ;
-  tSTRLST, tSTRLST2 : TStringList ;  // list of files in the directory
-  FileInfo : TSearchRec;
-  tSR1 : TSpectraRanges ;
-  tempStr : string ;
-begin
-
-    tSTRLST := TStringList.Create ;
-    if (findfirst( bFE.resultFileDirStr + '*' + fileExtIn ,faAnyFile,FileInfo)=0) then
-    begin
-        if (FileInfo.Name = '.') then
-          findnext(FileInfo)  ;
-        while (findnext(FileInfo)=0) do
-        begin
-          // this is list of all 1st level sub-directories
-          tSTRLST.Add(bFE.resultFileDirStr + FileInfo.Name)
-        end;
-    findclose(FileInfo) ;
-    end;
-
-    for t1 := 0 to tSTRLST.Count - 1 do
-    begin
-      if pos(inttostr(bFE.PID_int),tSTRLST.Strings[t1]) > 0 then  // file exists with correct PID for process so load filenames stored in this file
-      begin
-         tSTRLST2:= TStringList.Create ;
-         tSTRLST2.LoadFromFile(tSTRLST.Strings[t1]);
-         for t2 := 0 to tSTRLST2.Count - 1 do
-         begin
-           if fileexists(tSTRLST2.Strings[t2]) then
-           begin
-              tSR1 := TSpectraRanges.Create(4,1,1, @bFE.lineCol) ;
-              tSR1.LoadSpectraRangeDataBinV2(tSTRLST2.Strings[t2]);
-
-              tSR1.GLListNumber := Form4.GetLowestListNumber ;
-              tSR1.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-              tSR1.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR1.lineType) ;
-
-              if  tSR1.yCoord.numRows > 1 then
-                Form4.StringGrid1.Cells[t2+2, SGRowNum ] := '1-'+inttostr(tSR1.yCoord.numRows)+':'+'1-'+inttostr(tSR1.yCoord.numCols)
-              else
-                Form4.StringGrid1.Cells[t2+2, SGRowNum] := '1'+':'+'1-'+inttostr(tSR1.yCoord.numCols) ;
-
-              tempStr := extractfilename(tSR1.yCoord.Filename) ;
-              while pos('_',tempStr) > 0 do
-              begin
-                t3 := pos('_',tempStr) ;
-                tempStr := copy(tempstr,t3+1,length(tempStr) - t3) ;
-              end;
-              tempStr := copy(tempstr,1,length(tempStr)-4) ;
-              tSR1.columnLabel := tempStr ;
-
-              Form4.StringGrid1.Objects[t2+2, SGRowNum]  := tSR1 ;
-//              Form4.StringGrid1.Cells[t2+2, SGRowNum]    := extractFilename(tSR1.yCoord.Filename) ;
-
-           end;
-         end;
-      end;
-    end;
-
-{    for t1 := 0 to Form4.StringGrid1.ColCount-1 do
-    begin
-      if t1 <  tSTRLST.Count then
-        Form4.StringGrid1.Cells[t1+2, SGRowNum] := extractfilename(tSTRLST.Strings[t1]) ;
-    end;  }
-
-end;
-
-
-procedure TForm4.Timer1Timer(Sender: TObject);
-var
-  t0 : integer ;
-  ProcHandle : cardinal ;
-  bFE  : TPassBatchFileToExecutable ;
-  doneLoop : boolean ;
-  ExitVal : cardinal ;
-  retVal : boolean ;
-begin
-  t0 := 1 ;
-  doneLoop := false ;
-
-  while (doneLoop = false) and (t0 <= StringGrid1.RowCount-1) do    // for each row
-  begin
-
-     if  (StringGrid1.Objects[1, t0]) <>  nil then
-     begin
-       if  (StringGrid1.Objects[1, t0]) is  TPassBatchFileToExecutable then
-       begin
-        bFE := TPassBatchFileToExecutable(Form4.StringGrid1.Objects[1, t0]) ;
-
-        if (bFE.ProcHandle_int <> 0) and GetExitCodeProcess(bFE.ProcHandle_int,ExitVal) then  // test if PID is still running
-        begin
-         // ProcHandle := OpenProcess(PROCESS_ALL_ACCESS,FALSE,bFE.PID_int) ;  //  PROCESS_SET_INFORMATION
-         // retVal := ;
-          if  not (ExitVal = STILL_ACTIVE) then
-          begin
-             Form4.LoadResultFiles(bFE, t0, '.log') ; // pass the executed processes info and its line number and the file extension for files to load
-             bFE.Free ;
-             Form4.StringGrid1.Objects[1, t0] := nil ;
-             Form4.StringGrid1.Cells[1, t0]   := '' ;
-             Form4.StatusBar1.Panels[1].Text := 'Exit value: ' + inttostr(ExitVal) ;
-             Form1.Refresh ;
-          end;
-
-          doneLoop := true ;
-        end
-        else
-        begin
-           retVal := bFE.CreateBatchProcess ;  // this calls CreateProcess()
-           if retVal = false then
-             Form4.StatusBar1.Panels[1].Text := 'Error, not able to execute:' + bFE.exeNameAndPathString
-           else
-             Form4.StringGrid1.Cells[2,t0]   := 'PID: '+ inttostr(integer(bFE.PID_int)) ;
-           doneLoop := true ;
-        end;
-
-       end ;
-     end;
-     inc(t0) ;
-  end ;
-
-end;
-
 procedure TForm4.Transpose1Click(Sender: TObject);
 var
-  t0: integer ;
+  t0, t1, t2, t3, tRows: integer ;
+  s1, s2 : single ;
   tSR : TSpectraRanges ;
   selectedRowNum : integer ;
   tXY_s  : array[0..1] of single ;
@@ -4986,7 +3299,6 @@ begin
      begin
           tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
           tSR.Transpose ;
-      //    tSR.
 
           // place text expression of data range in stringgrid1 cell in correct column (=XorYMatrixData)
           if tSR.yCoord.numRows > 1 then
@@ -4996,55 +3308,6 @@ begin
 
 
          tSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ;
-         if tSR.yCoord.numCols = 1 then
-            tSR.lineType := 3 ;
-         if (tSR.yCoord.numRows = 1) and (tSR.lineType = 3) then
-            tSR.lineType := 1 ;
-         
-         tSR.CreateGLList('1-',Form1.Canvas.Handle,RC,  Form2.GetWhichLineToDisplay(),tSR.lineType) ;
-     end ;
-  end ;
-
- // if not Form4.CheckBox7.Checked then
-    Form1.UpdateViewRange() ;
-  Form1.Refresh ;
-
-
-end;
-
-
-procedure TForm4.RotateRight1Click(Sender: TObject);
-var
-  t0 : integer ;
-
-  tSR : TSpectraRanges ;
-  selectedRowNum : integer ;
-  tXY_s  : array[0..1] of single ;
-begin
-
-  SelectStrLst.SortListNumeric ;
-  for t0 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-     selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-     if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-     begin
-          tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
-          tSR.RotateRight ;
-      //    tSR.
-
-          // place text expression of data range in stringgrid1 cell in correct column (=XorYMatrixData)
-          if tSR.yCoord.numRows > 1 then
-            Form4.StringGrid1.Cells[SG1_COL,selectedRowNum] := '1-' + inttostr(tSR.yCoord.numRows) + ' : 1-' + inttostr(tSR.xCoord.numCols)
-          else
-            Form4.StringGrid1.Cells[SG1_COL,selectedRowNum] := '1' + inttostr(tSR.yCoord.numRows) + ' : 1-' + inttostr(tSR.xCoord.numCols)  ;
-
-
-         tSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ;
-         if tSR.yCoord.numCols = 1 then
-            tSR.lineType := 3 ;
-         if (tSR.yCoord.numRows = 1) and (tSR.lineType = 3) then
-            tSR.lineType := 1 ;
-
          tSR.CreateGLList('1-',Form1.Canvas.Handle,RC,  Form2.GetWhichLineToDisplay(),tSR.lineType) ;
      end ;
   end ;
@@ -5283,6 +3546,20 @@ begin
   Form1.FormResize(Form2)  ;
 end;
 
+procedure TForm4.Extract1Click(Sender: TObject);
+var
+  tSR : TSpectraRanges ;
+begin
+  if Form4.StringGrid1.Objects[SG1_COL, SG1_ROW] is TSpectraRanges  then
+  begin
+       tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,SG1_ROW]) ;
+       if tSR.frequencyImage then
+           Extract1.Checked := true
+       else
+           Extract1.Checked := false ;
+  end ;
+end;
+
 procedure TForm4.MeanCentre1Click(Sender: TObject);
 var
   t1 : integer ;
@@ -5297,7 +3574,7 @@ begin
    if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
    begin
       tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,selectedRowNum]) ;
-     //
+
       tSR.yCoord.MeanCentre ;
       if (tSR.frequencyImage = true) or (tSR.nativeImage = true) then
       begin
@@ -5319,61 +3596,6 @@ begin
   form1.Refresh ;
 
 end;
-
-procedure TForm4.MeanDivideClick(Sender: TObject);
-var
-  t1, t2, t3 : integer ;
-  tSR : TSpectraRanges ;
-  selectedRowNum : integer ;
-  ps1, pave : ^single ;
-begin
-  SelectStrLst.SortListNumeric ;
-
-  for t1 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-   selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-   if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-   begin
-      tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,selectedRowNum]) ;
-
-      tSR.yCoord.Transpose ;
-      tSR.yCoord.Average   ;
-      ps1  :=  tSR.yCoord.F_Mdata.Memory ;
-      pave :=  tSR.yCoord.F_MAverage.Memory ;
-      for t2 := 0 to tSR.yCoord.numRows - 1 do
-      begin
-        for t3 := 0 to tSR.yCoord.numCols - 1 do
-        begin
-           ps1^ := ps1^ / pave^ ;
-           inc(ps1) ;
-           inc(pave);
-        end;
-        pave :=  tSR.yCoord.F_MAverage.Memory ;
-      end;
-      tSR.yCoord.Transpose ;
-
-      if (tSR.frequencyImage = true) or (tSR.nativeImage = true) then
-      begin
-         tSR.CopyDataTo2DSpecR ;
-         tSR.image2DSpecR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-         tSR.image2DSpecR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR.image2DSpecR.lineType) ;
-      end
-      else
-      begin
-         tSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-         tSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR.lineType) ;
-      end ;
-
-   end ;
-
-  end ;
-  if not Form4.CheckBox7.Checked then
-  form1.UpdateViewRange() ;
-  form1.Refresh ;
-
-end;
-
-
 
 procedure TForm4.VarianceScale1Click(Sender: TObject);
 var
@@ -5390,7 +3612,6 @@ begin
    begin
       tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,selectedRowNum]) ;
 
-      tSR.yCoord.Average ;
       tSR.yCoord.ColStandardize ;
 
       if (tSR.frequencyImage = true) or (tSR.nativeImage = true) then
@@ -5412,337 +3633,6 @@ begin
     form1.UpdateViewRange() ;
   form1.Refresh ;
 end;
-
-
-
-procedure TForm4.Variogram1Click(Sender: TObject);
-var
-  t1, t2, t3, t4 : integer ;
-  pos1, pos2     : integer ;
-  tSR, newSR1, newSR2 : TSpectraRanges ;
-  selectedRowNum : integer ;
-  pos1XY, pos2XY : array[0..1] of single ;
-  SSD, SSDlocal, s1 : single ;
-begin
-   SelectStrLst.SortListNumeric ;
-
-  for t1 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-   selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-   if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-   begin
-      tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,selectedRowNum]) ;
-      tSR.yCoord.F_MAverage.Seek(0,soFromBeginning) ;
-
-      newSR1 :=  TSpectraRanges.Create(tSR.yCoord.SDPrec,1, tSR.yCoord.numCols-1,@tSR.LineColor );
-      Form4.StringGrid1.Objects[Form4.StringGrid1.Col+1, selectedRowNum] := newSR1 ;
-      newSR1.SeekFromBeginning(3,1,0);
-
-//      this was for the temporary variance results to see for any trends - difficult to implements
-//      newSR2 :=  TSpectraRanges.Create(tSR.yCoord.SDPrec,1, tSR.yCoord.numCols,@tSR.LineColor );
-//      Form4.StringGrid1.Objects[Form4.StringGrid1.Col+2, selectedRowNum] := newSR2 ;
-
-
-      // *********** this does the actual functionality of copying the xCoord matrix ***************
-      newSR1.yCoord.F_MData.Seek(0,soFromBeginning) ;
-
-      // this is the 'step' value i.e. the h vector
-      for t2 := 1 to tSR.yCoord.numCols - 1 do
-      begin
-        SSD := 0.0 ;
-        for t3 := 1 to tSR.yCoord.numCols - t2 do
-        begin
-          // this decides what columns are being compared
-          pos1     := t3        ;
-          pos2     := t3 + t2   ;
-          SSDlocal := 0.0       ;
-          // this part finds Sum of Squares of Differences (=SSD) up the rows
-          for t4 := 1 to tSR.yCoord.numRows do  // for all rows
-          begin
-              tSR.Read_YrYi_Data(pos1,t4,@pos1XY,true);
-              tSR.Read_YrYi_Data(pos2,t4,@pos2XY,true);
-
-              s1       := sqr(pos2XY[0]-pos1XY[0]) ;
-              SSDlocal := SSDlocal + s1 ;
-              SSD      := SSD      + s1 ;
-          end;
-          SSDlocal := SSDlocal/(2*tSR.yCoord.numRows) ;
-
-        end;
-        SSD := SSD / (2*tSR.yCoord.numRows*(tSR.yCoord.numCols-t2)) ;
-        newSR1.yCoord.F_Mdata.Write(SSD,newSR1.yCoord.SDPrec) ;
-      end;
-
-      // copy xCoord data (but not last point)
-      newSR1.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      tSR.xCoord.F_Mdata.Seek(0,soFromBeginning)    ;
-      for t2 := 0 to tSR.yCoord.numCols - 2 do
-      begin
-        tSR.xCoord.F_Mdata.Read(s1,newSR1.xCoord.SDPrec) ;
-        newSR1.xCoord.F_Mdata.Write(s1,newSR1.xCoord.SDPrec)    ;
-      end;
-      newSR1.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      tSR.xCoord.F_Mdata.Seek(0,soFromBeginning)    ;
-
-      // do disply stuff
-      newSR1.GLListNumber := GetLowestListNumber ;
-      StringGrid1.Cells[Form4.StringGrid1.Col+1, selectedRowNum ] := '1-'+inttostr(newSR1.yCoord.numRows)+' : '+'1-'+inttostr(newSR1.yCoord.numCols) ;
-      newSR1.xCoord.Filename :=  copy(tSR.xCoord.Filename,1,length(tSR.xCoord.Filename) -3) + '_variogram' ;
-      newSR1.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      newSR1.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1) ;
-   end ;
-
-  end ;
-  if not Form4.CheckBox7.Checked then
-    form1.UpdateViewRange() ;
-  form1.Refresh ;
-end;
-
-
-
-procedure TForm4.Variogramv21Click(Sender: TObject);
-var
-  t1, t2, t3, t4 : integer ;
-  pos1, pos2     : integer ;
-  tSR, newSR1, newAve : TSpectraRanges ;
-  selectedRowNum : integer ;
-  pos1XY, pos2XY : array[0..2] of single ;
-  SSD, SSDAve, s1 : single ;
-  xdata : single ;
-  tTimer : TASMTimer ;
-begin
-   SelectStrLst.SortListNumeric ;
-
-  for t1 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-   selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-   if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-   begin
-      tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,selectedRowNum]) ;
-      tSR.yCoord.F_MAverage.Seek(0,soFromBeginning) ;
-
- //     newSR1 :=  TSpectraRanges.Create(tSR.yCoord.SDPrec,1, 1,@tSR.LineColor );
- //     Form4.StringGrid1.Objects[Form4.StringGrid1.Col+1, selectedRowNum] := newSR1 ;
- //     newSR1.SeekFromBeginning(3,1,0);
-
-      tTimer := TASMTimer.Create(0) ;
-      tTimer.setTimeDifSecUpdateT1 ;
-      t3 := 0 ;
-      for t2 := 0 to tSR.yCoord.numCols - 1 do
-        t3 := t3 + (t2) ;
-      tTimer.setTimeDifSecUpdateT1 ;
-      Form4.StatusBar1.Panels[1].Text := tTimer.outputTimeSec('Variogram2 time1: ');
-      Form4.StatusBar1.Refresh ;
-      tTimer.setTimeDifSecUpdateT1 ;
-
-      newSR1 :=  TSpectraRanges.Create(tSR.yCoord.SDPrec,1, t3,@tSR.LineColor );
-      Form4.StringGrid1.Objects[Form4.StringGrid1.Col+1, selectedRowNum] := newSR1 ;
-      newSR1.SeekFromBeginning(3,1,0);
-//      newAve :=  TSpectraRanges.Create(tSR.yCoord.SDPrec,1, tSR.xCoord.numCols-1 ,@tSR.LineColor );
-//      Form4.StringGrid1.Objects[Form4.StringGrid1.Col+2, selectedRowNum] := newAve ;
-//      newAve.SeekFromBeginning(3,1,0);
-
-      // *********** this does the actual functionality of copying the xCoord matrix ***************
-      // this is the 'step' value i.e. the h vector
-      for t2 := 1 to tSR.yCoord.numCols - 1 do
-      begin
-        SSDAve := 0.0 ;
-        for t3 := 1 to tSR.yCoord.numCols - t2 do
-        begin
-          // this decides what columns are being compared
-          pos1     := t3        ;
-          pos2     := t3 + t2   ;
-          SSD := 0.0       ;
-          // this part finds Sum of Squares of Differences (=SSD) up the rows
-          for t4 := 1 to tSR.yCoord.numRows do  // for all rows
-          begin
-              tSR.Read_XYrYi_Data(pos1,t4,@pos1XY,true);
-              tSR.Read_XYrYi_Data(pos2,t4,@pos2XY,true);
-
-              s1       := sqr(pos2XY[1]-pos1XY[1]) ;
-              SSD      := SSD      + s1 ;
-          end;
-
-         SSD := SSD / (2*tSR.yCoord.numRows) ;
-  //       ydata.Seek(0,SoFromBeginning) ;
-  //       ydata.Write(SSD,4) ;
-  //       ydata.Seek(0,SoFromBeginning) ;
-         xdata  := pos2XY[0] - pos1XY[0] ;
-  //       newSR1.AddData(xdata,  ydata )  ;  // ** this is really slow **
-         newSR1.yCoord.F_Mdata.Write(SSD  ,newSR1.yCoord.SDPrec) ;
-         newSR1.xCoord.F_Mdata.Write(xdata,newSR1.yCoord.SDPrec) ;
-      //   SSDAve := SSDAve + SSD ;
-        end;
-        //SSDAve := SSDAve / (tSR.yCoord.numCols - t2) ;
-        //newAve.yCoord.F_Mdata.Write(SSDAve  ,newSR1.yCoord.SDPrec) ;
-        //newAve.xCoord.F_Mdata.Write(xdata,newSR1.yCoord.SDPrec) ;
-      end;
-
-      tTimer.setTimeDifSecUpdateT1 ;
-      Form4.StatusBar1.Panels[1].Text := Form4.StatusBar1.Panels[1].Text + tTimer.outputTimeSec(' 2: ');
-      Form4.StatusBar1.Refresh ;
-      tTimer.setTimeDifSecUpdateT1 ;
-
-      newAve := AverageBetweenGivenRanges(newSR1,0.001)   ;
-      tTimer.setTimeDifSecUpdateT1 ;
-      Form4.StatusBar1.Panels[1].Text := Form4.StatusBar1.Panels[1].Text + tTimer.outputTimeSec(' 3: ');
-      tTimer.Free ;
-
-      //
-      newAve.SeekFromBeginning(3,1,0);
-      newAve.SeekFromBeginning(3,1,0);
-
-      // do disply stuff
-      newSR1.GLListNumber := GetLowestListNumber ;
-      newSR1.xyScatterPlot := true ;
-      PlaceDataRangeOrValueInGridTextBox( Form4.StringGrid1.Col+1, selectedRowNum   ,  newSR1)  ;
-      //StringGrid1.Cells[Form4.StringGrid1.Col+1, selectedRowNum ] := '1-'+inttostr(newSR1.yCoord.numRows)+' : '+'1-'+inttostr(newSR1.yCoord.numCols) ;
-      newSR1.xCoord.Filename :=  copy(tSR.xCoord.Filename,1,length(tSR.xCoord.Filename) -4) + '_variogram' ;
-      newSR1.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      newSR1.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 10) ;
-      // do disply stuff
-      Form4.StringGrid1.Objects[Form4.StringGrid1.Col+2, selectedRowNum] := newAve ;
-      newAve.GLListNumber := GetLowestListNumber ;
-      PlaceDataRangeOrValueInGridTextBox( Form4.StringGrid1.Col+2, selectedRowNum ,  newAve)  ;
-     // StringGrid1.Cells[Form4.StringGrid1.Col+2, selectedRowNum ] := '1-'+inttostr(newAve.yCoord.numRows)+' : '+'1-'+inttostr(newAve.yCoord.numCols) ;
-      newAve.xCoord.Filename :=  copy(tSR.xCoord.Filename,1,length(tSR.xCoord.Filename) -4) + '_variogram' ;
-      newAve.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      newAve.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1) ;
-   end ;
-
-  end ;
-  if not Form4.CheckBox7.Checked then
-    form1.UpdateViewRange() ;
-  form1.Refresh ;
-
-end;
-
- procedure TForm4.VastScale1Click(Sender: TObject);
-var
-  t1 : integer ;
-  tSR : TSpectraRanges ;
-  selectedRowNum : integer ;
-begin
-  SelectStrLst.SortListNumeric ;
-
-  for t1 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-   selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-   if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-   begin
-      tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,selectedRowNum]) ;
-
-      tSR.yCoord.MeanCentre ;
-      tSR.yCoord.ColStandardize ;
-      tSR.yCoord.DivByInvCoefVar ;
-
-      if (tSR.frequencyImage = true) or (tSR.nativeImage = true) then
-      begin
-         tSR.CopyDataTo2DSpecR ;
-         tSR.image2DSpecR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-         tSR.image2DSpecR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR.image2DSpecR.lineType) ;
-      end
-      else
-      begin
-         tSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-         tSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR.lineType) ;
-      end ;
-
-   end ;
-
-  end ;
-  if not Form4.CheckBox7.Checked then
-    form1.UpdateViewRange() ;
-  form1.Refresh ;
-end;
-
-
-// averages all y values that have x values within precissionIn of each other
-function TForm4.AverageBetweenGivenRanges(SRIn : TSpectraRanges; precissionIn : single ) : TSpectraRanges  ;
-var
-  t1, t2 : integer ;
-  xyOfInterest, xyTest, xy2 : array[0..2] of single ;
-  aveYVal : single ;
-  numAveYVal, posLeftOverData : integer ;
-  tMS1, tMS2, resultSR : TSpectraRanges ;
-  noMoreData : boolean ;
-  addTMStr : TMemoryStream ;
-begin
-    SRIn.SeekFromBeginning(3,1,0);
-    tMS1       := TSpectraRanges.Create(4,0,0,nil)  ;
-//    tMS2       := TSpectraRanges.Create(4,0,0,nil)  ;
-    resultSR   := TSpectraRanges.Create(4,0,0,nil)  ;
-    noMoreData := false ;
-    tMS1.CopySpectraObject(SRIn);
-    addTMStr   := TMemoryStream.Create ;
-    addTMStr.SetSize(4);
-    while noMoreData = false do
-    begin
-        tMS2  := TSpectraRanges.Create(4,1,0,nil)  ;
-        tMS1.SeekFromBeginning(3,1,0);
-        tMS1.Read_XYrYi_Data(t1,1,@xyOfInterest,false) ;
-        tMS1.SeekFromBeginning(3,1,0);
-
-        // this is the range of the x data
-        xyTest[0]  := xyOfInterest[0] - ( precissionIn / 2) ;
-        xyTest[1]  := xyOfInterest[0] + ( precissionIn / 2) ;
-        numAveYVal := 0   ;
-        aveYVal    := 0.0 ;
-        posLeftOverData := 0 ;
-        for t1 := 1 to tMS1.yCoord.numCols do
-        begin
-          tMS1.Read_XYrYi_Data(t1,1,@xy2,false) ;
-          if (xy2[0] > xyTest[0]) and (xy2[0] < xyTest[1]) then // point is witthin range of interest
-          begin
-             aveYVal := aveYVal + xy2[1] ;
-             inc(numAveYVal) ;
-          end
-          else // place data in  tMS2
-          begin
-              inc(posLeftOverData) ;
-         //     addTMStr.Seek(0,soFromBeginning);
-         //     addTMStr.Write(xy2[0],4)   ;
-         //     tMS2.xCoord.AddColToEndOfData(addTMStr,1);
-         //     addTMStr.Seek(0,soFromBeginning);
-         //     addTMStr.Write(xy2[1],4)   ;
-         //     tMS2.yCoord.AddColToEndOfData(addTMStr,1);
-              tMS2.WriteExtend_XYrYi_Data(tMS2.xCoord.numCols+1,1,@xy2,true) ;
-          end;
-        end;
-        if tMS2.xCoord.numCols >= 1 then
-          tMS1.CopySpectraObject(tMS2); // copy remaining data to use in next cycle through
-
-
-        aveYVal := aveYVal / numAveYVal ;   // create average for all values that are between the x coords of interest
-        xyTest[0] := xyTest[0]  +  ( precissionIn / 2) ; // this is the central x coord
-        // add the data to the xCoord and then the yCoord
-        addTMStr.Seek(0,soFromBeginning);
-        addTMStr.Write(xyTest[0],4)   ;
-        resultSR.xCoord.AddColToEndOfData(addTMStr,1);
-        addTMStr.Seek(0,soFromBeginning);
-        addTMStr.Write(aveYVal,4)   ;
-        resultSR.yCoord.AddColToEndOfData(addTMStr,1);
-        addTMStr.Seek(0,soFromBeginning);
-
-        // copy over remaining data to tMS1 and reset tMS2
-        if posLeftOverData > 0 then
-        begin
-  //        tMS2.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ;
-  //        tMS2.SaveSpectraRangeDataBinV3('posLeftOverData_'+inttostr(posLeftOverData)+'.bin') ;
-          tMS1.CopySpectraObject(tMS2) ;
-          tMS2.Free ;
-        end
-        else
-          noMoreData := true ;
-    end;
-
-    addTMStr.Free  ;
-    tMS1.Free ;
-    tMS2.Free ;
-    result := resultSR ;
-end;
-
-
 
 procedure TForm4.Unmeancentre1Click(Sender: TObject);
 var
@@ -5787,7 +3677,6 @@ var
   t1 : integer ;
   tSR : TSpectraRanges ;
   selectedRowNum : integer ;
-  tempMat : TMatrix ;
 begin
   SelectStrLst.SortListNumeric ;
 
@@ -5799,9 +3688,7 @@ begin
       tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,selectedRowNum]) ;
 
       tSR.yCoord.F_MStdDev.Seek(0,soFromBeginning) ;
-      tempMat := tSR.yCoord.ReturnTMatrixFromTMemStream( tSR.yCoord.F_MStdDev , tSR.yCoord.SDPrec, 1, tSR.yCoord.numCols) ;
-      tSR.yCoord.MultiplyMatrixByVect (tempMat) ;
-      tempMat.Free ;
+      tSR.yCoord.MultiplyMatrixByVect (tSR.yCoord.F_MStdDev) ;
       tSR.yCoord.colStandardized := false ;
       if (tSR.frequencyImage = true) or (tSR.nativeImage = true) then
       begin
@@ -5825,523 +3712,6 @@ begin
 end;
 
 
-// uses the first row of the last spectrum as the xCoord data
-// but only if the number of columns are the same.
-procedure TForm4.UseAsXcoords1Click(Sender: TObject);
-Var
-  t0, t1, selectedRowNum, lastSelectedNum  : integer ;
-  s1  : single ;
-  tSR1, tSR2, newSR : TSpectraRanges ;
-  tMat1 : TMatrix ;
-begin
-
-  SelectStrLst.SortListNumeric ;
-  lastSelectedNum  := StrToInt(SelectStrLst.Strings[SelectStrLst.Count-1]) ;
-  if Form4.StringGrid1.Objects[Form4.StringGrid1.Col ,lastSelectedNum] is  TSpectraRanges  then
-  begin
-    // the first row of this TSpectra (tSR1) will be the xCoord data for all other TSpectra selected
-    tSR1  :=  TSpectraRanges(Form4.StringGrid1.Objects[Form4.StringGrid1.Col,lastSelectedNum]) ;
-    // this TMatrix will hold the data wanted
-    tMat1 := TMatrix.Create2(tSR1.yCoord.SDPrec,1,tSR1.yCoord.numCols) ;
-    tSR1.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-    tMat1.F_Mdata.Seek(0,soFromBeginning) ;
-    for t1 := 0 to tSR1.yCoord.numCols - 1 do    // copy over the first lrow of the last TSpectra
-    begin
-       tSR1.yCoord.F_Mdata.Read(s1, tSR1.yCoord.SDPrec) ;
-       tMat1.F_Mdata.Write(s1, tSR1.yCoord.SDPrec)
-    end;
-    tSR1.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-    tMat1.F_Mdata.Seek(0,soFromBeginning) ;
-
-    for t0 := 0 to SelectStrLst.Count-2 do // for each file selected (but not the last one)
-    begin
-      selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-      if Form4.StringGrid1.Objects[Form4.StringGrid1.Col ,selectedRowNum] is  TSpectraRanges  then
-      begin
-        tSR2  :=  TSpectraRanges(Form4.StringGrid1.Objects[Form4.StringGrid1.Col,selectedRowNum]) ;
-        if tSR2.xCoord.numCols = tSR1.xCoord.numCols then // if they have the same number of columns
-        begin
-
-
-          // create new line in stringgrid and create TSpectraRanges object for each TSpectraRanges selected (one at a time)
-          DoStuffWithStringGrid('', 2, tSR2.yCoord.numRows, tSR2.yCoord.numCols , true, StringGrid1.RowCount-1 ) ;
-          // point pointer newSR to the new TSpectraRange object
-          newSR :=  TSpectraRanges(Form4.StringGrid1.Objects[2, StringGrid1.RowCount-2]) ;
-          // copy the original data
-          newSR.CopySpectraObject(tSR2);
-
-          // *********** this does the actual functionality ***************
-          newSR.yCoord.F_MData.Seek(0,soFromBeginning) ;
-          // copy the xCoord data from tMat1
-          //newSR.xCoord.Free ;
-          tMat1.F_Mdata.Seek(0,soFromBeginning) ;
-          newSR.xCoord.CopyMatrix(tMat1);
-
-          // do display and interface stuff
-          newSR.GLListNumber := GetLowestListNumber ;
-          if tSR2.fft.dtime  <> 0 then
-            newSR.fft.CopyFFTObject(tSR2.fft) ;
-          PlaceDataRangeOrValueInGridTextBox( 2, StringGrid1.RowCount-2,  newSR)  ;
-          //StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-          StringGrid1.Cells[1, StringGrid1.RowCount-2 ] :=  'new_x_coords' + '_' + Form4.StringGrid1.Cells[1,selectedRowNum] ; // this is the file name displayed in column 2 ;
-          // newSR.xyScatterPlot := true ;
-          newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-          newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1) ;
-        end  //  if they have dsame number of columns
-        else
-            MessageDlg('Error: data do not have the same number of columns',mtError, [mbOK], 0)   ;
-      end;  // if it is a TSpectraRanges object
-   end;  // for each file selected
-   end ;
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-   tMat1.Free ;
-end;
-
-
-// uses the x coord of the last spectrum as the xCoord data for all above spectra
-// (Only if the number of columns are the same.)
-procedure TForm4.UseLastTraceXasXCoordonallothers1Click(Sender: TObject);
-Var
-  t0, t1, selectedRowNum, lastSelectedNum  : integer ;
-  s1  : single ;
-  tSR1, tSR2, newSR : TSpectraRanges ;
-  tMat1 : TMatrix ;
-begin
-
-  SelectStrLst.SortListNumeric ;
-  lastSelectedNum  := StrToInt(SelectStrLst.Strings[SelectStrLst.Count-1]) ;
-  if Form4.StringGrid1.Objects[Form4.StringGrid1.Col ,lastSelectedNum] is  TSpectraRanges  then
-  begin
-    // the first row of this TSpectra (tSR1) will be the xCoord data for all other TSpectra selected
-    tSR1  :=  TSpectraRanges(Form4.StringGrid1.Objects[Form4.StringGrid1.Col,lastSelectedNum]) ;
-    // this TMatrix will hold the data wanted
-    tMat1 := TMatrix.Create2(tSR1.yCoord.SDPrec,1,tSR1.yCoord.numCols) ;
-    tSR1.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-    tMat1.F_Mdata.Seek(0,soFromBeginning) ;
-    for t1 := 0 to tSR1.yCoord.numCols - 1 do    // copy over the first lrow of the last TSpectra
-    begin
-       tSR1.xCoord.F_Mdata.Read(s1, tSR1.xCoord.SDPrec) ;
-       tMat1.F_Mdata.Write(s1, tSR1.xCoord.SDPrec)
-    end;
-    tSR1.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-    tMat1.F_Mdata.Seek(0,soFromBeginning) ;
-
-    for t0 := 0 to SelectStrLst.Count-2 do // for each file selected (but not the last one)
-    begin
-      selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-      if Form4.StringGrid1.Objects[Form4.StringGrid1.Col ,selectedRowNum] is  TSpectraRanges  then
-      begin
-        tSR2  :=  TSpectraRanges(Form4.StringGrid1.Objects[Form4.StringGrid1.Col,selectedRowNum]) ;
-        if tSR2.xCoord.numCols = tSR1.xCoord.numCols then // if they have the same number of columns
-        begin
-          // create new line in stringgrid and create TSpectraRanges object for each TSpectraRanges selected (one at a time)
-          //DoStuffWithStringGrid('', 2, tSR2.yCoord.numRows, tSR2.yCoord.numCols , true, StringGrid1.RowCount-1 ) ;
-          // point pointer newSR to the new TSpectraRange object
-          newSR :=  TSpectraRanges.Create(tSR2.yCoord.SDPrec,tSR2.yCoord.numRows, tSR2.yCoord.numCols,@tSR2.LineColor );
-          Form4.StringGrid1.Objects[Form4.StringGrid1.Col+1, selectedRowNum] := newSR ;
-          // copy the original data
-          newSR.CopySpectraObject(tSR2);
-
-          // *********** this does the actual functionality of copying the xCoord matrix ***************
-          newSR.yCoord.F_MData.Seek(0,soFromBeginning) ;
-          // copy the xCoord data from tMat1
-          //newSR.xCoord.Free ;
-          tMat1.F_Mdata.Seek(0,soFromBeginning) ;
-          newSR.xCoord.CopyMatrix(tMat1);
-
-          // do display and interface stuff
-          newSR.GLListNumber := GetLowestListNumber ;
-          if tSR2.fft.dtime  <> 0 then
-            newSR.fft.CopyFFTObject(tSR2.fft) ;
-          PlaceDataRangeOrValueInGridTextBox(Form4.StringGrid1.Col+1,selectedRowNum,  newSR)  ;
-          //StringGrid1.Cells[Form4.StringGrid1.Col+1,selectedRowNum] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-          newSR.xCoord.Filename :=   'new_x_coords' + '_' + Form4.StringGrid1.Cells[1,selectedRowNum]  ;
-          newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-          newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR2.lineType ) ;
-        end  //  if they have dsame number of columns
-        else
-            MessageDlg('Error: data do not have the same number of columns',mtError, [mbOK], 0)   ;
-      end;  // if it is a TSpectraRanges object
-   end;  // for each file selected
-   end ;
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-   tMat1.Free ;
-end;
-
-procedure TForm4.UseLastTraceXclosesesttochooseYdata1Click(Sender: TObject);
-Var
-  t0, t1, pos, selectedRowNum, lastSelectedNum, originalColumn  : integer ;
-  xref1, x1, x1old, sy1, sy1old, equ_slope, equ_c, yref1  : single ;
-  tLastSR1, tCurrentSR2, newSR1 : TSpectraRanges ;
-
-begin
-  // Selects Y data from spectrum where the xCoord data is closest to the reference (last) spectrum
-
-  SelectStrLst.SortListNumeric ;
-  lastSelectedNum  := StrToInt(SelectStrLst.Strings[SelectStrLst.Count-1]) ;
-  if Form4.StringGrid1.Objects[Form4.StringGrid1.Col ,lastSelectedNum] is  TSpectraRanges  then
-  begin
-    // the range of the xCoord of this TSpectra (tSR1) will be the xCoord data for all other TSpectra selected
-    tLastSR1  :=  TSpectraRanges(Form4.StringGrid1.Objects[Form4.StringGrid1.Col,lastSelectedNum]) ;
-    // this TMatrix will hold the data wanted
-    tLastSR1.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-    originalColumn := Form4.StringGrid1.Col ;
-
-    for t0 := 0 to SelectStrLst.Count-2 do // for each file selected (but not the last one)
-    begin
-      selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-      if Form4.StringGrid1.Objects[originalColumn ,selectedRowNum] is  TSpectraRanges  then
-      begin
-          tCurrentSR2  :=  TSpectraRanges(Form4.StringGrid1.Objects[originalColumn,selectedRowNum]) ;
-
-          // create new  TSpectraRanges object for each TSpectraRanges selected (one at a time)
-          DoStuffWithStringGrid('', originalColumn + 1, 1 , tLastSR1.yCoord.numCols , false, selectedRowNum ) ;
-          // point pointer newSR to the new TSpectraRange object
-          newSR1 :=  TSpectraRanges(Form4.StringGrid1.Objects[originalColumn + 1, selectedRowNum]) ;
-          newSR1.xCoord.CopyMatrix (tLastSR1.xCoord );
-          newSR1.yCoord.FillMatrixData(0.0,0.0);
-          newSR1.yCoord.F_Mdata.Seek(0,soFromBeginning);
-          
-          tCurrentSR2.xCoord.F_Mdata.Seek(0,soFromBeginning);
-          tCurrentSR2.yCoord.F_Mdata.Seek(0,soFromBeginning);
-          tLastSR1.xCoord.F_Mdata.Seek(0,soFromBeginning);
-          tLastSR1.xCoord.F_Mdata.Read(xref1,4) ;   // read the first x value
-          x1old := 0.0 ;
-          while (tCurrentSR2.xCoord.F_Mdata.Position < tCurrentSR2.xCoord.F_Mdata.Size) and (tLastSR1.xCoord.F_Mdata.Position < tLastSR1.xCoord.F_Mdata.Size) do
-          begin
-            tCurrentSR2.xCoord.F_Mdata.Read(x1,4) ;
-            tCurrentSR2.yCoord.F_Mdata.Read(sy1,4) ;
-
-            if x1 > xref1 then
-            begin
-              equ_slope := (sy1 - sy1old) / (x1 - x1old) ;
-              equ_c     :=  sy1 - (equ_slope * x1)       ;
-              yref1 := (equ_slope * xref1) +   equ_c ;
-              newSR1.yCoord.F_Mdata.Write(yref1,4) ;
-              tLastSR1.xCoord.F_Mdata.Read(xref1,4) ;
-            end;
-
-            x1old  := x1 ;
-            sy1old := sy1 ;
-
-          end;
-
-          // do display and interface stuff
-          newSR1.GLListNumber := GetLowestListNumber ;
-          if newSR1.fft.dtime  <> 0 then
-            newSR1.fft.CopyFFTObject(tLastSR1.fft) ;
-          PlaceDataRangeOrValueInGridTextBox(originalColumn + 1 ,selectedRowNum,  newSR1)  ;
-          //StringGrid1.Cells[Form4.StringGrid1.Col+1,selectedRowNum] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-          newSR1.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-          newSR1.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), newSR1.lineType ) ;
-
-
-      end;  // if it is a TSpectraRanges object
-   end;  // for each file selected
-   end ;
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-
-end;
-
-procedure TForm4.UseLastTraceXrangeasXCoords1Click(Sender: TObject);
-Var
-  t0, t1, selectedRowNum, lastSelectedNum  : integer ;
-  firstx, lastx  : single ;
-  tSR1, tSR2 : TSpectraRanges ;
-
-begin
-
-  SelectStrLst.SortListNumeric ;
-  lastSelectedNum  := StrToInt(SelectStrLst.Strings[SelectStrLst.Count-1]) ;
-  if Form4.StringGrid1.Objects[Form4.StringGrid1.Col ,lastSelectedNum] is  TSpectraRanges  then
-  begin
-    // the range of the xCoord of this TSpectra (tSR1) will be the xCoord data for all other TSpectra selected
-    tSR1  :=  TSpectraRanges(Form4.StringGrid1.Objects[Form4.StringGrid1.Col,lastSelectedNum]) ;
-    // this TMatrix will hold the data wanted
-    tSR1.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-    for t0 := 0 to SelectStrLst.Count-2 do // for each file selected (but not the last one)
-    begin
-      selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-      if Form4.StringGrid1.Objects[Form4.StringGrid1.Col ,selectedRowNum] is  TSpectraRanges  then
-      begin
-          tSR2  :=  TSpectraRanges(Form4.StringGrid1.Objects[Form4.StringGrid1.Col,selectedRowNum]) ;
-
-          tSR2.xCoord.F_Mdata.Seek(0,soFromBeginning);
-          tSR2.xCoord.F_Mdata.Read(firstx,4) ;
-          tSR2.xCoord.F_Mdata.Seek(-4,soFromEnd);
-          tSR2.xCoord.F_Mdata.Read(lastx,4) ;
-          tSR2.xCoord.F_Mdata.Seek(0,soFromBeginning);
-
-          if (firstx < lastx) then
-            tSR2.xCoord.FillMatrixData(tSR1.xLow,tSR1.xHigh)
-          else
-            tSR2.xCoord.FillMatrixData(tSR1.xHigh,tSR1.xLow) ;
-
-          // do display and interface stuff
-          tSR2.GLListNumber := GetLowestListNumber ;
-          if tSR2.fft.dtime  <> 0 then
-            tSR2.fft.CopyFFTObject(tSR2.fft) ;
-          PlaceDataRangeOrValueInGridTextBox(Form4.StringGrid1.Col,selectedRowNum,  tSR2)  ;
-          //StringGrid1.Cells[Form4.StringGrid1.Col+1,selectedRowNum] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-          tSR2.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-          tSR2.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR2.lineType ) ;
-
-
-      end;  // if it is a TSpectraRanges object
-   end;  // for each file selected
-   end ;
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-
-
-end;
-
-procedure TForm4.UsePositionsofyearBoundarytoMapEnviro1Click(Sender: TObject);
-Var
-  t0, t1, t2, selectedRowNum, EnviroCol, BoundaryCol  : integer ;
-  s1, s2, runningTotal  : single ;
-  enviroSR, boundarySR, newSR : TSpectraRanges ;
-
-begin
-
-  SelectStrLst.SortListNumeric ;
-  SelectColList.SortListNumeric ;
-  if SelectColList.Count = 2 then   // make sure only 2 columns are selected
-  begin
-  EnviroCol := StrToInt(SelectColList.Strings[0]);
-  BoundaryCol  := StrToInt(SelectColList.Strings[1]);
-  for t0 := 0 to SelectStrLst.Count-1 do // for each row selected
-  begin
-  selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-  // 1st column is the Y data data
-  if Form4.StringGrid1.Objects[ EnviroCol ,selectedRowNum] is  TSpectraRanges  then
-  begin
-  // 2nd column 2 is the X data data
-  if Form4.StringGrid1.Objects[ BoundaryCol ,selectedRowNum] is  TSpectraRanges  then
-  begin
-    // The first row of the Y data (tSR1 = column 3)
-    // will be the xCoord data for the TSpectra in the X Data column
-    enviroSR  :=  TSpectraRanges(Form4.StringGrid1.Objects[ EnviroCol,selectedRowNum]) ;
-    boundarySR   :=  TSpectraRanges(Form4.StringGrid1.Objects[ BoundaryCol ,selectedRowNum]) ;
-
-    enviroSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-    boundarySR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-    boundarySR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-
-    if  Form4.StringGrid1.Objects[BoundaryCol+1, selectedRowNum] = nil then
-    begin
-      // create new line in stringgrid and create TSpectraRanges object for each TSpectraRanges selected (one at a time)
-      newSR :=  TSpectraRanges.Create(enviroSR.yCoord.SDPrec,enviroSR.yCoord.numRows, enviroSR.yCoord.numCols,@enviroSR.LineColor );
-      // point pointer newSR to the new TSpectraRange object
-      Form4.StringGrid1.Objects[BoundaryCol+1, selectedRowNum] := newSR ;
-      // copy the original data
-      newSR.CopySpectraObject(enviroSR);
-      newSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-      s2 := 0 ;
-      runningTotal := 0 ;
-      for t1 := 0 to boundarySR.yCoord.numCols - 1 do  // for each ring
-      begin
-         boundarySR.yCoord.F_Mdata.Read(s1,sizeof(single))  ;
-         s1 := s1 - runningTotal ;
-         for t2 := 0 to 364 do
-         begin
-           s2 := s2 + ( (s1 / 365.25) ) ;
-           newSR.xCoord.F_Mdata.Write(s2, newSR.xCoord.SDPrec) ;
-         end;
-         runningTotal := runningTotal + s1 ;
-      end;
-
-      // do display and interface stuff
-      newSR.GLListNumber := GetLowestListNumber ;
-      if enviroSR.fft.dtime  <> 0 then
-        newSR.fft.CopyFFTObject(enviroSR.fft) ;
-      PlaceDataRangeOrValueInGridTextBox( BoundaryCol+1, selectedRowNum ,  newSR)  ;
-      //StringGrid1.Cells[RingCol+1, selectedRowNum ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-      newSR.xCoord.Filename :=  'xCoord_stretched_to_year.bin'   ;
-      newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), enviroSR.lineType) ;
-
-    end;
-     //   Form4.StatusBar1.Panels[1].Text := 'Error: X data and Y data differ in number of columns'  ;
-
-   end;  // if it is a TSpectraRanges object
-   end ; // if it is a TSpectraRanges object
-   end;  // for each row selected
-   end
-   else
-   begin
-        Form4.StatusBar1.Panels[1].Text := 'Error: Need to select 2 columns of data only'  ;
-   end;
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-
-end;
-
-{procedure TForm4.All1Click(Sender: TObject);
-var
-  t1 : integer ;
-  newSR : TSpectraRanges ;
-  tSR   : TSpectraRanges ;
-  numVars1, numVars2 : integer ;
-  selectedRowNum : integer ;
-  tStr : string ;
-  tbool, hasImaginary : boolean ;
-  tMat : TMatrix ;
-begin
-  tbool := true ;
-
-  SelectStrLst.SortListNumeric ;
-  selectedRowNum := StrToInt(SelectStrLst.Strings[0]) ;
-  hasImaginary := false ;
-  tSr :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
-  numVars1 := tSr.xCoord.numCols ;
-  if tSr.yImaginary <> nil then
-       hasImaginary := true ;
-  for t1 := 1 to SelectStrLst.Count-1 do
-  begin
-     selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-     tSr :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
-     numVars2 := tSr.xCoord.numCols ;
-     if numVars1 <> numVars2 then
-       tbool := false ;
-     if tSR.yImaginary <> nil then
-       hasImaginary := true ;
-  end ;
-
-  if (tbool = false) then
-  begin
-    MessageDlg('At least one file has a different number of variables.'#13'can not complete combine operation',mtError, [mbOK], 0)  ;
-    exit ;
-  end ;
-
-  // create new line in stringgrid and create TSpectraRanges object
-  DoStuffWithStringGrid('', 2, 1, numVars1, true, StringGrid1.RowCount-1 ) ;
-
-  newSR :=  TSpectraRanges(Form4.StringGrid1.Objects[2, StringGrid1.RowCount-2 ]) ;  // this is the new combined data in new row of list
-
-  selectedRowNum := StrToInt(SelectStrLst.Strings[0]) ;
-  tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-  newSR.yCoord.CopyMatrix(tSR.yCoord) ;  // copy the first matrix
-  // the files to be combined are the int value of the string that are in the list.
-  // Add files rows to the new TSpectraRanges object
-  for t1 := 1 to SelectStrLst.Count-1 do
-  begin
-     selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-     tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-     newSR.yCoord.AddRowsToMatrix(tSR.yCoord,1,tSR.yCoord.numRows) ;
-  end ;
-
-  if hasImaginary then
-  begin
-     selectedRowNum := StrToInt(SelectStrLst.Strings[0]) ;
-     tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-     if newSR.yImaginary = nil then
-       newSR.yImaginary := TMatrix.Create(newSR.yCoord.SDPrec div 4) ;  // create the Imaginary matrix
-     if tSR.yImaginary <> nil then
-       newSR.yImaginary.CopyMatrix(tSR.yImaginary) ;  // copy the first matrix
-     // the files to be combined are the int value of the string that are in the list.
-     // Add files rows to the new TSpectraRanges object
-     for t1 := 1 to SelectStrLst.Count-1 do
-     begin
-        selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-        tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-        if tSR.yImaginary <> nil then
-        begin
-          newSR.yImaginary.AddRowsToMatrix(tSR.yImaginary,1,tSR.yImaginary.numRows) ;
-        end
-        else
-        begin
-          tMat := TMatrix.Create2(newSR.yCoord.SDPrec div 4,tSR.yCoord.numRows,tSR.yCoord.numCols) ;
-          tMat.Zero(tMat.F_Mdata) ;
-          newSR.yImaginary.AddRowsToMatrix(tMat,1,tMat.numRows) ;
-          tMat.Free ;
-        end ;
-     end ;
-  end ;
-
-
-  newSR.xCoord.CopyMatrix(tSR.xCoord) ;
-
-  StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-  StringGrid1.Cells[1, StringGrid1.RowCount-2 ] :=  'Combined.bin'   ;
-  newSR.xCoord.Filename :=  'Combined.bin'   ;
-
-  newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-  newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR.lineType ) ;
-
-
-end;   }
-
-procedure TForm4.All2Click(Sender: TObject);
-var
-  t1, t0 : integer ;
-  newSR : TSpectraRanges ;
-  tSR   : TSpectraRanges ;
-  numVars1, numVars2 : integer ;
-  selectedRowNum : integer ;
-  tStr : string ;
-  tbool : boolean ;
-begin
-
-//  if SelectStrLst.Count = 1 then
-//  begin
-    SelectStrLst.SortListNumeric ;
-
-    for t0 := 0 to SelectStrLst.Count -1 do   // for each file average and make new line on string grid
-    begin
-    selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-    if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-    begin
-      tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-      if  tSR.yCoord.numRows > 1 then
-      begin
-        tStr := extractfilename(tSR.xCoord.Filename) ;
-        for t1 := 1 to tSR.yCoord.numRows do
-        begin
-          // create new line in stringgrid and create TSpectraRanges object
-
-          DoStuffWithStringGrid('', 2, 1, tSR.yCoord.numRows , true, StringGrid1.RowCount-1 ) ;
-
-
-          newSR :=  TSpectraRanges(Form4.StringGrid1.Objects[2, StringGrid1.RowCount-2]) ;
-          newSR.yCoord.FetchDataFromTMatrix(inttostr(t1),'1-'+inttostr(tSR.YCoord.numCols),tSR.yCoord) ;
-          if tSR.yImaginary <> nil then
-          begin
-            newSR.yImaginary := TMatrix.Create( newSR.yCoord.SDPrec div 4 ) ;
-            newSR.yImaginary.FetchDataFromTMatrix(inttostr(t1),'1-'+inttostr(tSR.yImaginary.numCols),tSR.yImaginary) ;
-          end ;
-          newSR.xCoord.CopyMatrix(tSR.xCoord) ;
-          if tSR.fft.dtime  <> 0 then
-            newSR.fft.CopyFFTObject(tSR.fft) ;
-
-          PlaceDataRangeOrValueInGridTextBox(2, StringGrid1.RowCount-2,  newSR)  ;
-          //StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-          StringGrid1.Cells[1, StringGrid1.RowCount-2 ] :=  inttostr(t1)+ '_' + tStr ;
-          newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-          newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1) ;
-        end ;
-      end ;
-    end ;
-    end;
- // end ;
-
-end;
 
 procedure TForm4.alldata1Click(Sender: TObject);
 // display all data (not just averaged data or variance data
@@ -6367,9 +3737,7 @@ begin
         // *** place this data in main data area for display (remove old data)
         tSR.averageIsDisplayed := false ;
         tSR.varianceIsDisplayed := false ;
-
-        PlaceDataRangeOrValueInGridTextBox(SG1_COL, selectedRowNum,  tSR)  ;
-        // StringGrid1.Cells[SG1_COL, selectedRowNum] := ' : '+'1-'+inttostr(tSR.yCoord.numCols) ;
+        StringGrid1.Cells[SG1_COL, selectedRowNum] := ' : '+'1-'+inttostr(tSR.yCoord.numCols) ;
 
         tSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
         tSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(),tSR.lineType ) ;  // 8 means plot 3 lines 1st and 3rd are dashed (stdev) and middle one is solid
@@ -6379,69 +3747,7 @@ begin
   form1.Refresh ;
 end;
 
-
-// Removes a row at a time (of a multi rowed TSpectraObject) and replaces the xCoord matrix with it
-// in a new copy of the original data. (i.e. xCoord data is only thing modified)
-procedure TForm4.As2DPlots1Click(Sender: TObject);
-var
-  t1, t2 : integer ;
-  s1 : single ;
-  tStr : string ;
-  tSR, newSR : TSpectraRanges ;
-  selectedRowNum : integer ;
-  tempStream : TMemoryStream ;
-begin
-
-  tempStream := TMemoryStream.Create ;
-  SelectStrLst.SortListNumeric ;
-  for t1 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-     selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-     if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-     begin
-        // this is the file to be split up into scatter plots
-        tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
-        if  tSR.yCoord.numRows > 1 then
-        begin
-          tStr := extractfilename(tSR.xCoord.Filename) ;
-          for t2 := 1 to tSR.yCoord.numRows do
-          begin
-            // create new line in stringgrid and create TSpectraRanges object
-            DoStuffWithStringGrid('', 2, 1, tSR.yCoord.numRows , true, StringGrid1.RowCount-1 ) ;
-            // point pointer newSR to the new TSpectraRange object
-            newSR :=  TSpectraRanges(Form4.StringGrid1.Objects[2, StringGrid1.RowCount-2]) ;
-            // copy the original data
-            newSR.CopySpectraObject(tSR);
-            newSR.GLListNumber := GetLowestListNumber ;
-            // modify the xCoord data to be one of the original yCoord rows
-            newSR.xCoord.FetchDataFromTMatrix(inttostr(t2),'1-'+inttostr(tSR.YCoord.numCols),newSR.yCoord) ;
-
-            if tSR.fft.dtime  <> 0 then
-              newSR.fft.CopyFFTObject(tSR.fft) ;
-
-            PlaceDataRangeOrValueInGridTextBox(2, StringGrid1.RowCount-2 ,  newSR)  ;
-            //StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-            StringGrid1.Cells[1, StringGrid1.RowCount-2 ] :=  inttostr(t2)+ '_' + tStr ;
-            newSR.xyScatterPlot := true ;
-            newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-            newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 10) ;
-          end ;
-        end
-     end ;
-
-  end ;
-
-  if not Form4.CheckBox7.Checked then
-  Form1.UpdateViewRange() ;
-  Form1.Refresh ;
-
-end;
-
-
-
-
 procedure TForm4.FlipXAxis1Click(Sender: TObject);
-// places the xCoord data in reverse order with respect to current position in memory
 var
   t1, t2 : integer ;
   s1 : single ;
@@ -6481,61 +3787,6 @@ begin
 
 end;
 
-
-procedure TForm4.FlipXinmemory1Click(Sender: TObject);
-// places the yCoord data in reverse order with respect to current position in memory
-var
-  t1, t2 : integer ;
-  s1 : single ;
-  d1 : double ;
-  tSR : TSpectraRanges ;
-  selectedRowNum : integer ;
-  tempStream : TMemoryStream ;
-begin
-
-  tempStream := TMemoryStream.Create ;
-  SelectStrLst.SortListNumeric ;
-  for t1 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-     selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-     if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-     begin
-          tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
-
-          tempStream.CopyFrom(tSR.yCoord.F_Mdata,0) ;  //  copies whole xCoor data
-
-          tSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-          if tSR.yCoord.SDPrec = 4 then
-          begin
-            for t2 := 1 to (tSr.yCoord.numRows*tSr.yCoord.numCols) do
-            begin
-            tempStream.Seek(-(t2*4),soFromEnd) ;
-            tempStream.Read(s1,4) ;
-            tSR.yCoord.F_Mdata.Write(s1,4) ;
-            end ;
-          end
-          else
-          if tSR.yCoord.SDPrec = 8 then
-          begin
-            for t2 := 1 to (tSr.yCoord.numRows*tSr.yCoord.numCols) do
-            begin
-            tempStream.Seek(-(t2*8),soFromEnd) ;
-            tempStream.Read(d1,8) ;
-            tSR.yCoord.F_Mdata.Write(d1,8) ;
-            end ;
-          end ;
-
-          tSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ;
-          tSR.CreateGLList('1-',Form1.Canvas.Handle,RC,  Form2.GetWhichLineToDisplay(),tSR.lineType) ;
-     end ;
-
-  end ;
-
-  if not Form4.CheckBox7.Checked then
-    Form1.UpdateViewRange() ;
-  Form1.Refresh ;
-
-end;
 
 procedure TForm4.About1Click(Sender: TObject);
 var
@@ -6637,7 +3888,7 @@ begin
       begin
         // *** calculate the average and the standard deviation
         tSR.yCoord.Average ;
-        tSR.yCoord.Stddev(true)  ;
+        tSR.yCoord.Stddev  ;
         // *** place this data in main data area for display (remove old data)
         tSR.averageIsDisplayed := true ;
         tSR.varianceIsDisplayed := false ;
@@ -6665,8 +3916,7 @@ begin
   SelectStrLst.SortListNumeric ;
   selectedRowNum := StrToInt(SelectStrLst.Strings[0]) ;
 
-  if SelectStrLst.Count > 1 then
-  begin
+
     for t0 := 0 to SelectStrLst.Count -1 do   // for each file average and make new line on string grid
     begin
       // get data to average
@@ -6681,7 +3931,7 @@ begin
       newSR.yCoord.CopyMatrix(tSR.yCoord) ;  // copy the first matrix
       // *** calculate the average and the standard deviation
       newSR.yCoord.Average ;
-      newSR.yCoord.Stddev(true)  ;
+      newSR.yCoord.Stddev  ;
       // *** place this data in main data area for display (remove old data)
       newSR.yCoord.F_Mdata.Clear ;
       newSR.yCoord.numRows := 3 ;
@@ -6719,77 +3969,13 @@ begin
       // *** Copy the x data ***
       newSR.xCoord.CopyMatrix(tSR.xCoord) ;
 
-      PlaceDataRangeOrValueInGridTextBox(2, StringGrid1.RowCount-2 ,  newSR)  ;
-      //StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
+      StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
       StringGrid1.Cells[1, StringGrid1.RowCount-2 ] :=  'line_'+ inttostr( selectedRowNum ) + '_averaged'   ;
       newSR.xCoord.Filename :=  'Averaged.bin'   ;
 
       newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
       newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 8) ;  // 8 means plot 3 lines 1st and 3rd are dashed (stdev) and middle one is solid
    end ;
-  end
-  else
-  if SelectStrLst.Count = 1 then
-  begin
-     for t0 := 0 to SelectStrLst.Count -1 do   // for each file average and make new line on string grid
-    begin
-      // get data to average
-      selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-      tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-      // *** calculate the average and the standard deviation
-      tSR.yCoord.Average ;
-      tSR.yCoord.Stddev(true)  ;
-
-           // create new line in string grid and new spectra object
-      DoStuffWithStringGrid('', 2, 3, tSR.xCoord.numCols, true, StringGrid1.RowCount-1 ) ;
-      newSR :=  TSpectraRanges(Form4.StringGrid1.Objects[2, StringGrid1.RowCount-2 ]) ;   // this is the new spectraRange created in DoStuffWithStringGrid()
-
-      // *** place this data in main data area for display (remove old data)
-      newSR.yCoord.F_Mdata.Seek( 0,soFromBeginning ) ;
-      // Write the average +- the standard deviation
-      tSR.yCoord.F_MAverage.Seek( 0,soFromBeginning ) ;
-      tSR.yCoord.F_MStdDev.Seek( 0,soFromBeginning ) ;
-      for t1 := 1 to newSR.yCoord.numCols do
-      begin
-        tSR.yCoord.F_MAverage.Read(s1, 4) ;
-        tSR.yCoord.F_MStdDev.Read(s2, 4) ;
-        s1 := s1 + s2 ;
-        newSR.yCoord.F_Mdata.Write(s1, 4) ;
-      end ;
-      tSR.yCoord.F_MAverage.Seek( 0,soFromBeginning ) ;
-      for t1 := 1 to newSR.yCoord.numCols do
-      begin
-        tSR.yCoord.F_MAverage.Read(s1, 4) ;
-        newSR.yCoord.F_Mdata.Write(s1, 4) ;
-      end ;
-      tSR.yCoord.F_MAverage.Seek( 0,soFromBeginning ) ;
-      tSR.yCoord.F_MStdDev.Seek( 0,soFromBeginning ) ;
-      for t1 := 1 to newSR.yCoord.numCols do
-      begin
-        tSR.yCoord.F_MAverage.Read(s1, 4) ;
-        tSR.yCoord.F_MStdDev.Read(s2, 4) ;
-        s1 := s1 - s2 ;
-        newSR.yCoord.F_Mdata.Write(s1, 4) ;
-      end ;
-      newSR.yCoord.F_Mdata.Seek( 0,soFromBeginning ) ;
-      newSR.yCoord.F_MAverage.Seek( 0,soFromBeginning ) ;
-
-      tSR.yCoord.F_Mdata.Seek( 0,soFromBeginning ) ;
-      tSR.yCoord.F_MAverage.Seek( 0,soFromBeginning ) ;
-      tSR.yCoord.F_MStdDev.Seek( 0,soFromBeginning ) ;
-
-      // *** Copy the x data ***
-      newSR.xCoord.CopyMatrix(tSR.xCoord) ;
-
-      PlaceDataRangeOrValueInGridTextBox(2, StringGrid1.RowCount-2 ,  newSR)  ;
-      //StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-      StringGrid1.Cells[1, StringGrid1.RowCount-2 ] :=  'line_'+ inttostr( selectedRowNum ) + '_averaged'   ;
-      newSR.xCoord.Filename :=  'Averaged.bin'   ;
-
-      newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 8) ;  // 8 means plot 3 lines 1st and 3rd are dashed (stdev) and middle one is solid
-   end ;
-  end;
    if not Form4.CheckBox7.Checked then
      form1.UpdateViewRange() ;
    form1.Refresh ;
@@ -6797,132 +3983,6 @@ begin
 end ;
 
 
-
-// obtains the xCoord data from the number of selected row SpectraRanges objects
-// forms Y data out of the (=yCoord) then averages/stds
-// keeps a copy of this data at equally speced points, then
-// creates another TSpectraRange object with the average values as the
-// xCoord data, with stddev points shown also:  s x s s x s s x s s x s... etc.
-procedure TForm4.ExtractAveXdata1Click(Sender: TObject);
-var
-  t0, t1 : integer ;
-  s1, s2 : single ;
-  tSR1, newSR, newSR2   : TSpectraRanges ;
-  selectedRowNum : integer ;
-  tStr : string ;
-  aveXY, stdevXYlow, stdevXYhi : array[0..2] of glFloat ;
-begin
-   if SelectStrLst.Count > 1 then
-   begin
-      SelectStrLst.SortListNumeric ;
-      selectedRowNum := StrToInt(SelectStrLst.Strings[0]) ;
-      // get first row selected
-      selectedRowNum := StrToInt(SelectStrLst.Strings[ 0 ]) ;
-      tSR1 :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-
-      // create new line in string grid and new spectra object
-      DoStuffWithStringGrid('', 2, 1, tSR1.xCoord.numCols, true, StringGrid1.RowCount-1 ) ;
-      newSR :=  TSpectraRanges(Form4.StringGrid1.Objects[2, StringGrid1.RowCount-2 ]) ;   // this is the new spectraRange created in DoStuffWithStringGrid()
-
-      // *** Copy all of the selected rows the X data to the newSR yCoord ***
-      newSR.yCoord.CopyMatrix(tSR1.xCoord) ;  // copy the first matrix
-      for t1 := 0 to SelectStrLst.Count - 2 do
-      begin
-         selectedRowNum := StrToInt(SelectStrLst.Strings[t1+1]) ;
-         tSR1 := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
-         newSR.yCoord.AddRowToEndOfData(tSR1.xCoord,1,tSR1.xCoord.numCols) ;
-      end;
-
-      // *** calculate the average and the standard deviation
-      newSR.yCoord.Average ;
-      newSR.yCoord.Stddev(true)  ;
-      // *** place this data in main data area for display (remove old data)
-      newSR.yCoord.F_Mdata.Clear ;
-      newSR.yCoord.numRows := 3 ;
-      newSR.yCoord.F_Mdata.SetSize( newSR.yCoord.SDPrec * newSR.yCoord.numCols * 3 ) ;
-      newSR.yCoord.F_Mdata.Seek( 0,soFromBeginning ) ;
-      // Write the average +- the standard deviation
-      newSR.yCoord.F_MAverage.Seek( 0,soFromBeginning ) ;
-      newSR.yCoord.F_MStdDev.Seek( 0,soFromBeginning ) ;
-      for t1 := 1 to newSR.yCoord.numCols do
-      begin
-        newSR.yCoord.F_MAverage.Read(s1, 4) ;
-        newSR.yCoord.F_MStdDev.Read(s2, 4) ;
-        s1 := s1 + s2 ;
-        newSR.yCoord.F_Mdata.Write(s1, 4) ;
-      end ;
-      newSR.yCoord.F_MAverage.Seek( 0,soFromBeginning ) ;
-      for t1 := 1 to newSR.yCoord.numCols do
-      begin
-        newSR.yCoord.F_MAverage.Read(s1, 4) ;
-        newSR.yCoord.F_Mdata.Write(s1, 4) ;
-      end ;
-      newSR.yCoord.F_MAverage.Seek( 0,soFromBeginning ) ;
-      newSR.yCoord.F_MStdDev.Seek( 0,soFromBeginning ) ;
-      for t1 := 1 to newSR.yCoord.numCols do
-      begin
-        newSR.yCoord.F_MAverage.Read(s1, 4) ;
-        newSR.yCoord.F_MStdDev.Read(s2, 4) ;
-        s1 := s1 - s2 ;
-        newSR.yCoord.F_Mdata.Write(s1, 4) ;
-      end ;
-      newSR.yCoord.F_Mdata.Seek( 0,soFromBeginning ) ;
-      newSR.yCoord.F_MAverage.Seek( 0,soFromBeginning ) ;
-      newSR.yCoord.F_MStdDev.Seek( 0,soFromBeginning ) ;
-
-      // *** Create the x data - equal spaced 1 unit appart ***
-      newSR.xCoord.F_Mdata.Seek(0,soFromBeginning)  ;
-      for t1 := 1 to newSR.xCoord.numCols do
-      begin
-        s1 := t1 ;
-        newSR.xCoord.F_Mdata.Write(s1, 4) ;
-      end ;
-      PlaceDataRangeOrValueInGridTextBox(2, StringGrid1.RowCount-2 ,  newSR)  ;
-      //StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-      StringGrid1.Cells[1, StringGrid1.RowCount-2 ] :=  'line_'+ inttostr( selectedRowNum ) + '_aveXcoords'   ;
-      newSR.xCoord.Filename :=  'Averaged_xcoordinates.bin'   ;
-      newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      // 8 means plot 3 lines 1st and 3rd are dashed (stdev) and middle one is solid
-      newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 8) ;
-
-
-      // Create SpectraRange with the average/stddev in the xCoord
-      // create new line in string grid and new spectra object
-      DoStuffWithStringGrid('', 2, 1, (tSR1.xCoord.numCols*3), true, StringGrid1.RowCount-1 ) ;
-      newSR2 :=  TSpectraRanges(Form4.StringGrid1.Objects[2, StringGrid1.RowCount-2 ]) ;   // this is the new spectraRange created in DoStuffWithStringGrid()
-      // write the yCoord data to the newSR2 xCoord data 
-      newSR.yCoord.F_Mdata.Seek(0,soFromBeginning)  ;
-      for t1 := 1 to newSR.xCoord.numCols do
-      begin
-        newSR.Read_XYrYi_Data(t1,1,@stdevXYlow,true) ; // first row is Ave-stdev
-        newSR.Read_XYrYi_Data(t1,2,@aveXY,true) ; // 2nd row is Ave
-        newSR.Read_XYrYi_Data(t1,3,@stdevXYhi,true) ; // 3rd row is Ave+stdev
-        newSR2.xCoord.F_Mdata.Write(stdevXYlow[1], 4) ;
-        newSR2.xCoord.F_Mdata.Write(aveXY[1], 4) ;
-        newSR2.xCoord.F_Mdata.Write(stdevXYhi[1], 4) ;
-      end ;
-      s1 :=  500 ;
-      for t1 := 1 to newSR2.yCoord.numCols do
-      begin
-        newSR2.yCoord.F_Mdata.Write(s1, 4) ;
-      end ;
-      PlaceDataRangeOrValueInGridTextBox(2, StringGrid1.RowCount-2 ,  newSR2)  ;
-      //StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR2.yCoord.numRows)+' : '+'1-'+inttostr(newSR2.yCoord.numCols) ;
-      StringGrid1.Cells[1, StringGrid1.RowCount-2 ] :=  'line_'+ inttostr( selectedRowNum ) + '_aveXcoords'   ;
-      newSR2.xCoord.Filename :=  'Averaged_xcoordinates.bin'   ;
-      newSR2.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      // 8 means plot 3 lines 1st and 3rd are dashed (stdev) and middle one is solid
-      newSR2.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 14) ;
-
-   end
-   else
-       Form4.StatusBar1.Panels[1].Text := 'Error: Need to select more than 1 data set to get an average of the x coordinates'  ;
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-
-end;
 
 procedure TForm4.ViewVariance1Click(Sender: TObject);
 var
@@ -6946,7 +4006,6 @@ begin
       if tSR.varianceIsDisplayed = false then
       begin
         // *** calculate the average and the standard deviation
-        tSR.yCoord.Average  ;
         tSR.yCoord.Variance ;
         // *** place this data in main data area for display (remove old data)
         tSR.averageIsDisplayed := false  ;
@@ -6975,22 +4034,20 @@ begin
   SelectStrLst.SortListNumeric ;
   selectedRowNum := StrToInt(SelectStrLst.Strings[0]) ;
 
- if SelectStrLst.Count > 1 then
- begin
+
     for t1 := 0 to SelectStrLst.Count -1 do   // for each file average and make new line on string grid
     begin
       // get data to average
       selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
       tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
 
-      // create new line in string grid and new spectra object
+           // create new line in string grid and new spectra object
       DoStuffWithStringGrid('', 2, 1, tSR.xCoord.numCols, true, StringGrid1.RowCount-1 ) ;
       newSR :=  TSpectraRanges(Form4.StringGrid1.Objects[2, StringGrid1.RowCount-2 ]) ;   // this is the new spectraRange created in DoStuffWithStringGrid()
 
       // *** Copy the Y data  ***
       newSR.yCoord.CopyMatrix(tSR.yCoord) ;  // copy the first matrix
       // *** calculate the average and the standard deviation
-      newSR.yCoord.Average  ;
       newSR.yCoord.Variance ;
 
       // *** place this data in main data area for display (remove old data)
@@ -7013,55 +4070,13 @@ begin
       // *** Copy the x data ***
       newSR.xCoord.CopyMatrix(tSR.xCoord) ;
 
-      PlaceDataRangeOrValueInGridTextBox(2, StringGrid1.RowCount-2 ,  newSR)  ;
-     // StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
+      StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
       StringGrid1.Cells[1, StringGrid1.RowCount-2 ] :=  'line_'+ inttostr( selectedRowNum ) + '_variance'   ;
       newSR.xCoord.Filename :=  'line_'+ inttostr( selectedRowNum ) + '_variance'   ;
 
       newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
       newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 3) ;  // 3 means plot dot with line
    end ;
-  end
-  else
-  if SelectStrLst.Count = 1 then
-  begin
-    for t1 := 0 to SelectStrLst.Count -1 do   // for each file average and make new line on string grid
-    begin
-      // get data to average
-      selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-      tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum])  ;
-      // *** calculate the average and the standard deviation
-      tSR.yCoord.Average ;
-      tSR.yCoord.Stddev(true)  ;
-
-           // create new line in string grid and new spectra object
-      DoStuffWithStringGrid('', 2, 1, tSR.xCoord.numCols, true, StringGrid1.RowCount-1 ) ;
-      newSR :=  TSpectraRanges(Form4.StringGrid1.Objects[2, StringGrid1.RowCount-2 ]) ;   // this is the new spectraRange created in DoStuffWithStringGrid()
-
-      // *** place this data in main data area for display (remove old data)
-      newSR.yCoord.F_Mdata.Seek( 0,soFromBeginning ) ;
-      tSR.yCoord.F_MVariance.Seek( 0,soFromBeginning ) ;
-
-      newSR.yCoord.F_Mdata.CopyFrom( tSR.yCoord.F_MVariance, 0)  ;
-
-      tSR.yCoord.F_MAverage.Seek( 0,soFromBeginning ) ;
-      tSR.yCoord.F_MStdDev.Seek( 0,soFromBeginning ) ;
-      tSR.yCoord.F_Mdata.Seek( 0,soFromBeginning ) ;
-      tSR.yCoord.F_MAverage.Seek( 0,soFromBeginning ) ;
-      tSR.yCoord.F_MStdDev.Seek( 0,soFromBeginning ) ;
-
-      // *** Copy the x data ***
-      newSR.xCoord.CopyMatrix(tSR.xCoord) ;
-
-      PlaceDataRangeOrValueInGridTextBox(2, StringGrid1.RowCount-2 ,  newSR)  ;
-      //StringGrid1.Cells[2, StringGrid1.RowCount-2 ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-      StringGrid1.Cells[1, StringGrid1.RowCount-2 ] :=  'line_'+ inttostr( selectedRowNum ) + '_variance'   ;
-      newSR.xCoord.Filename :=  'variance.bin'   ;
-
-      newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 3) ;  // 8 means plot 3 lines 1st and 3rd are dashed (stdev) and middle one is solid
-   end ;
-  end;
    if not Form4.CheckBox7.Checked then
      form1.UpdateViewRange() ;
    form1.Refresh ;

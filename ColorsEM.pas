@@ -5,7 +5,7 @@ interface
 uses
   Windows, OpenGL, Messages, SysUtils,  Classes, Graphics, Controls, Forms, Dialogs,
   Menus, StdCtrls, Checklst, FileCtrl, Buttons, ComCtrls, Math, Grids,
-  ExtCtrls, PCResultsObjects, BLASLAPACKfreePas, TSpectraRangeObject, TBatchBasicFunctions;
+  ExtCtrls, PCResultsObjects, TSpectraRangeObject, TBatchBasicFunctions;
 
 type
   TForm2 = class(TForm)
@@ -29,6 +29,9 @@ type
     ComboBox3: TComboBox;
     ComboBox4: TComboBox;
     TabSheet2: TTabSheet;
+    SpeedButton2: TSpeedButton;
+    SpeedButton3: TSpeedButton;
+    SpeedButton4: TSpeedButton;
     Label5: TLabel;
     Label6: TLabel;
     Edit14: TEdit;
@@ -100,6 +103,9 @@ type
     RadioButton14: TRadioButton;
     CheckBox15: TCheckBox;
     Button10: TButton;
+    PopupMenu1: TPopupMenu;
+    Open1: TMenuItem;
+    Save1: TMenuItem;
     DataInColsRadButton: TRadioButton;
     DataInRowsRadButton: TRadioButton;
     XRangeEditBox: TEdit;
@@ -111,6 +117,7 @@ type
     RBYData: TRadioButton;
     ShowCursor: TCheckBox;
     n2DImagingGB: TGroupBox;
+    TrackBar2: TTrackBar;
     NumColsEB1: TEdit;
     Label27: TLabel;
     Label28: TLabel;
@@ -178,6 +185,7 @@ type
     Edit22: TEdit;
     Button7: TButton;
     CheckBox5: TCheckBox;
+    Label45: TLabel;
     CheckBox6: TCheckBox;
     difButton: TButton;
     Edit23: TEdit;
@@ -251,53 +259,6 @@ type
     MinNoisePreprocessCB: TRadioButton;
     ZeroFillLabelLB: TLabel;
     SwapBytesInRAWfile: TCheckBox;
-    RescaleXBtn: TButton;
-    Label61: TLabel;
-    GroupBox3: TGroupBox;
-    ColRangeEB: TEdit;
-    Label62: TLabel;
-    Label60: TLabel;
-    RowRangeEB: TEdit;
-    NumberOfBinsEB: TEdit;
-    Label59: TLabel;
-    DataFromRowsRB: TRadioButton;
-    DataFromColsRB: TRadioButton;
-    CreateHistogramBtn: TButton;
-    UseBLASCB1: TCheckBox;
-    DendroControlGB: TGroupBox;
-    DendroPlacePeakstCB: TCheckBox;
-    DendroAddSB: TSpeedButton;
-    DendroSubtractSB: TSpeedButton;
-    DendroAverageRingStrutureBTN: TButton;
-    DendroYearEB: TEdit;
-    DendroBackYearSB: TSpeedButton;
-    DendroForwardYearSB: TSpeedButton;
-    DendroYearViewableLabel1: TLabel;
-    DendroAddPointToSelectedRowLabel1: TLabel;
-    DendroAddPointsToRowEB: TEdit;
-    DendroOffsetTraceLabel: TLabel;
-    DendroOffsetTracePercent: TEdit;
-    Button11: TButton;
-    DendroSumOverYearBTN: TButton;
-    DendroSumOverYearsPnl: TPanel;
-    DendroIntegrateStepRB: TRadioButton;
-    DendroSumFullStepRB: TRadioButton;
-    DendroSOYStartEB: TEdit;
-    DendroSOYStepEB: TEdit;
-    DendroSOYStartLBL: TLabel;
-    DendroSOYStepLBL: TLabel;
-    DendroAddYearsToDataBTN: TButton;
-    DendroMODISDataCB: TCheckBox;
-    DendroMODISNumberOfBands: TEdit;
-    DendroMODISNumBandsLBL: TLabel;
-    DendroFindScaleMODIS_CB: TCheckBox;
-    InterpolateMODISBtn: TButton;
-    MODISInterpolValueEditBx: TEdit;
-    DendroSOYXStepEB: TEdit;
-    Label45: TLabel;
-    DendroIntegDiskAreaCB: TCheckBox;
-    RAWInputOffsetBytesTB: TEdit;
-    RAWByteOffset: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure Edit1MouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
@@ -327,7 +288,10 @@ type
     procedure CheckBox2Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure SpeedButton1Click(Sender: TObject);
+//   procedure RadioButton4Click(Sender: TObject);
+ //   procedure RadioButton3Click(Sender: TObject);
     procedure SpeedButton5Click(Sender: TObject);
+    procedure SpeedButton2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
     procedure Copy1Click(Sender: TObject);
@@ -337,6 +301,8 @@ type
     procedure FormResize(Sender: TObject);
     procedure SpeedButton7Click(Sender: TObject);
     procedure SpeedButton6Click(Sender: TObject);
+//    procedure Button6Click(Sender: TObject);
+ //   procedure Save1Click(Sender: TObject);
     procedure PageControl1Change(Sender: TObject);
     procedure CheckBox3Click(Sender: TObject);
     procedure CheckBox9Click(Sender: TObject);
@@ -345,6 +311,7 @@ type
     procedure Button5Click(Sender: TObject);
     procedure hannWindowCB1Click(Sender: TObject);
     procedure ComboBox1Change(Sender: TObject);
+//    procedure CheckBox11Click(Sender: TObject);
     procedure Button8Click(Sender: TObject);
     procedure SpeedButton8Click(Sender: TObject);
     procedure Button9Click(Sender: TObject);
@@ -413,44 +380,21 @@ type
     procedure ImageNumberTB1Click(Sender: TObject);
     procedure CropXRangeBtnClick(Sender: TObject);
     procedure NoImageCB1Click(Sender: TObject);
-    procedure RescaleXBtnClick(Sender: TObject);
-    procedure CreateHistogramBtnClick(Sender: TObject);
-    procedure DendroForwardYearSBClick(Sender: TObject);
-    procedure DendroBackYearSBClick(Sender: TObject);
-    procedure DendroYearEBKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
-    procedure FormKeyPress(Sender: TObject; var Key: Char);
-    procedure DendroYearEBEnter(Sender: TObject);
-    procedure DendroYearEBClick(Sender: TObject);
-    procedure DendroOffsetTracePercentKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
-    procedure DendroAddPointsToRowEBKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
-    procedure DendroPlacePeakstCBClick(Sender: TObject);
-    procedure DendroYearEBKeyUp(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
-    procedure DendroAverageRingStrutureBTNClick(Sender: TObject);
-    procedure DendroSumOverYearBTNClick(Sender: TObject);
-    procedure DendroAddYearsToDataBTNClick(Sender: TObject);
-    procedure DendroMODISDataCBClick(Sender: TObject);
-    procedure InterpolateMODISBtnClick(Sender: TObject);
-//    procedure DendroPlacePeakstCBClick(Sender: TObject);
+
+
 
   private
     { Private declarations }
   public
-    MVA_executable : string ;  // external exe for running some processes
-    procedure AverageSmooth ;  // Smooth data using moving average
+
+    procedure AverageSmooth ; // Smooth data using moving average
     procedure FourierSmooth ;
     procedure MinNoisePreprocess ; // subtracts following spectra from the one before (until end, which is zeroed)
     procedure SelfDeconvolution  ;
     procedure InstrumentalDeconvolution ;
-    function  GetWhichLineToDisplay : integer ;
+    function GetWhichLineToDisplay : integer ;
     procedure LinearInterpolate(tSR, newSR: TSpectraRanges; start, step: single) ;
 
-    procedure DendroStretchViewToYear(start, finish :single) ;  // sets OrthoVarXMin and OrthoVarXMax to input range (start/finish)
-    function DendroSumFullStep(startIn, stepIn, xStepIn : Single ; IntegDiskBool :boolean;  TraceDRIn : TSpectraRanges) : TSpectraRanges ;
-    function DendroSumContinuous(startIn, stepIn, xStepIn : Single ;  IntegDiskBool :boolean; TraceDRIn : TSpectraRanges) : TSpectraRanges ;
 
     { Public declarations }
   end;
@@ -458,12 +402,15 @@ type
 var
   Form2: TForm2;
   MouseDownMat : boolean ;
-  originalTBText : single ;
+
   PalletColorsBitMap : TBitmap ;  // added for holding bitmap of colors being used for pallet of 2D image textures
 
 implementation
 
 Uses EmissionGL,  SpectraLibrary, FileInfo, TMatrixObject, batchEdit ;
+//{$L }
+//Procedure SSYRK (UPLO, TRANS, N, K, ALPHA, A, LDA, BETA, C, LDC : Variant);  external ;
+
 {$R *.DFM}
 
 
@@ -477,6 +424,7 @@ Var
   P : PByteArray;
 
 begin
+//  PreventCheckBoxLoop := false ;  // if false then procedure has not been through once
   TempList := TStringList.Create ;
   IntensityList := TStringList.Create ; // list for reference spectra colors and max intensity
 
@@ -487,11 +435,10 @@ begin
     Except
       on EFOpenError Do
     end ;
-    lastFileExt := TempList.Strings[1] ;
-    Form2.MVA_executable := TempList.Strings[2] ;  // this is the executable to run externalanalyses
-    Edit1.Text := TempList.Strings[3] ;
-    Edit2.Text := TempList.Strings[4] ;
-    Edit3.Text := TempList.Strings[5] ;
+
+    Edit1.Text := TempList.Strings[1] ;
+    Edit2.Text := TempList.Strings[2] ;
+    Edit3.Text := TempList.Strings[3] ;
     BKGRed   :=  StrToFloat(Edit1.Text)  ;
     BKGGreen :=  StrToFloat(Edit2.Text)   ;
     BKGBlue  :=  StrToFloat(Edit3.Text)   ;
@@ -511,8 +458,7 @@ begin
       CheckListBox1.Items.Add(TempStr1) ;
     end ;
 
-    // *** Remember to change the 10 here if the header strings are added/subtracted ****
-    For TempInt1 := 10 to TempList.Count-1 Do                  // FileListBox1.Items.Count-1
+    For TempInt1 := 8 to TempList.Count-1 Do                  // FileListBox1.Items.Count-1
     begin
        IntensityList.Add(TempList.Strings[TempInt1]) ; // color data starts here *************************
     end ;
@@ -521,18 +467,22 @@ begin
   ComboBox3.Items.Clear  ;
   ComboBox4.Items.Clear  ;
 
-  TempStr1 := TempList.Strings[6] ;
+  TempStr1 := TempList.Strings[4] ;
 
 // X data values
-  ComboBox2.Items.CommaText := TempList.Strings[6] ;
-  ComboBox3.Items.CommaText := TempList.Strings[6] ;
-  ComboBox2.text := TempList.Strings[7] ;
-  ComboBox3.text := TempList.Strings[7] ;
+  ComboBox2.Items.CommaText := TempList.Strings[4] ;
+  ComboBox3.Items.CommaText := TempList.Strings[4] ;
+  ComboBox2.text := TempList.Strings[5] ;
+  ComboBox3.text := TempList.Strings[5] ;
 // Y data values
-  ComboBox4.Items.CommaText := TempList.Strings[8] ;
-  ComboBox4.text :=  TempList.Strings[9] ;
+  ComboBox4.Items.CommaText := TempList.Strings[6] ;
+  ComboBox4.text :=  TempList.Strings[7] ;
 
 {$I-}
+{  ChDir(TempList.Strings[0]);   //change to directory where last file was opened
+  if IOResult <> 0 then
+      ChDir(HomeDir);    //if directory not exist then change to program directory    }
+
   if SetCurrentDir(TempList.Strings[0]) = false then
      SetCurrentDir(HomeDir) ;
 {$I+}
@@ -543,6 +493,7 @@ begin
   end ;
 
   CheckBox1.Checked := True ;  // include charge on reference line
+
 
   // added for holding bitmap of colors being used for pallet of 2D image textures
   PalletColorsBitMap := TBitmap.Create ;
@@ -560,7 +511,6 @@ begin
   end ;
 
   Image1.Picture.Bitmap :=   PalletColorsBitMap ;
-
 
 
 //   If (IsNative2DdataRB.Checked) or (Is2DdataRB.Checked) Then  Checkbox4.Checked := false ;  // initially no y scale for 2D images
@@ -636,8 +586,7 @@ begin
   Form1.Refresh ;
 end;
 
-// for each item selected in the list of 'reference' spectra
-// load the data and create an OpenGL list for use with display functiion (FormPaint(Sender: TObject) procedure)
+
 procedure TForm2.CheckListBox1ClickCheck(Sender: TObject);
 Var
  TempList1 : TStringList ;
@@ -822,15 +771,15 @@ Var
 begin
 If MouseDownMat Then
   begin
-     TempFloat := StrToFloat(Edit8.Text) ;
-      try
-        TempFloat := TempFloat + (0.001*(Y)*TempFloat) ;
-      except
-         on EOverFlow  do
-           TempFloat := TempFloat - (0.01*(Y)*TempFloat) ;
-      end;
-        Edit8.Text := FloatToStrf(TempFloat,ffFixed,4,3) ;
+    TempFloat := StrToFloat(Edit8.Text) ;
+    If (TempFloat >= -100000000.0) and (TempFloat <=100000000.0)  Then
+      begin
+        TempFloat := TempFloat + (0.001*(-Y)) ;
+        If TempFloat > 100000000.0 Then TempFloat := 100000000 ;
+        If TempFloat < -100000000.0 Then TempFloat := -100000000.0 ;
+        Edit8.Text := FloatToStrf(TempFloat,ffFixed,5,3) ;
         OrthoVarYMax := TempFloat ;
+      end ;
       Refresh ;
    end ;
 
@@ -845,17 +794,15 @@ Var
 begin
   If MouseDownMat Then
   begin
-     TempFloat := StrToFloat(Edit9.Text) ;
-       try
-         TempFloat := TempFloat + (0.001*(Y)*TempFloat) ;
-       except
-         on EOverFlow  do
-           TempFloat := TempFloat - (0.01*(Y)*TempFloat) ;
-      //   on EUnderFlow do
-      //      TempFloat := TempFloat - ((Y)*TempFloat) ;
-       end;
-        Edit9.Text := FloatToStrf(TempFloat,ffFixed,4,3) ;
+    TempFloat := StrToFloat(Edit9.Text) ;
+    If (TempFloat >= -100.0) and (TempFloat <=100.0)  Then
+      begin
+        TempFloat := TempFloat + (0.001*(-Y)) ;
+        If TempFloat > 100.0 Then TempFloat := 100 ;
+        If TempFloat < -100.0 Then TempFloat := -100.0 ;
+        Edit9.Text := FloatToStrf(TempFloat,ffFixed,5,3) ;
         OrthoVarYMin := TempFloat ;
+      end ;
       Refresh ;
    end ;
 
@@ -869,17 +816,14 @@ begin
   If MouseDownMat Then
   begin
     TempFloat := StrToFloat(Edit6.Text) ;
-
-        try
-            TempFloat := TempFloat + (0.001*(-Y)*TempFloat) ;
-         except
-         on EOverFlow  do
-           TempFloat := TempFloat - (0.01*(Y)*TempFloat) ;
-         end;
-
+    If (TempFloat >= -10000.0) and (TempFloat <=10000.0)  Then
+      begin
+        TempFloat := TempFloat + (0.1*(-Y)) ;
+        If TempFloat > 10000.0 Then TempFloat := 10000 ;
+        If TempFloat < -10000.0 Then TempFloat := -10000.0 ;
         Edit6.Text := FloatToStrf(TempFloat,ffFixed,5,3) ;
         OrthoVarXMin := TempFloat ;
-
+      end ;
       Refresh ;
    end ;
 
@@ -893,15 +837,14 @@ begin
   If MouseDownMat Then
   begin
     TempFloat := StrToFloat(Edit7.Text) ;
-         try
-            TempFloat := TempFloat + (0.001*(-Y)*TempFloat) ;
-         except
-         on EOverFlow  do
-           TempFloat := TempFloat - (0.01*(Y)*TempFloat) ;
-         end;
+    If (TempFloat >= -10000.0) and (TempFloat <=10000.0)  Then
+      begin
+        TempFloat := TempFloat + (0.1*(-Y)) ;
+        If TempFloat > 10000.0 Then TempFloat := 10000 ;
+        If TempFloat < -10000.0 Then TempFloat := -10000.0 ;
         Edit7.Text := FloatToStrf(TempFloat,ffFixed,5,3) ;
         OrthoVarXMax := TempFloat ;
-
+      end ;
       Refresh ;
    end ;
 
@@ -950,7 +893,7 @@ If StrToFloat(Edit14.Text) <> 0.0 Then    // Edit14.Text = offset value to move 
     else
       TempStr := 'lower' ;
 
-    Case MessageDlg('This will shift data' + TempStr + ' by ' + copy(trim(Edit14.Text),1,length(trim(Edit14.Text))) ,mtConfirmation,[mbOK,mbCancel],0) of
+    Case MessageDlg('This will shift data' + TempStr + ' by ' + copy(trim(Edit14.Text),2,length(trim(Edit14.Text))) ,mtConfirmation,[mbOK,mbCancel],0) of
     idOK:
       begin
         If Form4.StringGrid1.Objects[Form4.StringGrid1.Col,Form4.StringGrid1.Selection.Top] is TSpectraRanges Then
@@ -1019,30 +962,27 @@ begin
  SpeedButton6.Down := False ;  // integrate between lines
  BaselineCorrSB9.Down := False ;
  SpeedButton8.Down := False ;  // deconvolution peak selection
+ SpeedButton3.Down := False ;  // zoom selected rectangle
  SpeedButton7.Down := False ;  // zoom selected rectangle
+ SpeedButton2.Down := SpeedButton5.Down  ;
 end;
 
-procedure TForm2.SpeedButton7Click(Sender: TObject);
-begin
- SpeedButton6.Down := False ; // integrate between lines
- BaselineCorrSB9.Down := False ;
- SpeedButton8.Down := False ; // deconvolution peak selection
- SpeedButton5.Down := False ;
-end;
-
-{
 procedure TForm2.SpeedButton2Click(Sender: TObject);
 begin
 SpeedButton6.Down := False ;  // integrate between lines
 BaselineCorrSB9.Down := False ;
 SpeedButton8.Down := False ;  // deconvolution peak selection
-end;     }
+SpeedButton5.Down := SpeedButton2.Down ; // zoom between lines
+SpeedButton7.Down := SpeedButton3.Down ; // zoom selected rectangle
+end;
 
 procedure TForm2.SpeedButton8Click(Sender: TObject);
 begin
  SpeedButton6.Down := False ; // integrate between lines
  BaselineCorrSB9.Down := False ;
  SpeedButton7.Down := False ; // zoom selected rectangle
+ SpeedButton3.Down := False ; // zoom selected rectangle
+ SpeedButton2.Down := False ; // zoom between lines
  SpeedButton5.Down := False ; // zoom between lines
 end;
 
@@ -1308,7 +1248,7 @@ if (not CheckBox15.Checked) and (not PeakHeightCB.Checked) then   // do standard
     end ;
 
 
-end  // end not FFT integration
+end  // not FFT integration
 end
 end
 else
@@ -1324,7 +1264,7 @@ begin // FFT integration
     tSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
     Form1.UpdateViewRange() ; // updates  OrthoVarXMax, OrthoVarXMin, OrthoVarYMax, OrthoVarYMin. Used when XY data is modified }
   end ;
-   messagedlg('IntegrateUsingFFT() not implemented' ,mtInformation,[mbOK],0) ;
+   messagedlg('IntegrateUsingFFT() not implemented yet' ,mtInformation,[mbOK],0) ;
 
 end
 else
@@ -1422,13 +1362,12 @@ begin
      if  MinNoisePreprocessCB.Checked then MinNoisePreprocess() ;
 end ;
 
-
-
 procedure TForm2.MinNoisePreprocess ; // subtracts following spectra from the one before (until end, which is zeroed)
 var
   t1, t2, selectedRowNum, colNum : Integer ;
   s1, s2 : single ;
   tSR, newTSR : TSpectraRanges ;
+
 begin
 
   SelectStrLst.SortListNumeric ;
@@ -1612,12 +1551,23 @@ Form2.PageControl1.ClientWidth <= 325 Then
 
 end;
 
+procedure TForm2.SpeedButton7Click(Sender: TObject);
+begin
+SpeedButton6.Down := False ; // integrate between lines
+BaselineCorrSB9.Down := False ;
+SpeedButton8.Down := False ; // deconvolution peak selection
+SpeedButton5.Down := False ;
+SpeedButton2.Down := False ;
+SpeedButton3.Down := SpeedButton7.Down ;
+end;
 
 
 procedure TForm2.BaselineCorrSB9Click(Sender: TObject);
 begin
  SpeedButton6.Down := False ; // integrate between lines
  SpeedButton7.Down := False ; // zoom selected rectangle
+ SpeedButton3.Down := False ; // zoom selected rectangle
+ SpeedButton2.Down := False ; // zoom between lines
  SpeedButton5.Down := False ; // zoom between lines
 end;
 
@@ -1626,6 +1576,8 @@ procedure TForm2.SpeedButton6Click(Sender: TObject);   // integrate between line
 begin
 SpeedButton8.Down := False ; // deconvolution peak selection
 BaselineCorrSB9.Down := False ;
+Speedbutton2.Down := False ;
+Speedbutton3.Down := False ;
 Speedbutton5.Down := False ;
 Speedbutton7.Down := False ;
 
@@ -1816,11 +1768,11 @@ end;
 
 Function TForm2.GetWhichLineToDisplay : integer ;   // real or imaginary
 begin
-     if (ViewRealCB12.State = cbChecked) and (ViewImaginaryCB13.State = cbChecked) then
+     if ViewRealCB12.checked and ViewImaginaryCB13.checked then
        Result := 3
-     else if (ViewImaginaryCB13.State = cbChecked) then
+     else if ViewImaginaryCB13.checked then
        Result := 2
-     else if (ViewRealCB12.State = cbChecked) then
+     else if ViewRealCB12.checked then
        Result := 1
      else
        Result := 0 ;
@@ -1828,7 +1780,7 @@ end ;
 
 
 
- // Instrument deconvolution
+
 procedure TForm2.Button8Click(Sender: TObject);
 begin
      if RadioButton11.Checked then  SelfDeconvolution()
@@ -2038,7 +1990,6 @@ end;
 
 
 
-
 procedure TForm2.PCRClick(Sender: TObject);
 Var
   tPCRReg : TPCResults ;
@@ -2090,624 +2041,6 @@ begin
 end;
 
 
-procedure TForm2.DendroAddPointsToRowEBKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-var
-  t1 : integer ;
-begin
-
-try
-  t1 :=  strtoint(DendroAddPointsToRowEB.Text) ;  // the original numerical value
-
-  if (Key = 38) or (Key=39) then  // arrow key on keyboard increment image number
-  begin
-     if SelectStrLst.Count > t1 then
-      begin
-        inc(t1) ;
-        DendroAddPointsToRowEB.Text := inttostr(t1) ;    // max is checked in FrequencySlider1Change()
-      end;
-  end
-  else
-  if (Key = 37) or (Key=40) then  // arrow key on keyboard decrement image number
-  begin
-     if t1 > 1 then
-     begin
-       dec(t1) ;
-       DendroAddPointsToRowEB.Text := inttostr(t1) ;
-     end;
-   end ;
-except
-   DendroAddPointsToRowEB.Text := '1'  ;
-end;
-  form1.Refresh ;
-end;
-
-procedure TForm2.DendroAddYearsToDataBTNClick(Sender: TObject);
-Var
-  t0, selectedRowNum, TraceCol, posAdded : integer ;
-  first_x1, last_x1,  addedYCoordData  : single ;
-  ringsSR : TSpectraRanges ;
-  start, step : single ;
-  tMS : TMemoryStream ;
-begin
-
-  SelectStrLst.SortListNumeric ;
-  SelectColList.SortListNumeric ;
-
-  if SelectColList.Count = 1 then   // make sure only 1 column is selected
-  begin
-  TraceCol := StrToInt(SelectColList.Strings[0]);
-
-  // for each row selected, except last one which has averaged intra ring boundary information
-  for t0 := 0 to SelectStrLst.Count-1 do
-  begin
-  selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-    if Form4.StringGrid1.Objects[ TraceCol ,selectedRowNum] is  TSpectraRanges  then
-    begin
-      ringsSR  :=  TSpectraRanges(Form4.StringGrid1.Objects[ TraceCol,selectedRowNum]) ;
-      start := strtofloat(DendroSOYStartEB.Text) ;
-      step  := strtofloat(DendroSOYStepEB.Text) ;
-
-      ringsSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      ringsSR.xCoord.F_Mdata.Read(first_x1, 4) ;
-      ringsSR.xCoord.F_Mdata.Seek(-4,soFromEnd) ;
-      ringsSR.xCoord.F_Mdata.Read(last_x1, 4) ;
-      ringsSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-
-      tMS := TMemoryStream.Create ;
-      addedYCoordData := 500.00 ;
-      tMS.Size := ringsSR.xCoord.SDPrec  ;
-      tMS.Write(addedYCoordData,sizeof(single))   ;
-      while (start < last_x1 ) do  // for each sample point
-      begin
-        posAdded := ringsSR.AddData(start,tMS) ;
-        tMS.Seek(0,soFromBeginning) ;
-        start := start + step ;
-      end;
-      tMS.Free ;
-
-      // do display and interface stuff
-      Form4.StringGrid1.Cells[TraceCol, selectedRowNum ] := '1-'+inttostr(ringsSR.yCoord.numRows)+' : '+'1-'+inttostr(ringsSR.yCoord.numCols) ;
-      ringsSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      ringsSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), ringsSR.lineType ) ;
-
-    end;  // if selected column contains a TSpectraRanges object
-   end;
-   end
-   else
-   begin
-        Form4.StatusBar1.Panels[1].Text := 'Error: Select single columns of data only'  ;
-   end;
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-
-
-
-end;
-
-
-
-// requires the average x position data to be at bottom of list
-// which is created through "Average / RMSE-> Extract Ave X data" right button menu
-// making sure you extract the middle data
-procedure TForm2.DendroAverageRingStrutureBTNClick(Sender: TObject);
-Var
-  t0, t1, t2, selectedRowNum, TraceCol, RingCol  : integer ;
-  numSamplesInYear, totalSamplesRead : integer ;
-  s1, s2, year  : single ;
-  avePoint1     : single ;
-  TraceSR, RingSR, AveRingDataSR, newSR : TSpectraRanges ;
-  tMS1 : TMemoryStream ;
-begin
-
-  SelectStrLst.SortListNumeric ;
-  SelectColList.SortListNumeric ;
-
-  if SelectColList.Count = 2 then   // make sure only 2 columns are selected
-  begin
-  TraceCol := StrToInt(SelectColList.Strings[0]);
-  RingCol  := StrToInt(SelectColList.Strings[1]);
-
-
-  // AveRingDataSR is at bottom of list and was created through "Average / RMSE-> Extract Ave X data" right button menu
-  if Form4.StringGrid1.Objects[TraceCol, strtoint(SelectStrLst.Strings[SelectStrLst.Count-1])] is  TSpectraRanges  then
-    AveRingDataSR := TSpectraRanges(Form4.StringGrid1.Objects[TraceCol, strtoint(SelectStrLst.Strings[SelectStrLst.Count-1])])
-  else
-  if Form4.StringGrid1.Objects[RingCol, strtoint(SelectStrLst.Strings[SelectStrLst.Count-1])] is  TSpectraRanges  then
-    AveRingDataSR := TSpectraRanges(Form4.StringGrid1.Objects[RingCol, strtoint(SelectStrLst.Strings[SelectStrLst.Count-1])])
-  else
-    exit ;  // exit if either of bottom row columns does not contain a TSpectraRange (the average ring data)
-
-  // for each row selected, except last one which has averaged intra ring boundary information
-  for t0 := 0 to SelectStrLst.Count-2 do
-  begin
-  selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-  // 1st column is the X (density) trace data
-  if Form4.StringGrid1.Objects[ TraceCol ,selectedRowNum] is  TSpectraRanges  then
-  begin
-  // 2nd column is the intra-ring data
-  if Form4.StringGrid1.Objects[ RingCol ,selectedRowNum] is  TSpectraRanges  then
-  begin
-    // The first row of the Y data (tSR1 = column 3)
-    // will be the xCoord data for the TSpectra in the X Data column
-    TraceSR  :=  TSpectraRanges(Form4.StringGrid1.Objects[ TraceCol,selectedRowNum]) ;
-    RingSR   :=  TSpectraRanges(Form4.StringGrid1.Objects[ RingCol ,selectedRowNum]) ;
-
-    // this TMatrix will hold the number of points in the trace that occurs within a ring increment
-    tMS1 := TMemoryStream.Create ;
-    tMS1.SetSize(RingSR.xCoord.numCols * sizeof(integer));
-    totalSamplesRead := 0 ;
-    TraceSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-    RingSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-    for t1 := 0 to RingSR.xCoord.numCols - 1 do  // for each ring
-    begin
-       numSamplesInYear := 0 ;
-       RingSR.xCoord.F_Mdata.Read(s1, RingSR.yCoord.SDPrec) ;
-       TraceSR.xCoord.F_Mdata.Read(s2, TraceSR.yCoord.SDPrec) ;
-       while (s2 < s1) and (totalSamplesRead < TraceSR.xCoord.numCols) do  // for each ring
-       begin  // count number of data points that are within the ring
-          inc(numSamplesInYear) ;
-          inc(totalSamplesRead) ;
-          TraceSR.xCoord.F_Mdata.Read(s2, TraceSR.xCoord.SDPrec) ;
-       end;
-       inc(numSamplesInYear) ;
-       inc(totalSamplesRead) ;
-       tMS1.Write(numSamplesInYear, sizeof(integer))  ;
-    end;
-
-    if  Form4.StringGrid1.Objects[RingCol+1, selectedRowNum] = nil then
-    begin
-      // create TSpectraRanges object for each TSpectraRanges selected (one at a time)
-      newSR :=  TSpectraRanges.Create(TraceSR.yCoord.SDPrec,TraceSR.yCoord.numRows, TraceSR.yCoord.numCols,@TraceSR.LineColor );
-      // point pointer newSR to the new TSpectraRange object
-      Form4.StringGrid1.Objects[RingCol+1, selectedRowNum] := newSR ;
-      // copy the original data
-      newSR.CopySpectraObject(TraceSR);
-
-      tMS1.Seek(0, soFromBeginning)  ;
-      newSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      newSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      AveRingDataSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      year := 0 ;
-
-      for t1 := 0 to RingSR.xCoord.numCols - 1 do  // for each ring
-      begin
-         s2 := 0 ;
-         tMS1.Read(numSamplesInYear, sizeof(integer))  ;
-         AveRingDataSR.yCoord.F_Mdata.Read(avePoint1, sizeof(integer))  ;
-         // stretch xCoord data to fit between
-         s1 :=  ( (avePoint1 - year) / numSamplesInYear ) ;
-         for t2 := 0 to numSamplesInYear -1 do
-         begin
-           s2 := year + (t2*s1) ;
-           newSR.xCoord.F_Mdata.Write(s2, newSR.xCoord.SDPrec) ;
-         end;
-         year := avePoint1 ;
-      end;
-      newSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      newSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-      // do display and interface stuff
-      newSR.GLListNumber := Form4.GetLowestListNumber ;
-      if TraceSR.fft.dtime  <> 0 then
-        newSR.fft.CopyFFTObject(TraceSR.fft) ;
-      Form4.StringGrid1.Cells[RingCol+1, selectedRowNum ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-      newSR.xCoord.Filename :=  'xCoord_scaled_to_ave_struct.bin'   ;
-      newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1) ;
-
-    end;
-     //   Form4.StatusBar1.Panels[1].Text := 'Error: X data and Y data differ in number of columns'  ;
-     tMS1.Free ;
-   end;  // if it is a TSpectraRanges object
-   end ; // if it is a TSpectraRanges object
-   end;  // for each row selected
-   end
-   else
-   begin
-        Form4.StatusBar1.Panels[1].Text := 'Error: Need to select 2 columns of data only'  ;
-   end;
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-
-end;
-
-procedure TForm2.DendroBackYearSBClick(Sender: TObject);
-var
-  s1 : single ;
-begin
-
-try
-   s1  := strtofloat(DendroYearEB.Text) -1  ;
-   if (s1) >= 1  then
-     DendroYearEB.Text := floattostr((s1)) ;
-
-   // shift viewable range and update screen
-   DendroStretchViewToYear( s1-1, s1) ;
-
-except on EConvertError do
-   DendroYearEB.Text := '1' ;
-end;
-   
-end;
-
-procedure TForm2.DendroForwardYearSBClick(Sender: TObject);
-var
-  s1 : single ;
-begin
-try
-   s1 := strtofloat(DendroYearEB.Text) +1 ;
-   DendroYearEB.Text := floattostr((s1)) ;
-   DendroStretchViewToYear( s1-1, s1) ;
-except on EConvertError do
-   DendroYearEB.Text := '1' ;
-end;
-end;
-
-
-
-procedure TForm2.DendroMODISDataCBClick(Sender: TObject);
-begin
-     if DendroMODISDataCB.Checked then
-     begin
-        CheckBox3.Checked := true ;
-        DataInColsRadButton.Checked := true ;
-        XDataRowColEdit.Text := '6' ;
-        XRangeEditBox.Text   := '6-6' ;
-        YDataRangeEdit.Text := '9-' ;
-     end
-     else
-        CheckBox3.Checked := false ;
-end;
-
-procedure TForm2.DendroOffsetTracePercentKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-var
-  t1 : integer ;
-begin
-
-try
-  t1 :=  strtoint(copy(DendroOffsetTracePercent.Text,1,length(trim(DendroOffsetTracePercent.Text))-1)) ;
-
-  if (Key = 38) or (Key=39) then  // arrow key on keyboard increment image number
-  begin
-       t1 := t1 + 2 ;
-       DendroOffsetTracePercent.Text := inttostr(t1) + '%' ;    // max is checked in FrequencySlider1Change()
-  end
-  else
-  if (Key = 37) or (Key=40) then  // arrow key on keyboard decrement image number
-  begin
-       t1 := t1 - 2 ;
-       DendroOffsetTracePercent.Text := inttostr(t1) + '%' ;
-   end ;
-except on EconvertError do
-   DendroOffsetTracePercent.Text := '+10%'  ;
-end;
-  form1.Refresh ;
-end;
-
-procedure TForm2.DendroPlacePeakstCBClick(Sender: TObject);
-begin
-  form1.Refresh ;
-end;
-
-procedure TForm2.DendroYearEBClick(Sender: TObject);
-var
-  s1 : single ;
-begin
-try
-   s1 := strtofloat(DendroYearEB.Text) ;
-   // shift viewable range and update screen
-   DendroStretchViewToYear( s1-1, s1) ;
-except on EConvertError do
-   DendroYearEB.Text := '1' ;
-end;
-
-end;
-
-procedure TForm2.DendroYearEBEnter(Sender: TObject);
-var
-  s1 : single ;
-begin
-try
-   s1 := strtofloat(DendroYearEB.Text) ;
-   // shift viewable range and update screen
-   DendroStretchViewToYear( s1-1, s1) ;
-except on EConvertError do
-   DendroYearEB.Text := '1' ;
-end;
-end;
-
-
-procedure TForm2.DendroStretchViewToYear(start, finish :single) ;
-begin
-  // shift viewable range and update screen
-   if DendroPlacePeakstCB.Checked then
-   begin
-     OrthoVarXMin := start ;
-     OrthoVarXMax := finish   ;
-     Form1.FormResize(Form2)  ;
-   end;
-end;
-
-
-
-function TForm2.DendroSumFullStep(startIn, stepIn, xStepIn : Single ;  IntegDiskBool :boolean; TraceDRIn : TSpectraRanges) : TSpectraRanges ;
-Var
-  t0, t1, t2, numPointsAdded : integer ;
-  x_s1, x_s2, y_s1, y_s2, sum, startInCopy, currentRadius  : single ;
-   newSR : TSpectraRanges ;
-begin
-      // create new line in stringgrid and create TSpectraRanges object for each TSpectraRanges selected (one at a time)
-      newSR :=  TSpectraRanges.Create(TraceDRIn.yCoord.SDPrec,1, 0,@TraceDRIn.LineColor );
-      // point pointer newSR to the new TSpectraRange object
-
-      newSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      newSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      TraceDRIn.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      TraceDRIn.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-      t2 := 1 ;
-      numPointsAdded := 0 ;
-      startInCopy := startIn ;
-      TraceDRIn.xCoord.F_Mdata.Read(x_s1,TraceDRIn.xCoord.SDPrec)  ;
-      TraceDRIn.yCoord.F_Mdata.Read(y_s1,TraceDRIn.xCoord.SDPrec)  ;
-      x_s2 := x_s1 ;
-      while (t2 < TraceDRIn.xCoord.numCols) do  // for each sample point
-      begin
-         sum := 0 ;
-
-         if (xStepIn = 0.0) then  // use the distance between the xCoord data points for the area
-         begin
-           while (x_s1 <= startIn) and (t2 < TraceDRIn.xCoord.numCols) do
-           begin
-             TraceDRIn.xCoord.F_Mdata.Read(x_s2,TraceDRIn.xCoord.SDPrec)  ;
-             TraceDRIn.yCoord.F_Mdata.Read(y_s2,TraceDRIn.xCoord.SDPrec)  ;
-              if IntegDiskBool then
-               y_s1 := ((y_s1 + y_s2) / 2) * pi * ((x_s2*x_s2) - (x_s1*x_s1) )
-             else
-               y_s1 := ((y_s1 + y_s2) / 2) * (x_s2 - x_s1 );
-
-             sum := sum + y_s1 ;
-             inc(t2) ;
-             x_s1 := x_s2 ;
-             y_s1 := y_s2 ;
-           end;
-         end
-         else // use the xStepIn as the x coordinate value for integration
-          begin
-           while (x_s1 <= startIn) and (t2 < TraceDRIn.xCoord.numCols) do
-           begin
-             TraceDRIn.xCoord.F_Mdata.Read(x_s2,TraceDRIn.xCoord.SDPrec)  ;
-             TraceDRIn.yCoord.F_Mdata.Read(y_s2,TraceDRIn.xCoord.SDPrec)  ;
-             if IntegDiskBool then
-             begin
-               // currentRadius := numPointsAdded * xStepIn ;
-               currentRadius := t2 * xStepIn ;
-               y_s1 := ((y_s1 + y_s2) / 2) * pi * (((currentRadius+xStepIn)*(currentRadius+xStepIn))-(currentRadius*currentRadius ) ) ;
-             end
-             else
-               y_s1 := ((y_s1 + y_s2) / 2) * xStepIn;
-
-             sum := sum + y_s1 ;
-             inc(t2) ;
-             x_s1 := x_s2 ;
-             y_s1 := y_s2 ;
-           end;
-         end ;
-         inc(numPointsAdded) ;
-
-         newSR.xCoord.numCols := newSR.xCoord.numCols + 1 ;
-         newSR.yCoord.numCols := newSR.yCoord.numCols + 1 ;
-         newSR.xCoord.F_Mdata.SetSize(numPointsAdded * 4);
-         newSR.yCoord.F_Mdata.SetSize(numPointsAdded * 4);
-
-         newSR.xCoord.F_Mdata.Write(startIn, 4 ) ;
-         newSR.yCoord.F_Mdata.Write(sum, 4 ) ;
-
-         startIn := startInCopy + (stepIn*numPointsAdded) // startIn + stepIn ;
-      end;
-      newSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      newSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-      // return the new TSpectraRanges object
-      result := newSR ;
-
-end;
-
-function TForm2.DendroSumContinuous(startIn, stepIn, xStepIn : Single ;  IntegDiskBool :boolean; TraceDRIn : TSpectraRanges) :TSpectraRanges ;
-Var
-  t0, t1, t2 : integer ;
-  x_s1, x_s2, y_s1, y_s2, sum, pointVal, startInCopy, currentRadius  : single ;
-  newSR : TSpectraRanges ;
-begin
-         // create new line in stringgrid and create TSpectraRanges object for each TSpectraRanges selected (one at a time)
-      newSR :=  TSpectraRanges.Create(TraceDRIn.yCoord.SDPrec,TraceDRIn.yCoord.numRows, TraceDRIn.xCoord.numCols,@TraceDRIn.LineColor );
-      // point pointer newSR to the new TSpectraRange object
-
-      newSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      newSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      TraceDRIn.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      TraceDRIn.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-      TraceDRIn.xCoord.F_Mdata.Read(x_s1,TraceDRIn.xCoord.SDPrec)  ;
-      TraceDRIn.yCoord.F_Mdata.Read(y_s1,TraceDRIn.xCoord.SDPrec)  ;
-      x_s2 := x_s1 ;
-      t2 := 0 ;
-      startInCopy := startIn ;
-      for t0 := 0 to TraceDRIn.xCoord.numCols -1 do  // for each sample point
-      begin
-         sum := 0 ;
-         if (xStepIn = 0.0) then // use the distance between the xCoord data points for the area
-         begin
-           while (x_s1 <= startIn) and (t2 < TraceDRIn.xCoord.numCols) do
-           begin
-             TraceDRIn.xCoord.F_Mdata.Read(x_s2,TraceDRIn.xCoord.SDPrec)  ;
-             TraceDRIn.yCoord.F_Mdata.Read(y_s2,TraceDRIn.xCoord.SDPrec)  ;
-             if IntegDiskBool then
-               y_s1 := ((y_s1 + y_s2) / 2) * pi * ((x_s2*x_s2) - (x_s1*x_s1) )
-             else
-               y_s1 := ((y_s1 + y_s2) / 2) * (x_s2 - x_s1 );
-             sum := sum + y_s1 ;
-             inc(t2) ;
-             newSR.xCoord.F_Mdata.Write(x_s1, 4 ) ;
-             newSR.yCoord.F_Mdata.Write(sum, 4 ) ;
-             x_s1 := x_s2 ;
-             y_s1 := y_s2 ;
-         end;
-         end
-         else
-         begin
-           while (x_s1 <= startIn) and (t2 < TraceDRIn.xCoord.numCols) do
-           begin
-             TraceDRIn.xCoord.F_Mdata.Read(x_s2,TraceDRIn.xCoord.SDPrec)  ;
-             TraceDRIn.yCoord.F_Mdata.Read(y_s2,TraceDRIn.xCoord.SDPrec)  ;
-             if IntegDiskBool then
-             begin
-               // currentRadius := t0 * xStepIn ;
-               currentRadius := t2 * xStepIn ;
-               y_s1 := ((y_s1 + y_s2) / 2) * pi * (((currentRadius+xStepIn)*(currentRadius+xStepIn))-(currentRadius*currentRadius ) ) ;
-             end
-             else
-               y_s1 := ((y_s1 + y_s2) / 2) * xStepIn;
-             sum := sum + y_s1 ;
-             inc(t2) ;
-             newSR.xCoord.F_Mdata.Write(x_s1, 4 ) ;
-             newSR.yCoord.F_Mdata.Write(sum, 4 ) ;
-             x_s1 := x_s2 ;
-             y_s1 := y_s2 ;
-         end;
-         end;
-         startIn := startInCopy + ((t0+1)*stepIn) ;// startIn + stepIn ;
-      end;
-
-      newSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      newSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      TraceDRIn.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      TraceDRIn.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-      // return the new TSpectraRanges object
-      result := newSR ;
-end;
-
-procedure TForm2.DendroSumOverYearBTNClick(Sender: TObject);
-Var
-  t0, t1, t2, selectedRowNum, TraceCol, numPointsAdded : integer ;
-  x_s1, x_s2, y_s, sum, pointVal  : single ;
-  TraceSR, newSR : TSpectraRanges ;
-  start, step, xstep : single ;
-begin
-
-  SelectStrLst.SortListNumeric ;
-  SelectColList.SortListNumeric ;
-
-  if SelectColList.Count = 1 then   // make sure only 1 column is selected
-  begin
-  TraceCol := StrToInt(SelectColList.Strings[0]);
-
-  // for each row selected, except last one which has averaged intra ring boundary information
-  for t0 := 0 to SelectStrLst.Count-1 do
-  begin
-  selectedRowNum := StrToInt(SelectStrLst.Strings[t0]) ;
-  if Form4.StringGrid1.Objects[ TraceCol ,selectedRowNum] is  TSpectraRanges  then
-  begin
-  if Form4.StringGrid1.Objects[ TraceCol+1 ,selectedRowNum] =  nil  then
-  begin
-
-      TraceSR  :=  TSpectraRanges(Form4.StringGrid1.Objects[ TraceCol,selectedRowNum]) ;
-      start := strtofloat(DendroSOYStartEB.Text) ;
-      step  := strtofloat(DendroSOYStepEB.Text) ;
-      xstep := strtofloat(DendroSOYXStepEB.Text) ;
-      if DendroSumFullStepRB.Checked then
-      begin
-          newSR := DendroSumFullStep(start, step, xstep, DendroIntegDiskAreaCB.checked, TraceSR ) ;
-      end
-      else
-      begin
-         newSR := DendroSumContinuous(start, step, xstep, DendroIntegDiskAreaCB.checked, TraceSR ) ;
-      end;
-
-      // point the cell of interest to the new SR
-      Form4.StringGrid1.Objects[TraceCol+1, selectedRowNum] := newSR ;
-      // do display and interface stuff
-      newSR.GLListNumber := Form4.GetLowestListNumber ;
-      if TraceSR.fft.dtime  <> 0 then
-        newSR.fft.CopyFFTObject(TraceSR.fft) ;
-      Form4.StringGrid1.Cells[TraceCol+1, selectedRowNum ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-      newSR.xCoord.Filename :=  'xCoord_scaled_to_ave_struct.bin'   ;
-      newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1) ;
-
-   end ;  // new column does not contain an object
-   end;  // if selected column contains a TSpectraRanges object
-   end;  // for each row selected
-   end
-   else
-   begin
-        Form4.StatusBar1.Panels[1].Text := 'Error: Select single columns of data only'  ;
-   end;
-
-   if not Form4.CheckBox7.Checked then
-     form1.UpdateViewRange() ;
-   form1.Refresh ;
-
-
-end;
-
-procedure TForm2.DendroYearEBKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-var
-  s1 : single ;
-begin
-
-if trim(DendroYearEB.Text) <> '' then
-begin
-try
-  s1 :=  strtofloat(DendroYearEB.Text) ;
-  originalTBText := s1 ;
-  if (Key = 38) or (Key=39) then  // arrow key on keyboard increment image number
-  begin
-       s1 := s1 + 1 ;
-       DendroYearEB.Text := floattostr(s1) ;    // max is checked in FrequencySlider1Change()
-       // shift viewable range and update screen
-       DendroStretchViewToYear( s1-1, s1) ;
-  end
-  else
-  if (Key = 37) or (Key=40) then  // arrow key on keyboard decrement image number
-  begin
-     if s1 > 1 then
-     begin
-       s1 := s1 - 1 ;
-       DendroYearEB.Text := floattostr(s1) ;
-     end;
-
-      DendroStretchViewToYear( s1-1, s1) ;
-   end ;
-
-   if  (Key > 64) and (Key < 91) then
-     DendroYearEB.Text := floattostr(s1) ;
-
-
-except on EConvertError do
-   DendroYearEB.Text := '1'  ;
-end;
-end ;
-
-end;
-
-procedure TForm2.DendroYearEBKeyUp(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-  if  (Key > 64) and (Key < 91) then   // if not a number
-     DendroYearEB.Text := floattostr(originalTBText) ;
-end;
-
 // for verification of format of "Load  XY text data file" information
 procedure TForm2.XRangeEditBoxChange(Sender: TObject);
 var
@@ -2727,7 +2060,7 @@ begin
       begin
          XFin := strtoint(tStr1);
          if XStart > XFin then
-  //         raise EConvertError.Create('Edit error: Incorrect input parameters'+#13+'Format example: 1-200 or 1- (for full range)')
+           raise EConvertError.Create('Edit error: Incorrect input parameters'+#13+'Format example: 1-200 or 1- (for full range)')
          end ;
       end
       else
@@ -3172,13 +2505,12 @@ begin
   current_pointx :=  start ;
   number := 1 ;
   // 1.2 Count the number of points needed to span the original data
-  number := round(abs((last-first)/step))  ;
-//  while  current_pointx < last do
-//  begin
-//    current_pointx := current_pointx + step_d ;
-//    inc(number) ;
-//  end ;
-//  dec(number) ;
+  while  current_pointx < last do
+  begin
+    current_pointx := current_pointx + step ;
+    inc(number) ;
+  end ;
+  dec(number) ;
 
   // 2. set x data of interpolated spectra
   newSR.xCoord.F_Mdata.SetSize(4 * number) ;
@@ -3247,87 +2579,7 @@ begin
 
 end ;
 
-// this removes values from the yCoord data that are of a cirtain value
-// and replaces them with the average of either side points.
 
-procedure TForm2.InterpolateMODISBtnClick(Sender: TObject);
-var
-     t1, t2 : integer ;
-     tSR, newSR : TSpectraRanges ;
-     selectedRowNum : integer ;
-     first, second, third : array[0..2] of single ;
-     valueToReplace : single ;
-begin
-
-  SelectStrLst.SortListNumeric ;
-
-  valueToReplace := strtofloat(MODISInterpolValueEditBx.Text) ;
-
-  for t1 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-     selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-     if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-     begin
-
-
-        tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
-        if tSR.yCoord.numRows = 1 then
-        begin
-          newSR :=  TSpectraRanges.Create(tSR.xCoord.SDPrec div 4,1,tSR.yCoord.numCols,nil) ;
-          tSR.SeekFromBeginning(3,1,0);
-          newSR.SeekFromBeginning(3,1,0);
-          tSR.Read_XYrYi_Data(1,1,@second,false) ;  // reads first x, yr, yi data
-          for t2 := 2 to tSR.yCoord.numCols  do
-          begin
-             tSR.Read_XYrYi_Data(t2,1,@third,true) ;
-             if second[1] = valueToReplace then
-             begin
-                if (t2 > 2) and (t2 < tSR.yCoord.numCols)  then
-                begin
-                   if third[1] <> valueToReplace then
-                     second[1] := (first[1] + third[1]) / 2
-                   else
-                     second[1] := first[1] ;
-
-                   newSR.Write_YrYi_Data(t2,1,@second[1],true) ;
-                end
-                else  // the first data point is to be replace
-                if (t2 =2) then
-                begin
-                  newSR.Write_YrYi_Data(1,1,@third[1],true) ;
-                end
-                else  // the last data point is to be replaced
-                if (t2 = tSR.yCoord.numCols)  then
-                begin
-
-                end;
-                first[1] := second[1] ;
-             end;
-
-             
-          end;
-          tSR.SeekFromBeginning(3,1,0);
-          newSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-          newSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-          newSR.LineColor := tSR.LineColor ;
-          newSR.GLListNumber := tSR.GLListNumber ;
-          newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ;
-          newSR.lineType := tSR.lineType ;
-          newSR.CreateGLList('1-',Form1.Canvas.Handle,RC,  Form2.GetWhichLineToDisplay(),newSR.lineType) ;
-          Form4.StringGrid1.Objects[SG1_COL+1, selectedRowNum] := newSR ;
-          Form4.StringGrid1.Cells[SG1_COL+1,selectedRowNum]    :=  '1-'+inttostr(newSR.yCoord.numRows) + ':1-' +  inttostr(newSR.xCoord.numCols) ;
-        end;
-     end ;
-  end ;
-
-  if not Form4.CheckBox7.Checked then
-    Form1.UpdateViewRange() ;
-  Form1.Refresh ;
-
-end;
-
-
-// interpolate button on 'interpol.' tab sheet
 procedure TForm2.InterpolExecute1Click(Sender: TObject);
 var
      t1 : integer ;
@@ -3337,8 +2589,7 @@ var
      start_orig, step_orig : single ;
      slope_orig, inter_orig : single ;
 begin
-  if  LinearInterpol1.Checked = true then
-  begin
+
   SelectStrLst.SortListNumeric ;
   start := strtofloat( InterpolStart1.Text ) ;
   step  := strtofloat( InterpolStep1.Text ) ;
@@ -3350,9 +2601,8 @@ begin
         tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
       //  DoStuffWithStringGrid('', mouse_UpCol, 1, 1, true, Form4.StringGrid1.Row-1 ) ;
         newSR :=  TSpectraRanges.Create(tSR.xCoord.SDPrec div 4,1,1,nil) ;
-       // if  LinearInterpol1.Checked = true then
-
-        LinearInterpolate(tSR, newSR, start, step) ;
+        if  LinearInterpol1.Checked = true then
+          LinearInterpolate(tSR, newSR, start, step) ;
 
         newSR.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
         newSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
@@ -3366,7 +2616,6 @@ begin
         Form4.StringGrid1.Cells[SG1_COL,selectedRowNum]    :=  '1-'+inttostr(newSR.yCoord.numRows) + ':1-' +  inttostr(newSR.xCoord.numCols) ;
      end ;
   end ;
-  end;
   if not Form4.CheckBox7.Checked then
     Form1.UpdateViewRange() ;
   Form1.Refresh ;
@@ -3750,7 +2999,6 @@ begin
     TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,GridRow]).SetOpenGLXYRange(GetWhichLineToDisplay()) ; // finds max and min values in xy data
     if not Form4.CheckBox7.Checked then
       Form1.UpdateViewRange() ; // updates  OrthoVarXMax, OrthoVarXMin, OrthoVarYMax, OrthoVarYMin. Used when XY data is modified
-    Form1.Refresh ;
   end ;
 end;
 
@@ -3862,18 +3110,16 @@ var
      tMatXorY : TMatrix ;
      selectedRowNum : integer ;
      start, step : single ;
-     maths_calc_str, argument_str, origString : string ;
+     maths_calc_str, argument_str : string ;
      s1, argument_num : single ;
      if_bool : boolean ;
      if_num_string : string ;
      if_num : single ;
      if_clause_string : string ; // =1 '<' ; =2 '<=' ; =3 '='; =4 '>='; =5 '>' ;
-     MKLint1, MKLint2 : integer ;
 begin
 
   SelectStrLst.SortListNumeric ;
   maths_calc_str := Edit22.Text ;
-  origString     := maths_calc_str ;  // this is used for multiple spectra
   try
   for t1 := 0 to SelectStrLst.Count-1 do    // for each file selected
   begin
@@ -3922,23 +3168,13 @@ begin
               begin
               if if_bool = false then
               begin
-                 if UseBLASCB1.Checked = true then
+                for t2 := 1 to tMatXorY.F_Mdata.Size div tMatXorY.SDPrec do
                 begin
-                     MKLint1 := tMatXorY.numRows * tMatXorY.numCols ;
-                     MKLint2 := 1 ;
-                     argument_num := 1 / argument_num ;
-                     sscal( MKLint1,  argument_num,   tMatXorY.F_Mdata.Memory, MKLint2) ;
-                end
-                else
-                begin
-                  for t2 := 1 to tMatXorY.F_Mdata.Size div tMatXorY.SDPrec do
-                  begin
                    tMatXorY.F_Mdata.Read(s1,4) ;
                    tMatXorY.F_Mdata.Seek(-4,soFromCurrent) ;
                    s1 := s1 / argument_num ;
                    tMatXorY.F_Mdata.Write(s1,4) ;
-                  end ;
-                end;
+                end ;
               end
               else
               begin
@@ -3996,23 +3232,13 @@ begin
               argument_num := strtofloat( maths_calc_str ) ;
               if if_bool = false then
               begin
-
-                if UseBLASCB1.Checked = true then
+                for t2 := 1 to tMatXorY.F_Mdata.Size div tMatXorY.SDPrec do
                 begin
-                     MKLint1 := tMatXorY.numRows * tMatXorY.numCols ;
-                     MKLint2 := 1 ;
-                     sscal( MKLint1,  argument_num,   tMatXorY.F_Mdata.Memory, MKLint2) ;
-                end
-                else
-                begin
-                  for t2 := 1 to tMatXorY.F_Mdata.Size div tMatXorY.SDPrec do
-                  begin
-                    tMatXorY.F_Mdata.Read(s1,4) ;
-                    tMatXorY.F_Mdata.Seek(-4,soFromCurrent) ;
-                    s1 := s1 * argument_num ;
-                    tMatXorY.F_Mdata.Write(s1,4) ;
-                  end ;
-                end;
+                   tMatXorY.F_Mdata.Read(s1,4) ;
+                   tMatXorY.F_Mdata.Seek(-4,soFromCurrent) ;
+                   s1 := s1 * argument_num ;
+                   tMatXorY.F_Mdata.Write(s1,4) ;
+                end ;
               end
               else
               begin
@@ -4404,7 +3630,7 @@ begin
            end  ;
            tMatXorY.F_Mdata.Seek(0,soFromBeginning) ;
 
-        maths_calc_str := origString  ;
+
         tSR.SetOpenGLXYRange(  Form2.GetWhichLineToDisplay() ) ;
         tSR.CreateGLList('1-',Form1.Canvas.Handle,RC,  Form2.GetWhichLineToDisplay(),tSR.lineType) ;
      end ;
@@ -4424,7 +3650,7 @@ begin
 end;
 
 
-// invert Y axis
+
 procedure TForm2.CheckBox5Click(Sender: TObject);
 Var
  TempFloat2 : glFloat ;
@@ -4563,8 +3789,6 @@ end;
 procedure TForm2.RemoveImaginaryMatBtnClick(Sender: TObject);
 var
      t1, t2 : integer ;
-     s1 : single ;
-     d1 : double ;
      tSR : TSpectraRanges ;
      selectedRowNum : integer ;
 begin
@@ -4579,29 +3803,8 @@ begin
         tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) ;
         if tSR.yImaginary <> nil then
         begin
-          tSR.yImaginary.F_Mdata.Seek(0,soFromBeginning) ;
-          if tSR.yImaginary.SDPrec = 4 then
-          begin
-            for t2 := 0 to (tSR.yImaginary.numRows * tSR.yImaginary.numCols) - 1 do
-            begin
-               tSR.yImaginary.F_Mdata.Read(s1,tSR.yImaginary.SDPrec)   ;
-               s1 := s1 + -1 ;
-               tSR.yImaginary.F_Mdata.Seek(-tSR.yImaginary.SDPrec,soFromCurrent) ;
-               tSR.yImaginary.F_Mdata.Write(s1,tSR.yImaginary.SDPrec) ;
-            end;
-          end
-          else
-          if tSR.yImaginary.SDPrec = 8 then
-          begin
-            for t2 := 0 to (tSR.yImaginary.numRows * tSR.yImaginary.numCols) - 1 do
-            begin
-               tSR.yImaginary.F_Mdata.Read(d1,tSR.yImaginary.SDPrec)   ;
-               d1 := d1 + -1 ;
-               tSR.yImaginary.F_Mdata.Seek(-tSR.yImaginary.SDPrec,soFromCurrent) ;
-               tSR.yImaginary.F_Mdata.Write(d1,tSR.yImaginary.SDPrec) ;
-            end;
-          end  ;
-            
+          tSR.yImaginary.Free ;
+          tSR.yImaginary := nil ;
         end ;
         tSR.CreateGLList('1-',Form1.Canvas.Handle,RC,  Form2.GetWhichLineToDisplay(),tSR.lineType) ;
      end ;
@@ -4609,84 +3812,6 @@ begin
   if not Form4.CheckBox7.Checked then
     Form1.UpdateViewRange() ;
   Form1.Refresh ;
-
-end;
-
-
- // sets xCoord  data to new values as indicated in Edit29(=start) and Edit16(=step)
-procedure TForm2.RescaleXBtnClick(Sender: TObject);
-var
-  t1, t2 : integer ;
-  tSR : TSpectraRanges ;
-  selectedRowNum : integer ;
-  startVal, incXval : single ;
-  startVal_double : double ;
-begin
-//  procedure FillXCoordData(startVal, increment: single; direction : integer) ;
-  SelectStrLst.SortListNumeric ;
-  for t1 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-
-   selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-   if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-   begin
-      tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,selectedRowNum]) ;
-      startVal := strtofloat(Edit29.Text) ;
-      incXval  := strtofloat(Edit16.Text) ;
-      startVal_double := startVal ;
-      if (tSR.frequencyImage = true) or (tSR.nativeImage = true) then
-      begin
-        tSR.image2DSpecR.xCoord.F_MData.Seek(0,soFromBeginning) ;
-        if tSR.image2DSpecR.xCoord.SDPrec = 4 then
-        begin
-        for t2 := 0 to tSR.image2DSpecR.xCoord.numCols - 1 do
-        begin
-           tSR.image2DSpecR.xCoord.F_MData.Write(startVal,tSR.image2DSpecR.xCoord.SDPrec) ;
-           startVal := startVal +  incXval ;
-        end
-        end
-        else
-        if tSR.image2DSpecR.xCoord.SDPrec = 8 then
-        begin
-        for t2 := 0 to tSR.image2DSpecR.xCoord.numCols - 1 do
-        begin
-           tSR.image2DSpecR.xCoord.F_MData.Write(startVal_double,tSR.image2DSpecR.xCoord.SDPrec) ;
-           startVal_double := startVal_double +  incXval ;
-        end
-        end;
-        tSR.image2DSpecR.xCoord.F_MData.Seek(0,soFromBeginning) ;
-        tSR.image2DSpecR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-        tSR.image2DSpecR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR.image2DSpecR.lineType) ;
-      end
-      else
-      begin
-        tSR.xCoord.F_MData.Seek(0,soFromBeginning) ;
-        if tSR.xCoord.SDPrec = 4 then
-        begin
-        for t2 := 0 to tSR.xCoord.numCols - 1 do
-        begin
-           tSR.xCoord.F_MData.Write(startVal,tSR.xCoord.SDPrec) ;
-           startVal := startVal +  incXval ;
-        end
-        end
-        else
-        if tSR.xCoord.SDPrec = 8 then
-        begin
-        for t2 := 0 to tSR.xCoord.numCols - 1 do
-        begin
-           tSR.xCoord.F_MData.Write(startVal_double,tSR.xCoord.SDPrec) ;
-           startVal_double := startVal_double +  incXval ;
-        end
-        end;
-        tSR.xCoord.F_MData.Seek(0,soFromBeginning) ;
-        tSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-        tSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), tSR.lineType) ;
-      end ;
-   end ;
-
-  end ;  // for each file selected
-
-  form1.Refresh ;
 
 end;
 
@@ -5163,7 +4288,7 @@ begin
   begin
 
    selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-   if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
+   if  (Form4.StringGrid1.Objects[SG1_COL, SG1_ROW]) is  TSpectraRanges then
    begin
       tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,selectedRowNum]) ;
 
@@ -5244,16 +4369,6 @@ end;
 procedure TForm2.FormDestroy(Sender: TObject);
 begin
   PalletColorsBitMap.FreeImage ; // may not be needed???
-end;
-
-procedure TForm2.FormKeyPress(Sender: TObject; var Key: Char);
-begin
-  if Key = #27 then Application.Terminate;   // terminate if escape kill pressed
-  if (Key = 'a') or (Key = 'A') then
-     Form2.DendroAddSB.Down :=  not Form2.DendroAddSB.Down ;
-  if (Key = 's') or (Key = 'S') then
-     Form2.DendroSubtractSB.Down :=  not Form2.DendroSubtractSB.Down ;
-
 end;
 
 procedure TForm2.ImageColorPresetCBChange(Sender: TObject);
@@ -5403,7 +4518,7 @@ try
         Exit ;  // exit out of subroutine
       end
       else
-      if ((StrToFloat(CropMinTB.Text) < 1) or (StrToFloat(CropMaxTB.Text) > tSR.xCoord.numCols )) and (xUnitsCB.Checked = false) then
+      if (StrToFloat(CropMinTB.Text) < 1) or (StrToFloat(CropMaxTB.Text) > tSR.xCoord.numCols ) and (xUnitsCB.Checked = false) then
       begin
         messagedlg('Error: Baseline points are beyond the data',mtInformation,[mbOk],0) ;
         Exit ;  // exit out of subroutine
@@ -5484,57 +4599,6 @@ end ;
 
 
 end;
-
-
-
-
-procedure TForm2.CreateHistogramBtnClick(Sender: TObject);
-var
-  t1 : integer ;
-  tSR : TSpectraRanges ;
-  selectedRowNum : integer ;
-  rowRange, colRange : string ;
-  bins               : integer ;
-  selectedData, newAve : TSpectraRanges ;
-begin
-
-  SelectStrLst.SortListNumeric ;
-  rowRange :=  RowRangeEB.Text ;
-  colRange :=  ColRangeEB.Text ;
-  bins :=  strtoint(NumberOfBinsEB.Text) ;
-
-  for t1 := 0 to SelectStrLst.Count-1 do    // for each file selected
-  begin
-   selectedRowNum := StrToInt(SelectStrLst.Strings[t1]) ;
-
-
-   if  (Form4.StringGrid1.Objects[SG1_COL, selectedRowNum]) is  TSpectraRanges then
-   begin
-      tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,selectedRowNum]) ;
-
-      if pos('-',rowRange) = length(trim(rowRange)) then       // sampleRange string is open ended (e.g. '12-')
-         rowRange := rowRange + inttostr(tSR.yCoord.numRows) ;
-      if pos('-',colRange) = length(trim(colRange)) then       // sampleRange string is open ended (e.g. '12-')
-         colRange := colRange + inttostr(tSR.yCoord.numCols) ;
-
- //      newAve := AverageBetweenGivenRanges(tSR,0.001)   ;
-
-
-
-      newAve.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      newAve.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), newAve.lineType) ;
-
-   end ;
-
-  end ;
-  form1.Refresh ;
-
-end;
-
-
-
-
-
 
 procedure TForm2.NoImageCB1Click(Sender: TObject);
 var

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, PCAResultsObject,
-  TMatrixObject, TSpectraRangeObject, TBatch, TMaxMinObject ;
+  TMatrixObject, TSpectraRangeObject, TBatch ;
 
 type
 	TDataModule1= class(TObject)
@@ -853,7 +853,7 @@ try
 
       if tmat2.SDPrec  = 4 then
       begin
-      tMat := TMatrix.Create(4) ;  // # of rows =  numAngles  => single column vector
+      tMat := TMatrix.Create(1) ;  // # of rows =  numAngles  => single column vector
       // **** allXData is a 'position major' matrix ****
       tMat.FetchDataFromTMatrix(inttostr(t3), flipRange ,tmat2) ;  // **** allXData is a 'position major' matrix **** i.e. all angles for a single position are in a 'block'
       tMat.Transpose ;
@@ -937,7 +937,7 @@ try
        // **************** than specified number of stddevs from surrounding points *******
        autoExMat.Free ;
 
-       autoExMat := TMatrix.Create(4) ;
+       autoExMat := TMatrix.Create(1) ;
        autoExMat.CopyMatrix(tMat) ;
 
        if tPCAnalysis.ScoresNormalised.meanCentred then
@@ -1427,8 +1427,7 @@ begin
    tStream := TMemoryStream.Create ;
    tStream.SetSize(4*inMat.numRows) ;
 
-   inMat.Average;
-   inMat.Stddev(true);
+   inMat.Stddev;
    inMat.F_MStdDev.Seek(inMat.SDPrec*(colNum-1),soFromBeginning) ;
    if  inMat.SDPrec = 4 then
      inMat.F_MStdDev.Read(stdev_s,inMat.SDPrec)
@@ -1542,8 +1541,7 @@ begin
    tStream := TMemoryStream.Create ;
    tStream.SetSize(4*inMat.numRows) ;
 
-   inMat.Average;
-   inMat.Stddev(true);
+   inMat.Stddev;
    inMat.F_MStdDev.Seek(inMat.SDPrec*(colNum-1),soFromBeginning) ;
    if  inMat.SDPrec = 4 then
      inMat.F_MStdDev.Read(stdev_s,inMat.SDPrec)

@@ -1,12 +1,10 @@
 unit TPreprocessUnit;
-//{$define FREEPASCAL=1}
-{$ifdef FREEPASCAL}
-{$mode delphi}
-{$endif}
+
 interface
 
-uses  classes, SysUtils, TMatrixObject, TSpectraRangeObject, TBatchBasicFunctions,
-      FFTUnit, BLASLAPACKfreePas  ;
+
+uses  classes, SysUtils, grids, TMatrixObject, TSpectraRangeObject,
+      TBatchBasicFunctions, FFTUnit  ;
 
 type
   TPreprocess  = class
@@ -37,7 +35,6 @@ type
     // usefull after any Fourier functions have been used
      procedure RemoveImaginaryMatrix( var inSpect : TSpectraRanges )  ;
 
-     procedure VectorNormalise(var inSpect : TMatrix) ;
   private
 
 end;
@@ -200,56 +197,6 @@ begin
 
 
 end ;
-
-
-procedure TPreprocess.VectorNormalise(var inSpect : TMatrix);
-var
-  t1, t2 : integer ;
-  MKLa : pointer ;
-  MKLtint : Integer ;
-  lengthSSEVects_s : single   ;
-  lengthSSEVects_d : double ;
-begin
-         MKLa := inSpect.F_Mdata.Memory ;
-         MKLtint := 1 ;
-         // normalise input vector  -
-         for t2 := 1 to inSpect.numRows do
-         begin
-           if  (inSpect.SDPrec = 4) and (inSpect.complexMat=1) then
-           begin
-             lengthSSEVects_s := snrm2 ( inSpect.numCols , MKLa, MKLtint ) ;
-             if lengthSSEVects_s <> 0 then
-             lengthSSEVects_s := 1/lengthSSEVects_s ;
-             sscal (inSpect.numCols,lengthSSEVects_s,MKLa,MKLtint) ;  // multiply each element by 1/lengthSSEVects_s
-           end
-           else
-           if  (inSpect.SDPrec = 8) and (inSpect.complexMat=1) then
-            begin
-              lengthSSEVects_d := dnrm2 ( inSpect.numCols , MKLa, MKLtint ) ;
-              if lengthSSEVects_s <> 0 then
-                lengthSSEVects_d := 1/lengthSSEVects_d ;
-              dscal (inSpect.numCols,lengthSSEVects_d,MKLa,MKLtint) ;  // multiply each element by 1/lengthSSEVects_d
-            end
-           else
-           if  (inSpect.SDPrec = 4) and (inSpect.complexMat=2) then
-           begin
-                lengthSSEVects_s := scnrm2 ( inSpect.numCols , MKLa, MKLtint ) ;
-                if lengthSSEVects_s <> 0 then
-                lengthSSEVects_s := 1/lengthSSEVects_s ;
-                csscal (inSpect.numCols,lengthSSEVects_s,MKLa,MKLtint) ;  // multiply each element by 1/lengthSSEVects_s
-           end
-           else
-           if  (inSpect.SDPrec = 8) and (inSpect.complexMat=2) then
-           begin
-                lengthSSEVects_d := dznrm2 ( inSpect.numCols , MKLa, MKLtint ) ;
-                if lengthSSEVects_s <> 0 then
-                lengthSSEVects_d := 1/lengthSSEVects_d ;
-                zdscal (inSpect.numCols,lengthSSEVects_d,MKLa,MKLtint) ;  // multiply each element by 1/lengthSSEVects_d
-           end  ;
-           MKLa := inSpect.MovePointer(MKLa,inSpect.numCols * inSpect.SDPrec * inSpect.complexMat) ;
-         end ;
-end;
-
 
 end.
  

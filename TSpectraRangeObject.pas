@@ -2,8 +2,8 @@ unit TSpectraRangeObject;
 
 interface
 
-uses  Windows, OpenGL, classes, StdCtrls,  Dialogs, Graphics, Math, SysUtils, TMatrixObject, FFTUnit,
-      StringGridDataViewer, TStringListExtUnit, TMaxMinObject ;
+uses  Windows, OpenGL, classes, Dialogs, Graphics, Math, SysUtils, TMatrixObject, FFTUnit,
+      StringGridDataViewer, TStringListExtUnit ;
 
 type
   TGLLineColor = Array[0..2] of GLFloat ;  // holds color of spectra in GL notation (ie 0..1 float value)
@@ -14,18 +14,16 @@ type
   TDouble = Array[1..4] of double ;
 
 const
-  MAXDISPLAYTYPEFORSPECTRA = 14 ;  // this is the current number of display possibilities of TSpectraRanges data
+  MAXDISPLAYTYPEFORSPECTRA = 10 ;  // this is the current number of display possibilities of TSpectraRanges data
                       // see : CreateGLList()
 type
   TSpectraRanges = class
   public
 
     // holds the data, xCoord contains 'filename' property
-    xCoord     : TMatrix ;     // always a 1 row matrix.
-    yCoord     : TMatrix ;     // Contains the number of spectra as numRows property
+    xCoord   : TMatrix ;   // always a 1 row matrix.
+    yCoord : TMatrix ;     // Contains the number of spectra as numRows property
     yImaginary : TMatrix ;
-
-    predYdataYOffsetRegCoef : TSingle  ;  // if .bin file type is a 'rc' then it will contain a value for this
 
     // Hold axes name and unit for display
     xString : string ;     // holds x axes name and unit type
@@ -33,7 +31,7 @@ type
     columnLabel : string ; // Short version for display on top of column of StringGrid dispaly of data
                          
 
-    SGDataView : TSGDataView ;    // points to a form that has a string grid so we can view the numerical data in the TSpectraRange
+    SGDataView : TSGDataView ;    // points to a form that has a string grid so we can view the data in the TSpectraRange
     batchList  : TStringListExt ; // storage for list of strings that contains analysis instructions for the data
 
     // 2D imaging data structures
@@ -64,9 +62,6 @@ type
     
     fft : TFFTFunctions ;
 
-    // used to store data on disk until specific data is known (and then loaded into yCoord.F_Mdata TMemoryStream)
-    srFileStrm : TFileStream ;
-
     //  text labels for samples : Storage: "xx label", inclusive of double quotes, where xx is row where the label is applied
     yRowLabels: TStringList ;  //  to do: fill with double quoted " " data at start of text based input files - [ N.B. Could be stored in SPC file subheader areas]
     // text labels for variables : Storage: "xx label", inclusive of double quotes, where xx is column where the label is applied
@@ -89,7 +84,8 @@ type
     procedure  CopySpectraObject( sourceSpectra : TSpectraRanges )  ; // copies all data objects to input TSpectraRanges object. Does not copy LineColor or GLlistnumber as they have to be unique and are chosen when object is created
     procedure  CopyDataTo2DSpecR ;  // usefull for re-populating the 2D image ("image2DSpecR") after modification of the main data matrix
     procedure  FillDataGrid(SG1_ROW_in, SG1_COL_in: integer; caption : string) ;  // fills  SGDataView object string grid - should be called whenever data modified
-    procedure  SetSize(singleOrDouble: integer; numSpectra, numXCoords, complexMatIn : integer) ;
+
+
 
     // display procedures with OpenGL
     // rowRange = range of lines to draw ('1-' = all spectra)
@@ -115,38 +111,23 @@ type
 
     // file loading and saving functions
     function  LoadXYDataFile : integer ;
-    procedure DoMODISSOAPDataImport(filename : string; YStart,YFin, numBandsIn : integer)  ;
     procedure SaveSpectraDelimExcel(filenameOutput : String ; delim : String) ;
     procedure SaveSpectraDelimited(filenameOutput : String; delim : String) ;
     procedure SaveSpectraRangeDataBinV2( filenameOutput : String ) ; // binary format :  <DATA><rowNum><colNum><meanCentred><colStandardized><firstxCoord><lastxCoord><SDPrec><'v2'> at end
-    procedure SaveSpectraRangeDataBinV3( filenameOutput : String ) ; // binary format :  <DATA><X Data><rowNum><colNum><meanCentred><colStandardized><SDPrec><'v3'> at end
-    procedure LoadSpectraRangeDataBinV2( filenameInput : String ) ;  // loads V1 or V2 or V3 or V4 type binary files
+    procedure LoadSpectraRangeDataBinV2( filenameInput : String ) ;  // loads V1 or V2 type binary files
     procedure LoadRawData( filenameInput : String ; numDataPoints, dataType : integer ) ;
     procedure LoadSpectraRangeDataTIFF(Filename : String; dim1D_ifTrue : boolean);
-    procedure FillXCoordData(startVal, increment: single; direction : integer) ;
-
-       // new functions dealing with TFileStream object
-    procedure LoadSpectraToTFileStreamBinV2( filenameInput : String ) ;  //
-    procedure AddBinFileEndingToTFileStrm(SDPrecIn : integer; numRowsIn, numColsIn : integer) ;
-
-
-
     // data access funcions
     function  ReturnIndexOfClosestXPosition(inPointer : pointer) : integer ;
     procedure SeekFromBeginning(XYBoth : integer;  spectraNum: integer; offsetBytes: integer) ; // XYBoth = 1 for X, 2 for Y, 3 for both.
     procedure Read_XYrYi_Data(xyryiPos : integer;spectraNum: integer; returnArray : pointer; seekNeeded : boolean) ;  // returns values in input array
     procedure Read_YrYi_Data(yryiPos : integer;spectraNum: integer; returnArray : pointer; seekNeeded : boolean) ;  // returns values in input array
     procedure Write_YrYi_Data(yryiPos : integer;spectraNum: integer; inputArray : pointer; seekNeeded : boolean) ;   //  value in input array
-    procedure WriteExtend_XYrYi_Data(yryiPos : integer; spectraNum: integer; inputArray : pointer; seekNeeded : boolean) ;   // input value is in input array
-
-    function  AddData(xdata : double;  ydata : TMemoryStream) : integer ;   // adds a data point to xCoord and yCoord dependent upon its xCoord value (i.e. placess data between closest xcoords)
-    function  RemoveData(xdata : double) : integer ;
 
     procedure ShiftData(offSet : single) ;  // moves x axis up or down
     procedure AverageReduce(inputNumAves : integer;  rowOrCol: RowsOrCols) ;  // rows1orCols2 = 1 then average rows or rows1orCols2 = 2 = average cols
     procedure Reduce(inputNumAves : integer;  rowOrCol: RowsOrCols) ;  // rows1orCols2 = 1 then average rows or rows1orCols2 = 2 = average cols
     procedure Transpose ;
-    procedure RotateRight ;
 
   private
     function DrawReal(draw : integer) :  boolean ;
@@ -245,12 +226,6 @@ begin
 // if Self <> nil then
    Destroy;
 
-end;
-
-procedure  TSpectraRanges.SetSize(singleOrDouble: integer; numSpectra, numXCoords, complexMatIn : integer) ; 
-begin
-    xCoord.SetSizeTMat(singleOrDouble,1,numXCoords,1);
-    yCoord.SetSizeTMat(singleOrDouble,numSpectra,numXCoords,1);
 end;
 
 // has to be called between ActivateRenderingContext(Form1.Canvas.Handle,RC); and  wglMakeCurrent(0,0);
@@ -582,9 +557,9 @@ begin
 end ;
 
 
-procedure TSpectraRanges.Read_XYrYi_Data(xyryiPos : integer; spectraNum: integer; returnArray : pointer; seekNeeded : boolean) ;
-// return value is in input array 'returnArray' Calling procedure must determine precision of data to be read and allocate memory
-// xyryiPos = (column) postion of data to read
+procedure TSpectraRanges.Read_XYrYi_Data(xyryiPos : integer;spectraNum: integer; returnArray : pointer; seekNeeded : boolean) ;
+// return value is in input array 'returnArray' Using procedure must determine precision of data to be read and allocate memory
+// xyryiPos = postion of data to read
 // N.B.  returnArray values should always be initialised to zero (so that imaginary value is returned as zero even if imaginary matrix does not exist
 var
   s1 : single ;
@@ -592,6 +567,7 @@ var
 begin
    if seekNeeded then
      self.SeekFromBeginning(3,spectraNum,(xyryiPos-1)*self.xCoord.SDPrec) ;
+
 
    self.xCoord.F_Mdata.Read(returnArray^,self.xCoord.SDPrec) ;
    returnArray := self.xCoord.MovePointer(returnArray,self.xCoord.SDPrec) ;
@@ -614,54 +590,6 @@ begin
         begin
           self.yCoord.Transpose ;
           if  self.yImaginary <> nil then self.yImaginary.Transpose ;
-
-          self.yCoord.meanCentred := false ;
-          self.yCoord.colStandardized := false ;
-
-          if self.SGDataView <> nil then
-          begin
-            self.SGDataView.Free ;
-//            TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,selectedRowNum]).SGDataView := nil ;
-            self.SGDataView := nil ;
-          end ;
-
-          //  rewrite the xCoord data to match number of columns
-          self.xCoord.ClearData(self.yCoord.SDPrec div 4) ;
-          self.xCoord.numRows := 1 ;
-          self.xCoord.numCols  :=  self.yCoord.numCols ;
-          self.xCoord.F_Mdata.SetSize(self.yCoord.SDPrec * self.xCoord.numCols ) ;
-          self.xCoord.F_Mdata.Seek(0,sofrombeginning) ;
-          if self.yCoord.numCols > 1 then
-          begin
-            if self.xHigh <> self.xLow then
-              s1 :=  (self.xHigh - self.xLow)  / (self.yCoord.numCols-1)
-            else
-              s1 := 1 ;
-          end
-          else
-            s1 := 1 ;
-          for t1 := 0 to self.xCoord.numCols-1 do
-          begin
-            s2 := self.xLow + (s1 * t1) ;
-            self.xCoord.F_Mdata.Write(s2,4) ;
-          end ;
-    end ;
-end ;
-
-
-
-procedure TSpectraRanges.RotateRight ;
-var
-  t1 : integer ;
-  s1, s2 : single ;
-begin
-    if self.xyScatterPlot = false then
-        begin
-          self.yCoord.RotateRight ;
-          if  self.yImaginary <> nil then self.yImaginary.RotateRight ;
-
-          self.yCoord.meanCentred := false ;
-
           if self.SGDataView <> nil then
           begin
             self.SGDataView.Free ;
@@ -714,30 +642,6 @@ begin
 end ;
 
 
-procedure TSpectraRanges.WriteExtend_XYrYi_Data(yryiPos : integer; spectraNum: integer; inputArray : pointer; seekNeeded : boolean) ;   // input value is in input array
-var
-   t1 : integer ;
-begin
-   self.xCoord.numCols := self.xCoord.numCols + 1 ;
-   self.yCoord.numCols := self.yCoord.numCols + 1 ;
-   self.xCoord.F_Mdata.SetSize(self.xCoord.F_Mdata.Size + self.xCoord.SDPrec);
-   self.yCoord.F_Mdata.SetSize(self.yCoord.F_Mdata.Size + self.yCoord.SDPrec);
-
-
-   if seekNeeded then
-     self.SeekFromBeginning(3,spectraNum,(yryiPos-1)*self.xCoord.SDPrec) ;
-
-   self.xCoord.F_Mdata.Write(inputArray^,self.yCoord.SDPrec) ;
-   inputArray := self.xCoord.MovePointer(inputArray,self.yCoord.SDPrec) ;
-   self.yCoord.F_Mdata.Write(inputArray^,self.yCoord.SDPrec) ;
-   if self.yImaginary <> nil then
-   begin
-     inputArray := self.xCoord.MovePointer(inputArray,self.yCoord.SDPrec) ;
-     self.yImaginary.F_Mdata.Write(inputArray^,self.yImaginary.SDPrec) ;
-   end ;
-end;
-
-
 procedure TSpectraRanges.Write_YrYi_Data(yryiPos : integer; spectraNum: integer; inputArray : pointer; seekNeeded : boolean) ;   // input value is in input array
 var
    t1 : integer ;
@@ -752,307 +656,6 @@ begin
      self.yImaginary.F_Mdata.Write(inputArray^,self.yImaginary.SDPrec) ;
    end ;
 end ;
-
-
-function  TSpectraRanges.AddData(xdata : double;  ydata : TMemoryStream) : integer ;
-var
-  t0, t1 : integer ;
-  posClosest : integer ;
-  s1, minDist_s : single ;
-  d1, minDist_d : double ;
-  tMatX, tMatY : TMatrix ;
-begin
-
-if self.xCoord.SDPrec= 4 then
-begin
-  minDist_s :=  Math.MaxSingle ;
-  xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-  for t1 := 0 to xCoord.numCols -1 do
-  begin
-      xCoord.F_Mdata.Read(s1,xCoord.SDPrec) ;
-      s1 := s1 - xdata ;
-      if abs(s1) <= abs(minDist_s) then
-      begin
-        minDist_s := s1 ;
-        posClosest := t1 ;
-      end;
-  end;
-  tMatX := TMatrix.Create2(self.xCoord.SDPrec,1,self.xCoord.numCols+1) ;
-  xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-  for t1 := 0 to tMatX.numCols -2 do
-  begin
-
-      if t1 = posClosest then
-      begin
-        if minDist_s >= 0 then
-        begin
-          // put new data first
-          s1 :=  xdata ; // xdata is double so convert it to single first
-          tMatX.F_Mdata.Write(s1,xCoord.SDPrec) ;
-          // put original data secon
-          self.xCoord.F_Mdata.Read(s1,xCoord.SDPrec) ;
-         tMatX.F_Mdata.Write(s1,xCoord.SDPrec) ;
-        end
-        else
-        begin
-          // put original data first
-          self.xCoord.F_Mdata.Read(s1,xCoord.SDPrec) ;
-          tMatX.F_Mdata.Write(s1,xCoord.SDPrec) ;
-          // then new data
-          s1 :=  xdata ;  // xdata is double so convert it to single first
-          tMatX.F_Mdata.Write(s1,xCoord.SDPrec) ;
-        end;
-      end
-      else
-      begin
-        self.xCoord.F_Mdata.Read(s1,xCoord.SDPrec) ;
-        tMatX.F_Mdata.Write(s1,xCoord.SDPrec) ;
-      end;
-
-  end;
-
-  tMatY := TMatrix.Create2(self.xCoord.SDPrec,self.yCoord.numRows,self.xCoord.numCols+1) ;
-  self.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-  ydata.Seek(0,soFromBeginning) ;
-  for t0 := 0 to self.yCoord.numRows - 1 do
-  begin
-    for t1 := 0 to tMatY.numCols -2 do
-    begin
-      if t1 = posClosest then
-      begin
-        if minDist_s >= 0 then // write before yCoord data
-        begin
-          ydata.Read(s1,yCoord.SDPrec) ; // put new data first
-          tMatY.F_Mdata.Write(s1,yCoord.SDPrec) ;
-          self.yCoord.F_Mdata.Read(s1,yCoord.SDPrec) ; // then put original data
-          tMatY.F_Mdata.Write(s1,yCoord.SDPrec) ;
-        end
-        else //  minDist_s < 0   => new data is after the original data point
-        begin
-          self.yCoord.F_Mdata.Read(s1,yCoord.SDPrec) ;  // put original data
-          tMatY.F_Mdata.Write(s1,yCoord.SDPrec) ;
-          ydata.Read(s1,yCoord.SDPrec) ;    // put new data secon
-          tMatY.F_Mdata.Write(s1,yCoord.SDPrec) ;
-        end;
-      end
-      else  // just read the original data point
-      begin
-        self.yCoord.F_Mdata.Read(s1,yCoord.SDPrec) ;
-        tMatY.F_Mdata.Write(s1,yCoord.SDPrec) ;
-      end;
-    end;
-  end;
-
-end
-else
-if self.xCoord.SDPrec= 8 then
-begin
-  minDist_d :=  Math.MaxDouble ;
-  xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-  for t1 := 0 to xCoord.numCols -1 do
-  begin
-      xCoord.F_Mdata.Read(d1,xCoord.SDPrec) ;
-      d1 := abs(d1 - xdata) ;
-      if abs(d1) <= abs(minDist_d) then
-      begin
-        minDist_d := d1 ;
-        posClosest := t1 ;
-      end;
-  end;
-  tMatX := TMatrix.Create2(self.xCoord.SDPrec,1,self.xCoord.numCols+1) ;
-  xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-  // for X data
-  for t1 := 0 to tMatX.numCols -2 do
-  begin
-      if t1 = posClosest then
-      begin
-        if minDist_d >= 0 then
-        begin
-          // put new data first
-          tMatX.F_Mdata.Write(xdata,xCoord.SDPrec) ;
-          // put original data secon
-          self.xCoord.F_Mdata.Read(d1,xCoord.SDPrec) ;
-         tMatX.F_Mdata.Write(d1,xCoord.SDPrec) ;
-        end
-        else
-        begin
-          // put original data first
-          self.xCoord.F_Mdata.Read(d1,xCoord.SDPrec) ;
-          tMatX.F_Mdata.Write(d1,xCoord.SDPrec) ;
-          // then new data
-          tMatX.F_Mdata.Write(xdata,xCoord.SDPrec) ;
-        end;
-      end
-      else
-      begin
-        self.xCoord.F_Mdata.Read(d1,xCoord.SDPrec) ;
-        tMatX.F_Mdata.Write(d1,xCoord.SDPrec) ;
-      end;
-  end;
-
-  tMatY := TMatrix.Create2(self.xCoord.SDPrec,self.yCoord.numRows,self.xCoord.numCols+1) ;
-  self.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-  ydata.Seek(0,soFromBeginning) ;
-  // for Y data
-  for t0 := 0 to self.yCoord.numRows - 1 do
-  begin
-    for t1 := 0 to tMatY.numCols -2 do
-    begin
-      if t1 = posClosest then
-      begin
-        if minDist_d >= 0 then // write before yCoord data (so put new data first)
-        begin
-          ydata.Read(d1,yCoord.SDPrec) ; // put new data first
-          tMatY.F_Mdata.Write(d1,yCoord.SDPrec) ;
-          self.yCoord.F_Mdata.Read(d1,yCoord.SDPrec) ; // then put original data
-          tMatY.F_Mdata.Write(d1,yCoord.SDPrec) ;
-        end
-        else //  minDist_d < 0   => new data is after the original data point
-        begin
-          self.yCoord.F_Mdata.Read(d1,yCoord.SDPrec) ;  // put original data
-          tMatY.F_Mdata.Write(d1,yCoord.SDPrec) ;
-          ydata.Read(d1,yCoord.SDPrec) ;    // put new data secon
-          tMatY.F_Mdata.Write(d1,yCoord.SDPrec) ;
-        end;
-      end
-      else  // just read the original data point
-      begin
-        self.yCoord.F_Mdata.Read(d1,yCoord.SDPrec) ;
-        tMatY.F_Mdata.Write(d1,yCoord.SDPrec) ;
-      end;
-    end;
-  end;
-
-end;
-
- self.xCoord.CopyMatrix(tMatX);
- self.yCoord.CopyMatrix(tMatY);
- tMatX.Free ;
- tMatY.Free ;
- self.SeekFromBeginning(3,1,0) ;
- result := posClosest ;
-
-end;
-
-
-function  TSpectraRanges.RemoveData(xdata : double) : integer ;
-var
-  t0, t1 : integer ;
-  posClosest : integer ;
-  s1, minDist_s : single ;
-  d1, minDist_d : double ;
-  tMatX, tMatY : TMatrix ;
-begin
-
-if xCoord.numCols > 1 then    // make sure we are not removing the last data point
-begin
-if self.xCoord.SDPrec= 4 then
-begin
-  minDist_s :=  Math.MaxSingle ;
-  xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-  // find the position of the closest data point
-  for t1 := 0 to xCoord.numCols -1 do
-  begin
-      xCoord.F_Mdata.Read(s1,xCoord.SDPrec) ;
-      s1 := abs(s1 - xdata) ;
-      if s1 < minDist_s then
-      begin
-        minDist_s := s1 ;
-        posClosest := t1 ;
-      end;
-  end;
-  tMatX := TMatrix.Create2(self.xCoord.SDPrec,1,self.xCoord.numCols-1) ;
-  xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-  for t1 := 0 to tMatX.numCols do
-  begin
-      // read the dat point that is closest, but do not write it
-      if t1 = posClosest then
-      begin
-        self.xCoord.F_Mdata.Read(s1,xCoord.SDPrec) ;
-      end;
-      // read and then write all the other data points
-      self.xCoord.F_Mdata.Read(s1,xCoord.SDPrec) ;
-      tMatX.F_Mdata.Write(s1,xCoord.SDPrec) ;
-  end;
-
-  tMatY := TMatrix.Create2(self.xCoord.SDPrec,self.yCoord.numRows,self.xCoord.numCols-1) ;
-  self.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-  for t0 := 0 to self.yCoord.numRows - 1 do     // for each row
-  begin
-    for t1 := 0 to tMatY.numCols do
-    // read each column data point except the extra data point
-    begin
-      // read the dat point that is closest, but do not write it
-      if t1 = posClosest then
-      begin
-        self.yCoord.F_Mdata.Read(s1,yCoord.SDPrec) ;
-      end;
-      // read and then write all the other data points
-      self.yCoord.F_Mdata.Read(s1,yCoord.SDPrec) ;
-      tMatY.F_Mdata.Write(s1,yCoord.SDPrec) ;
-    end;
-  end;
-
-end
-else
-if self.xCoord.SDPrec= 8 then
-begin
-  minDist_d :=  Math.MaxSingle ;
-  xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-  // find the position of the closest data point
-  for t1 := 0 to xCoord.numCols -1 do
-  begin
-      xCoord.F_Mdata.Read(d1,xCoord.SDPrec) ;
-      d1 := abs(d1 - xdata) ;
-      if d1 < minDist_d then
-      begin
-        minDist_d := d1 ;
-        posClosest := t1 ;
-      end;
-  end;
-  tMatX := TMatrix.Create2(self.xCoord.SDPrec,1,self.xCoord.numCols-1) ;
-  xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-  for t1 := 0 to tMatX.numCols do
-  begin
-      // read the dat point that is closest, but do not write it
-      if t1 = posClosest then
-      begin
-        self.xCoord.F_Mdata.Read(d1,xCoord.SDPrec) ;
-      end;
-      // read and then write all the other data points
-      self.xCoord.F_Mdata.Read(d1,xCoord.SDPrec) ;
-      tMatX.F_Mdata.Write(d1,xCoord.SDPrec) ;
-  end;
-
-  tMatY := TMatrix.Create2(self.xCoord.SDPrec,self.yCoord.numRows,self.xCoord.numCols-1) ;
-  for t0 := 0 to self.yCoord.numRows - 1 do     // for each row
-  begin
-    for t1 := 0 to tMatY.numCols do
-    // read each column data point except the extra data point
-    begin
-      // read the dat point that is closest, but do not write it
-      if t1 = posClosest then
-      begin
-        self.yCoord.F_Mdata.Read(d1,yCoord.SDPrec) ;
-      end;
-      // read and then write all the other data points
-      self.yCoord.F_Mdata.Read(d1,yCoord.SDPrec) ;
-      tMatY.F_Mdata.Write(d1,yCoord.SDPrec) ;
-    end;
-  end;
-
-
-end;
-
- self.xCoord.CopyMatrix(tMatX);
- self.yCoord.CopyMatrix(tMatY);
- tMatX.Free ;
- tMatY.Free ;
- self.SeekFromBeginning(3,1,0) ;
-end; // only if more than one point in spectrum
-
-end;
-
 
 
 function TSpectraRanges.DrawReal(draw : integer) :  boolean ;
@@ -1326,8 +929,8 @@ var
 begin
 
 
- if (Form2.NoImageCB1.checked = false) then  // only create GLlist if it is wanted - useful when opening a lot of files
-begin
+ if Form2.NoImageCB1.Checked = false then  // only create GLlist if it is wanted - usefull when opening a lot of files
+   begin
 
 
 try
@@ -1512,7 +1115,7 @@ begin
         //   tStr := 'Position = ' + inttostr(t1) ;
              glBegin(GL_LINE_STRIP) ;
              rowToDisplay.Read(rowForDisplay,4) ;
-             tStr := 'Position = ' + inttostr(rowForDisplay+2) ;
+             tStr := 'Position = ' + inttostr(rowForDisplay) ;
              yCoord.F_Mdata.Seek(yCoord.SDPrec*rowForDisplay*yCoord.numCols,soFromBeginning) ;
              xCoord.F_Mdata.Seek(0,soFromBeginning) ;
              for t2 := 1 to yCoord.numCols do
@@ -1537,7 +1140,7 @@ begin
            glColor3f(LineColor[0],LineColor[1],LineColor[2]) ;
            glBegin(GL_LINE_STRIP) ;
              rowToDisplay.Read(rowForDisplay,4) ;
-             tStr := 'Position = ' + inttostr(rowForDisplay+2) ;
+             tStr := 'Position = ' + inttostr(rowForDisplay) ;
              yCoord.F_Mdata.Seek(yCoord.SDPrec*rowForDisplay*yCoord.numCols,soFromBeginning) ;
              xCoord.F_Mdata.Seek(0,soFromBeginning) ;
              for t2 := 1 to yCoord.numCols do
@@ -1667,11 +1270,7 @@ begin
     else  // DISPLAY (AVERAGE +- STDEV)
     if (averageIsDisplayed = true) and (varianceIsDisplayed = false)  then // averageIsDisplayed = true
     begin
-      if yCoord.F_MStdDev = nil then
-      begin
-        yCoord.Average ;
-        yCoord.Stddev(true) ;
-      end;
+      if yCoord.F_MStdDev = nil then yCoord.Stddev ;
       if yCoord.F_MAverage = nil then yCoord.Average ;
       yCoord.F_MStdDev.Seek(0,soFromBeginning) ;
       yCoord.F_MAverage.Seek(0,soFromBeginning) ;
@@ -1793,226 +1392,31 @@ begin
       yCoord.F_Mdata.Seek(0,soFromBeginning) ;
 
       glColor3f(0.0,0.0,0.0) ;
-      glPointsize(3.0) ;
-
-      glBegin(GL_LINE_STRIP) ;
-        glVertex2f(self.xLow,self.xLow) ;  // write x,y data to precompiled list
-        glVertex2f(self.xHigh,self.xHigh) ;  // write x,y data to precompiled list
-      glEnd ; // end GL_LINE_STRIP
-
-
-      for t1 := 1 to numSpectra do    // for every spectrum in y data
-      begin
-             glBegin(GL_POINTS) ;
-             rowToDisplay.Read(rowForDisplay,4) ;
-             yCoord.F_Mdata.Seek(yCoord.SDPrec*rowForDisplay*yCoord.numCols,soFromBeginning) ;
-             xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-             for t2 := 1 to yCoord.numCols do
-             begin
-               self.Read_XYrYi_Data(t2,t1,@TempXY,false);
-               glVertex2f(TempXY[0],TempXY[1]) ;  // write x,y data to precompiled list
-             end ;
-             glEnd ; // end GL_POINTS
-      end ;
-      rowToDisplay.Seek(0,soFromBeginning) ;
-      glColor3f(LineColor[0],LineColor[1],LineColor[2]) ;
-      end ;
-  end
-  else
-  if  graphType = 11 then // small dot and number
-  begin
-    if (DrawReal(drawLine) = true) then
-    begin
-      yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-      glColor3f(0.0,0.0,0.0) ;
-      glPointsize(2.0) ;
-
-      glBegin(GL_LINE_STRIP) ;
-        glVertex2f(self.xLow,self.xLow) ;  // write x,y data to precompiled list
-        glVertex2f(self.xHigh,self.xHigh) ;  // write x,y data to precompiled list
-      glEnd ; // end GL_LINE_STRIP
-
-
-      for t1 := 1 to numSpectra do    // for every spectrum in y data
-      begin
-             rowToDisplay.Read(rowForDisplay,4) ;
-             yCoord.F_Mdata.Seek(yCoord.SDPrec*rowForDisplay*yCoord.numCols,soFromBeginning) ;
-             xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-             glBegin(GL_POINTS) ;
-             for t2 := 1 to yCoord.numCols do
-             begin
-               self.Read_XYrYi_Data(t2,t1,@TempXY,false);
-               glVertex2f(TempXY[0],TempXY[1]) ;  // write x,y data to precompiled list
-             end ;
-             glEnd ; // end GL_POINTS
-      end ;
-      for t1 := 1 to numSpectra do    // for every spectrum in y data
-      begin
-             rowToDisplay.Read(rowForDisplay,4) ;
-             yCoord.F_Mdata.Seek(yCoord.SDPrec*rowForDisplay*yCoord.numCols,soFromBeginning) ;
-             xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-             for t2 := 1 to yCoord.numCols do
-             begin
-               self.Read_XYrYi_Data(t2,t1,@TempXY,false);
-               tStr := ' ' + inttostr(t2) ;
-               glRasterPos2f(TempXY[0], TempXY[1]) ;  // position of number value of X
-               glListBase(1); // indicate the start of display lists for the glyphs.
-               glCallLists(Length(tStr),GL_UNSIGNED_BYTE,@tStr[1]) ;
-             end ;
-      end ;
-      rowToDisplay.Seek(0,soFromBeginning) ;
-      glColor3f(LineColor[0],LineColor[1],LineColor[2]) ;
-      end ;
-  end
-  else
-  if  graphType = 12 then // small dot and 50/50 color. ie first 50 variables are one color 2nd 50 are another
-  begin
-    if (DrawReal(drawLine) = true) then
-    begin
-      yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-      glColor3f(0.0,0.0,0.0) ;
-      glPointsize(2.0) ;
-
-
-      glBegin(GL_LINE_STRIP) ;
-        glVertex2f(self.xLow,self.xLow) ;  // write x,y data to precompiled list
-        glVertex2f(self.xHigh,self.xHigh) ;  // write x,y data to precompiled list
-      glEnd ; // end GL_LINE_STRIP
-
-      for t1 := 1 to numSpectra do    // for every spectrum in y data
-      begin
-             glBegin(GL_POINTS) ;
-             rowToDisplay.Read(rowForDisplay,4) ;
-             yCoord.F_Mdata.Seek(yCoord.SDPrec*rowForDisplay*yCoord.numCols,soFromBeginning) ;
-             xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-             for t2 := 1 to yCoord.numCols do
-             begin
-               if (t2 < (yCoord.numCols div 2)) then  glColor3f(0.0,0.0,0.0)
-               else glColor3f(1.0,0.0,0.0) ;
-               self.Read_XYrYi_Data(t2,t1,@TempXY,false);
-               glVertex2f(TempXY[0],TempXY[1]) ;  // write x,y data to precompiled list
-             end ;
-             glEnd ; // end GL_POINTS
-      end ;
-      rowToDisplay.Seek(0,soFromBeginning) ;
-      glColor3f(LineColor[0],LineColor[1],LineColor[2]) ;
-      end ;
-
-  end
-  else
-  if  graphType = 13 then // dots red centre with black outline
-  begin
-    if (DrawReal(drawLine) = true) then
-    begin
-      yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-      glColor3f(0.0,0.0,0.0) ;
-      glPointsize(5.0) ;
-
-      for t1 := 1 to numSpectra do    // for every spectrum in y data
-      begin
-             glBegin(GL_POINTS) ;
-             rowToDisplay.Read(rowForDisplay,4) ;
-             yCoord.F_Mdata.Seek(yCoord.SDPrec*rowForDisplay*yCoord.numCols,soFromBeginning) ;
-             xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-             for t2 := 1 to yCoord.numCols do
-             begin
-               self.Read_XYrYi_Data(t2,t1,@TempXY,false);
-               glVertex2f(TempXY[0],TempXY[1]) ;  // write x,y data to precompiled list
-             end ;
-             glEnd ; // end GL_POINTS
-      end ;
-      rowToDisplay.Seek(0,soFromBeginning) ;
-
-      yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      glColor3f(1.0,0.0,0.0) ;
-      glPointsize(3.0) ;
-
-      for t1 := 1 to numSpectra do    // for every spectrum in y data
-      begin
-             glBegin(GL_POINTS) ;
-             rowToDisplay.Read(rowForDisplay,4) ;
-             yCoord.F_Mdata.Seek(yCoord.SDPrec*rowForDisplay*yCoord.numCols,soFromBeginning) ;
-             xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-             for t2 := 1 to yCoord.numCols do
-             begin
-               self.Read_XYrYi_Data(t2,t1,@TempXY,false);
-               glVertex2f(TempXY[0],TempXY[1]) ;  // write x,y data to precompiled list
-             end ;
-             glEnd ; // end GL_POINTS
-      end ;
-      rowToDisplay.Seek(0,soFromBeginning) ;
-      yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      glColor3f(LineColor[0],LineColor[1],LineColor[2]) ;
-    end ;
-  end
-  else
-  if  graphType = 14 then //  Ave+-stdev along x-axis
-  begin
-    if (DrawReal(drawLine) = true) then
-    begin
-      yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-      glColor3f(0.0,0.0,0.0) ;
       glPointsize(4.0) ;
 
-       // rowToDisplay.Read(rowForDisplay,4) ;
-        yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-        xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-        for t2 := 0 to (xCoord.numCols div 3)-1 do
-        begin
-            glColor3f(0.0,0.0,0.0) ;
-            self.Read_XYrYi_Data((t2*3),1,@TempXY,false);
-            // RHS vertical line (= -stddev position away from mean)
-            s1 := TempXY[1] * 0.05  ;
+      glBegin(GL_LINE_STRIP) ;
+        glVertex2f(self.xLow,self.xLow) ;  // write x,y data to precompiled list
+        glVertex2f(self.xHigh,self.xHigh) ;  // write x,y data to precompiled list
+      glEnd ; // end GL_LINE_STRIP
 
-            glBegin(GL_LINES) ;
-              glVertex2f(TempXY[0],TempXY[1]+s1) ;  // write x,y data to precompiled list
-              glVertex2f(TempXY[0],TempXY[1]-s1) ;
 
-              s1 := TempXY[0]  ;  // RHS stdev x coord
-              self.Read_XYrYi_Data((t2*3)+1,1,@TempXY,false);
-              s2 := TempXY[0]  ; // this is central point (=Average)
-
-              self.Read_XYrYi_Data((t2*3)+2,1,@TempXY,false);
-              // horizontal line
-              if (t2 mod 2) = 0 then
-              begin
-                glVertex2f(s1,TempXY[1]+(TempXY[1]*0.02) ) ;  // write x,y data to precompiled list
-                glVertex2f(TempXY[0],TempXY[1]+(TempXY[1]*0.02)) ;
-              end
-              else
-              begin
-                glVertex2f(s1,TempXY[1]-(TempXY[1]*0.02)) ;  // write x,y data to precompiled list
-                glVertex2f(TempXY[0],TempXY[1]-(TempXY[1]*0.02)) ;
-              end;
-
-              // LHS vertical line (= +stddev position away from mean)
-              s1 := TempXY[1] * 0.05   ;
-              glVertex2f(TempXY[0],TempXY[1]+s1) ;  // write x,y data to precompiled list
-              glVertex2f(TempXY[0],TempXY[1]-s1) ;
-            glEnd ; // end GL_LINE
-
-            glColor3f(1.0,0.0,0.0) ;
-            glBegin(GL_POINTS) ;
-              if (t2 mod 2) = 0 then
-              begin
-                glVertex2f(s2,TempXY[1]+(TempXY[1]*0.02) ) ;  // write x,y data to precompiled list
-              end
-              else
-              begin
-                glVertex2f(s2,TempXY[1]-(TempXY[1]*0.02) ) ;
-              end;
+      for t1 := 1 to numSpectra do    // for every spectrum in y data
+      begin
+             glBegin(GL_POINTS) ;
+             rowToDisplay.Read(rowForDisplay,4) ;
+             yCoord.F_Mdata.Seek(yCoord.SDPrec*rowForDisplay*yCoord.numCols,soFromBeginning) ;
+             xCoord.F_Mdata.Seek(0,soFromBeginning) ;
+             for t2 := 1 to yCoord.numCols do
+             begin
+               self.Read_XYrYi_Data(t2,t1,@TempXY,false);
+               glVertex2f(TempXY[0],TempXY[1]) ;  // write x,y data to precompiled list
+             end ;
              glEnd ; // end GL_POINTS
-
-        end ;
-
+      end ;
       rowToDisplay.Seek(0,soFromBeginning) ;
       glColor3f(LineColor[0],LineColor[1],LineColor[2]) ;
       end ;
-  end ;
+  end  ;
 
 
   if (drawLine = 2) and (self.yImaginary <> nil) then
@@ -2082,12 +1486,12 @@ var
   forcedMax, forcedMin : single ;
 begin
 
-   if (Form2.ImageMaxColorCB.Checked) then
+   if Form2.ImageMaxColorCB.Checked then
      forcedMax := strtofloat(Form2.ImageMaxColorValEB.Text)
    else
      forcedMax := self.YHigh ;
 
-   if (Form2.ImageMinColorCB.Checked) then
+   if Form2.ImageMinColorCB.Checked then
      forcedMin := strtofloat(Form2.ImageMinColorValEB.Text)
    else
      forcedMin := self.YLow ;
@@ -2127,18 +1531,16 @@ begin
    end   ;
 
 
-
-   // this is set for CSIRO corporate colour output
    if height > 0 then
     begin
         TSingle(c1^)[1] := (0) ;
-        TSingle(c1^)[2] := colorRatio * (0.6) ;
-        TSingle(c1^)[3] := colorRatio * (0.8) ;
+        TSingle(c1^)[2] := (0) ;
+        TSingle(c1^)[3] := colorRatio * (1) ;
     end
     else
     begin  // height is < 0
-        TSingle(c1^)[1] := colorRatio * (0.745) ;
-        TSingle(c1^)[2] := colorRatio * (0.839) ;
+        TSingle(c1^)[1] := colorRatio * (0) ;
+        TSingle(c1^)[2] := colorRatio * (1) ;
         TSingle(c1^)[3] := colorRatio * (0) ;
     end ;
 
@@ -2711,76 +2113,10 @@ begin
       if tempYMax >  YHigh then
         self.YHigh := tempYMax ;
     end ;
-
     if maxMinValue <> nil then maxMinValue.Free ;
   end ;
 
 end ;
-
-
-// This fills the xCoord TMatrix with data
-procedure TSpectraRanges.FillXCoordData(startVal, increment: single; direction : integer) ;
-// if 'direction' =  1 then standard fill forward in memory
-// if 'direction' = -1 then fill backward in memory
-var
-   t1 : integer ;
-   s1 : single  ;
-   d1 : double  ;
-begin
-   if direction = 1  then
-   begin
-      self.xCoord.F_Mdata.Seek(0,soFromCurrent) ;
-      if self.xCoord.SDPrec = 4 then
-      begin
-        s1 := startVal ;
-        for t1 := 1 to self.yCoord.numCols do
-        begin
-          s1 := s1 + increment ;
-          self.xCoord.F_Mdata.Write(s1,self.xCoord.SDPrec) ;
-        end
-      end
-      else
-      if self.xCoord.SDPrec = 8 then
-      begin
-        d1 := startVal ;
-        for t1 := 1 to self.yCoord.numCols do
-        begin
-          d1 := d1 + increment ;
-          self.xCoord.F_Mdata.Write(d1,self.xCoord.SDPrec) ;
-        end
-      end;
-      self.xCoord.F_Mdata.Seek(0,soFromCurrent) ;
-   end
-   else
-   if direction = -1  then
-   begin
-      self.xCoord.F_Mdata.Seek(-4,soFromEnd) ;
-      if self.xCoord.SDPrec = 4 then
-      begin
-        s1 := startVal ;
-        for t1 := 1 to self.yCoord.numCols do
-        begin
-          s1 := s1 + increment ;
-          self.xCoord.F_Mdata.Write(s1,self.xCoord.SDPrec) ;
-          if t1 <> self.yCoord.numCols then
-            self.xCoord.F_Mdata.Seek(-(2)*self.xCoord.SDPrec,soFromCurrent) ;
-        end
-      end
-      else
-      if self.xCoord.SDPrec = 8 then
-      begin
-        d1 := startVal ;
-        for t1 := 1 to self.yCoord.numCols do
-        begin
-          d1 := d1 + increment ;
-          self.xCoord.F_Mdata.Write(d1,self.xCoord.SDPrec) ;
-          if t1 <> self.yCoord.numCols then
-            self.xCoord.F_Mdata.Seek(-(2)*self.xCoord.SDPrec,soFromCurrent) ;
-        end
-      end;
-      self.xCoord.F_Mdata.Seek(0,soFromCurrent) ;
-   end
-end;
 
 
 
@@ -2798,37 +2134,44 @@ begin
 if (not xyScatterPlot) and (not varianceIsDisplayed)  then
 begin
   YHigh := Math.MinSingle ;
-  YLow  := Math.MaxSingle ;
+  YLow := Math.MaxSingle ;
 
   // For X data
   self.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
   if self.xCoord.SDPrec = 4 then
   begin
-     maxMinValue := xCoord.GetMinAndMaxValAndPos(0,0) ;
-
-    tempYMin := single(maxMinValue.GetDataPointer(1)^) ;
-    tempYMax := single(maxMinValue.GetDataPointer(2)^) ;
-    self.XLow := tempYMin ;
-    self.XHigh := tempYMax ;
-
-    maxMinValue.Free ;
+    self.xCoord.F_Mdata.Read(s1,4) ;
+    self.xCoord.F_Mdata.Seek(-4,soFromEnd) ;
+    self.xCoord.F_Mdata.Read(s2,4) ;
+    if s1 < s2 then
+    begin
+       XLow := s1 ;
+       XHigh := s2 ;
+    end
+    else
+    begin
+       XLow := s2 ;
+       XHigh := s1 ;
+    end ;
+    if fft.FFTReverse = false then
+      fft.firstXVal := XLow ;  // used by FFT code to locate original start of data.
   end
   else  if self.xCoord.SDPrec = 8 then
   begin
-     maxMinValue := xCoord.GetMinAndMaxValAndPos(0,0) ;
-
-    tempYMin := single(maxMinValue.GetDataPointer(1)^) ;
-    tempYMax := single(maxMinValue.GetDataPointer(2)^) ;
-    self.XLow := tempYMin ;
-    self.XHigh := tempYMax ;
-    maxMinValue.Free ;
+    self.xCoord.F_Mdata.Read(d1,8) ;
+    self.xCoord.F_Mdata.Seek(-8,soFromEnd) ;
+    self.xCoord.F_Mdata.Read(d2,8) ;
+    if d1 < d2 then
+    begin
+       XLow := d1 ;
+       XHigh := d2 ;
+    end
+    else
+    begin
+       XLow := d2 ;
+       XHigh := d1 ;
+    end ;
   end ;
-
-  if XHigh = XLow then
-  begin
-       XHigh := XHigh + 1 ;
-       XLow := XLow - 1 ;
-  end;
 
   // For Y data - Real Part
   for t1 := 0 to yCoord.numRows -1 do   // for each row
@@ -2841,11 +2184,9 @@ begin
       self.YLow := tempYMin ;
     if tempYMax >  YHigh then
       self.YHigh := tempYMax ;
-
-      maxMinValue.Free ;
   end ;
 
-//  if maxMinValue <> nil then maxMinValue.Free ;
+  if maxMinValue <> nil then maxMinValue.Free ;
 
   // For Y data - Imaginary Part: if it exists
 {  if yImaginary <> nil then
@@ -2873,10 +2214,8 @@ else   // data is an xy scatter plot
 if  varianceIsDisplayed then
 begin
    SetOpenGLXYRangeVariance(draw) ;
-end ;
+end
 
-    self.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-    self.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
 end ;
 
 
@@ -2989,85 +2328,7 @@ begin
 
 end ;
 
-procedure TSpectraRanges.DoMODISSOAPDataImport(filename : string; YStart,YFin, numBandsIn : integer)  ;
-var
-  t1,t2 : integer ;
-  s1 : single ;
-  d1, scale_d1 : double ;
-  tMat : TMatrix ;
-begin
-    self.xCoord.LoadXMatrixDataFromMODISCSV(filename,YStart,YFin) ;
-    // find the scale factor in the file and scale the y data
-    if Form2.DendroFindScaleMODIS_CB.Checked then
-    begin
-//      self.Transpose ;
-      scale_d1 := self.yCoord.FindScaleFromMODISCSV(filename) ;
-      if scale_d1 <> 0.0 then
-      begin
-      self.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      if self.yCoord.SDPrec = 4 then
-      begin
-        for t1 := 0 to self.yCoord.numCols-1 do
-        begin
-          self.yCoord.F_Mdata.Read(s1,4) ;
-          s1 := scale_d1 * s1 ;
-          self.yCoord.F_Mdata.Seek(-4,soFromCurrent) ;
-          self.yCoord.F_Mdata.Write(s1,4) ;
-        end ;
-      end
-      else  // SDPrec = 8
-      begin
-        for t1 := 0 to self.yCoord.numCols-1 do
-        begin
-          self.yCoord.F_Mdata.Read(d1,8) ;
-          d1 := scale_d1 * d1 ;
-          self.yCoord.F_Mdata.Seek(-8,soFromCurrent) ;
-          self.yCoord.F_Mdata.Write(d1,8) ;
-        end ;
-      end ; // SDPrec = 8
-      end ; // scale_d1 <> 0.0
-      end ;
-      self.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
 
-      if numBandsIn > 1 then
-      begin
-         self.yCoord.numRows := (self.xCoord.numCols div numBandsIn)   ;
-         self.yCoord.numCols :=  numBandsIn ;
-         self.yCoord.Transpose ;
-       //  self.xCoord.numRows :=  1  ;
-       //  self.xCoord.numCols :=  numBandsIn ;
-         tMat := TMatrix.Create(self.xCoord.SDPrec) ;
-         tMat.CopyMatrix(self.xCoord);
-         self.xCoord.ClearData(self.xCoord.SDPrec);
-         self.xCoord.F_Mdata.SetSize(self.yCoord.numCols*self.yCoord.SDPrec);
-         self.xCoord.numRows := 1 ;
-         self.xCoord.numCols := self.yCoord.numCols ;
-         t2 :=  (numBandsIn-1) * self.yCoord.SDPrec  ;  // this is the seek step value
-         tMat.F_MData.Seek(0,soFromBeginning) ;
-         if self.yCoord.SDPrec = 4 then
-         begin
-            for t1 := 0 to self.yCoord.numCols - 1 do
-            begin
-               tMat.F_Mdata.Read(s1,4) ;
-               self.xCoord.F_Mdata.Write(s1,4) ;
-               tMat.F_Mdata.Seek(t2,soFromCurrent) ;
-            end;
-         end
-         else
-         if self.yCoord.SDPrec = 8 then
-         begin
-            for t1 := 0 to self.yCoord.numCols - 1 do
-            begin
-               tMat.F_Mdata.Read(d1,8) ;
-               self.xCoord.F_Mdata.Write(d1,8) ;
-               tMat.F_Mdata.Seek(t2,soFromCurrent) ;
-            end;
-         end;
-         tMat.Free ;
-      end;
-      
-
-end;
 
 
 
@@ -3079,11 +2340,11 @@ Var
 
   delimiter : string ;
   inRowsOrCols : boolean ;
-  XDataRow, XStart, XFin, YStart, YFin, numMODISBands : integer ;
+  XDataRow, XStart, XFin, YStart, YFin : integer ;
 
   firstXVal_, XstepVal : single  ;
   s1 : single ;
-  d1, scale_d1 : double ;
+  d1 : double ;
 begin
 
   try // get input data
@@ -3154,18 +2415,9 @@ begin
     // now add X data - y data determines number of x data points
     If Form2.CheckBox3.Checked Then   // if Calculate X values is true
     begin
-      if Form2.DendroMODISDataCB.Checked then   // if 'MODIS' satellite data
-      begin
-         self.yCoord.Transpose ;
-         numMODISBands := strtoint( Form2.DendroMODISNumberOfBands.Text ) ;
-         self.DoMODISSOAPDataImport(self.xCoord.filename,YStart,YFin, numMODISBands) ;
-      end
-      else
-      begin
          // firstXVal_ := strtofloat( Form2.Edit29.Text ) ;
          // XstepVal  := strtofloat( Form2.Edit16.Text ) ;
          self.xCoord.ClearData(self.xCoord.SDPrec div 4) ;
-         self.xCoord.numRows := 1 ;
          self.xCoord.numCols := self.yCoord.numCols ;   // y data determines number of x data points
          self.xCoord.F_Mdata.SetSize(self.xCoord.numCols*self.xCoord.SDPrec) ;
          self.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
@@ -3184,7 +2436,6 @@ begin
 
          end ;
          self.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-      end;
     end
     else // load X data from file
     begin
@@ -3243,6 +2494,8 @@ begin
        end ;
 
     end ;
+
+
 
     self.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
     self.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
@@ -3338,161 +2591,6 @@ begin
       end ;
 end ;
 
-
-
-procedure TSpectraRanges.SaveSpectraRangeDataBinV3( filenameOutput : String ) ;
-// version 4: has char values 'v4' as last data entries
-// binary format : <DATA><variance data><average data><all X DATA><rowNum><colNum><meanCentred><colStandardized><SDPrec><"v4"> at end
-// <variance data><average data> are only present if <colStandardized> and <meanCentred> are 'true'
-var
-  t1, t2 : int64 ;
-  c1 : char ;
-  s1, s2 : single ;
-  d1, d2 : double ;
-begin
-
-	if (self <> nil) then
-	begin
-
-		t1 := (sizeof(int64)*4)+(2*sizeof(boolean))+ (sizeof(char)*2) ;
-
-		// Can check that variance CMemoryStream is correct length for being complex - should not be a problem in template class version
-		if ( (self.yCoord.complexMat=2) and ((self.yCoord.F_MVariance.Size = (self.yCoord.numRows * self.yCoord.numCols *self.yCoord.SDPrec) div 2))   ) then
-		begin
-		  self.yCoord.F_MVariance.Free();
-		  self.yCoord.colStandardized := false ;
-		end  ;
-		if ( (self.yCoord.complexMat=2) and (self.yCoord.F_MAverage.Size = (self.yCoord.numRows * self.yCoord.numCols *self.yCoord.SDPrec div 2))   ) then
-		begin
-		  self.yCoord.F_MAverage.Free() ;
-		  self.yCoord.meanCentred := false ;
-		end  ;
-
-		// Add the varince and average data to the end of the yCoord F_Mdata
-    self.yCoord.F_Mdata.seek(0,soFromEnd) ;  // this is essential difference between C++ CSpectraRanges and Delphi TSpectraRanges
-		self.yCoord.F_Mdata.CopyFrom( self.yCoord.F_MVariance, 0 ) ;  // ExtendFromStream always extends from start of streamIn
-		self.yCoord.F_Mdata.CopyFrom(self.yCoord.F_MAverage, 0 ) ;
-		self.yCoord.F_Mdata.CopyFrom(self.xCoord.F_Mdata, 0  ) ;   // the xcoord is never complex - not true in template style objects
-
-
-		self.yCoord.F_Mdata.Seek(self.yCoord.F_Mdata.Size,soFromBeginning) ; // set to end of data
-		self.yCoord.F_Mdata.SetSize(self.yCoord.F_Mdata.Size + t1) ;// extend data by t1 bytes
-		// write new data to new data area
-    t2 :=  self.yCoord.numRows ;
-		self.yCoord.F_Mdata.Write(t2, sizeof(int64));
-    t2 :=  self.yCoord.numCols ;
-		self.yCoord.F_Mdata.Write(t2, sizeof(int64));
-    // C/C++ has bool of 1 byte and Delphi has sizeof(boolean) = 1    (but sizeof(bool) = 4)
-		self.yCoord.F_Mdata.Write(self.yCoord.meanCentred, sizeof(boolean));
-		self.yCoord.F_Mdata.Write(self.yCoord.colStandardized, sizeof(boolean));
-    t2 :=  self.yCoord.complexMat ;
-		self.yCoord.F_Mdata.Write(t2, sizeof(int64));
-    t2 :=  self.yCoord.SDPrec ;
-		self.yCoord.F_Mdata.Write(t2, sizeof(int64));
-
-		c1 := 'v';
-		self.yCoord.F_Mdata.Write(&c1,sizeof(char)) ;
-		c1 := '4' ;
-		self.yCoord.F_Mdata.Write(&c1,sizeof(char)) ;
-
-		// all the footer data has been added to the yCoord memory stream so save it to disk!
-		self.yCoord.SaveMatrixDataRaw( filenameOutput ) ;
-
-		// now chop off the footer of yCoord data as it is not really wanted
-		t1 := t1 + self.xCoord.F_Mdata.Size  + self.yCoord.F_MVariance.Size  + self.yCoord.F_MAverage.Size ;
-		self.yCoord.F_Mdata.SetSize(self.yCoord.F_Mdata.Size -  t1) ;
-	end ;
-end ;
-{
-procedure TSpectraRanges.SaveSpectraRangeDataBinV3( filenameOutput : String ) ;
-// binary format :  <DATA><all X DATA><rowNum><colNum><meanCentred><colStandardized><SDPrec><'v3'> at end
-var
-  t1, t2 : integer ;
-  c1 : char ;
-  s1, s2 : single ;
-  d1, d2 : double ;
-begin
-
-  t1 := (sizeof(integer)*3)+(2*sizeof(boolean))+ (sizeof(char)*2) ;
-
-   self.yCoord.F_Mdata.SetSize(self.yCoord.F_Mdata.Size+ self.xCoord.F_Mdata.Size+ t1) ;
-   self.yCoord.F_Mdata.Seek(-(t1 + self.xCoord.F_Mdata.Size),soFromEnd) ;
-   self.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-   if self.yCoord.SDPrec = 4 then
-   begin
-     for t2 := 0 to self.xCoord.numCols - 1 do
-     begin
-        self.xCoord.F_Mdata.Read(s1,4) ;
-        self.yCoord.F_Mdata.Write(s1,sizeof(single)) ;
-     end;
-   end
-   else
-   if self.yCoord.SDPrec = 8 then
-   begin
-     for t2 := 0 to self.xCoord.numCols - 1 do
-     begin
-        self.xCoord.F_Mdata.Read(s1,4) ;
-        self.yCoord.F_Mdata.Write(s1,sizeof(double)) ;
-     end;
-   end ;
-   self.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-   self.yCoord.F_Mdata.Write(self.yCoord.numRows, sizeof(integer));
-   self.yCoord.F_Mdata.Write(self.yCoord.numCols, sizeof(integer));
-   self.yCoord.F_Mdata.Write(self.yCoord.meanCentred, sizeof(boolean));
-   self.yCoord.F_Mdata.Write(self.yCoord.colStandardized, sizeof(boolean));
-
-   self.yCoord.F_Mdata.Write(self.yCoord.SDPrec, sizeof(integer));
-
-   c1 := 'v' ;
-   self.yCoord.F_Mdata.Write(c1,sizeof(char)) ;
-   c1 := '3' ;
-   self.yCoord.F_Mdata.Write(c1,sizeof(char)) ;
-   self.yCoord.SaveMatrixDataRaw( filenameOutput ) ;
-
-   self.yCoord.F_Mdata.SetSize(self.yCoord.F_Mdata.Size - self.xCoord.F_Mdata.Size - t1) ;
-
-{
-  // v3 code
-  t1 := (sizeof(integer)*3)+(2*sizeof(boolean))+ (sizeof(char)*2) ;
-
-   self.yCoord.F_Mdata.SetSize(self.yCoord.F_Mdata.Size+ self.xCoord.F_Mdata.Size+ t1) ;
-   self.yCoord.F_Mdata.Seek(-(t1 + self.xCoord.F_Mdata.Size),soFromEnd) ;
-   self.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-   if self.yCoord.SDPrec = 4 then
-   begin
-     for t2 := 0 to self.xCoord.numCols - 1 do
-     begin
-        self.xCoord.F_Mdata.Read(s1,4) ;
-        self.yCoord.F_Mdata.Write(s1,sizeof(single)) ;
-     end;
-   end
-   else
-   if self.yCoord.SDPrec = 8 then
-   begin
-     for t2 := 0 to self.xCoord.numCols - 1 do
-     begin
-        self.xCoord.F_Mdata.Read(s1,4) ;
-        self.yCoord.F_Mdata.Write(s1,sizeof(double)) ;
-     end;
-   end ;
-   self.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-   self.yCoord.F_Mdata.Write(self.yCoord.numRows, sizeof(integer));
-   self.yCoord.F_Mdata.Write(self.yCoord.numCols, sizeof(integer));
-   self.yCoord.F_Mdata.Write(self.yCoord.meanCentred, sizeof(boolean));
-   self.yCoord.F_Mdata.Write(self.yCoord.colStandardized, sizeof(boolean));
-
-   self.yCoord.F_Mdata.Write(self.yCoord.SDPrec, sizeof(integer));
-
-   c1 := 'v' ;
-   self.yCoord.F_Mdata.Write(c1,sizeof(char)) ;
-   c1 := '3' ;
-   self.yCoord.F_Mdata.Write(c1,sizeof(char)) ;
-   self.yCoord.SaveMatrixDataRaw( filenameOutput ) ;
-
-   self.yCoord.F_Mdata.SetSize(self.yCoord.F_Mdata.Size - self.xCoord.F_Mdata.Size - t1) ;
-end ;
-      }
-
 procedure TSpectraRanges.SaveSpectraRangeDataBinV2( filenameOutput : String ) ;
 // binary format :  <DATA><rowNum><colNum><meanCentred><colStandardized><firstXCoord><lastXCoord><SDPrec><'v2'> at end
 var
@@ -3540,7 +2638,7 @@ begin
    self.yCoord.F_Mdata.Write(c1,sizeof(char)) ;
    c1 := '2' ;
    self.yCoord.F_Mdata.Write(c1,sizeof(char)) ;
-   self.yCoord.SaveMatrixDataRaw( filenameOutput ) ;
+   self.yCoord.SaveMatrixDataRawBin( filenameOutput ) ;
 
    self.yCoord.F_Mdata.SetSize(self.yCoord.F_Mdata.Size - t1) ;
 end ;
@@ -3554,507 +2652,21 @@ begin
 end ;
 
 
-
-
-procedure TSpectraRanges.LoadSpectraToTFileStreamBinV2( filenameInput : String ) ;
-// binary format :  <DATA><rowNum><colNum><SDPrec><meanCentred><colStandardized><XHigh><XLow><'v2'> at end
-// X data: interpolates between XHigh and XLow, colNum points
-// Y data: reads in values directly from <DATA>
-var
-  t1 : integer ;
-  c1_v, c1_2 : char ;
-  s1, s2, s3 : single ;
-  d1, d2, d3 : double ;
-  space : double ;
-
-begin
-   srFileStrm := TFileStream.Create(filenameInput,fmOpenReadWrite) ;
-
-   srFileStrm.Seek(-2,soFromEnd) ;
-   srFileStrm.Read(c1_v,1) ;
-   srFileStrm.Read(c1_2,1) ;
-
-   if (c1_v = 'v') and (c1_2 = '2') then
-   begin
-     t1 := sizeof(integer) + (sizeof(char)*2)  ;  // to locate SDPrec value
-     srFileStrm.Seek(-t1,soFromEnd) ;
-     srFileStrm.Read(self.yCoord.SDPrec, sizeof(integer));
-
-     if self.yCoord.SDPrec = 4 then
-       t1 := (sizeof(integer)*3)+(2*sizeof(boolean))+ (sizeof(single)*2) + (sizeof(char)*2)   // size of <DATA><rowNum><colNum><meanCentred><colStandardized><XHigh><XLow><SDPrec><'v2'>
-     else
-     if self.yCoord.SDPrec = 8 then
-       t1 := (sizeof(integer)*3)+(2*sizeof(boolean))+ (sizeof(double)*2) + (sizeof(char)*2) ;  // size of <DATA><rowNum><colNum><meanCentred><colStandardized><XHigh><XLow><SDPrec><'v2'>
-
-
-     srFileStrm.Seek(-t1,soFromEnd) ;
-     srFileStrm.Read(self.yCoord.numRows, sizeof(integer));
-     srFileStrm.Read(self.yCoord.numCols, sizeof(integer));
-
-     srFileStrm.Read(self.yCoord.meanCentred, sizeof(boolean));
-     srFileStrm.Read(self.yCoord.colStandardized, sizeof(boolean));
-
-
-      // set up xCoord TMatrix data
-     self.xCoord.SDPrec  := self.yCoord.SDPrec ;
-     self.xCoord.numRows := 1 ;
-     self.xCoord.numCols := self.yCoord.numCols ;
-     self.xCoord.F_Mdata.SetSize(self.xCoord.SDPrec* self.xCoord.numCols) ;
-     self.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-
-     if self.yCoord.SDPrec = 4 then
-     begin
-       srFileStrm.Read(s1,sizeof(single)) ;
-       srFileStrm.Read(s2,sizeof(single)) ;
-       if (self.yCoord.numCols-1) <> 0 then
-         space := abs((s1 - s2)/ (self.yCoord.numCols-1))
-       else
-         space := 1 ;
-       if s1 < s2 then
-       begin
-         for t1 := 0  to self.xCoord.numCols - 1 do
-         begin
-           d1 := s1 + (t1 * space) ;
-           s3 := d1 ;
-           self.xCoord.F_Mdata.Write(s3,4) ;
-         end ;
-       end
-       else
-       if s1 > s2 then
-       begin
-         for t1 := 0  to self.xCoord.numCols - 1 do
-         begin
-           d1 := s1 - (t1 * space) ;
-           s3 := d1 ;
-           self.xCoord.F_Mdata.Write(s3,4) ;
-         end ;
-       end ;
-     end
-     else
-     if self.yCoord.SDPrec = 8 then
-     begin
-       srFileStrm.Read(d1,sizeof(double)) ;
-       srFileStrm.Read(d2,sizeof(double)) ;
-       space := abs((d1 - d2)/ (self.yCoord.numCols-1)) ;
-       if d1 < d2 then
-       begin
-         for t1 := 0  to self.yCoord.numCols - 1 do
-         begin
-           d3 := d1 + (t1 * space) ;
-           self.xCoord.F_Mdata.Write(d3,8) ;
-         end ;
-       end
-       else
-       if d1 > d2 then
-       begin
-         for t1 := 0  to self.yCoord.numCols - 1 do
-         begin
-           d3 := d1 - (t1 * space) ;
-           self.xCoord.F_Mdata.Write(d3,8) ;
-         end ;
-       end ;
-     end  ;
-     // Create X data
-
-     if self.yCoord.SDPrec = 4 then
-       t1 := (sizeof(integer)*3)+(2*sizeof(boolean))+ (sizeof(single)*2) + (sizeof(char)*2)   // size of <DATA><rowNum><colNum><meanCentred><colStandardized><XHigh><XLow><SDPrec><'v2'>
-     else
-     if self.yCoord.SDPrec = 8 then
-       t1 := (sizeof(integer)*3)+(2*sizeof(boolean))+ (sizeof(double)*2) + (sizeof(char)*2) ;  // size of <DATA><rowNum><colNum><meanCentred><colStandardized><XHigh><XLow><SDPrec><'v2'>
-
-//     self.yCoord.F_Mdata.SetSize(self.yCoord.numCols*self.yCoord.numRows*self.yCoord.SDPrec) ;  // chop off end info data
-     self.SeekFromBeginning(3,1,0) ;
-     srFileStrm.Seek(0,soFromBeginning);
-     //self.yCoord.F_Mdata.
-//     tFileStrm.
-
-   end
-   else
-   if  (c1_v <> 'v') then  // first binary file type -- assumed format : <DATA><rowNum><colNum><SDPrec><meanCentred><colStandardized>
-   begin
-      //self.yCoord.LoadMatrixDataFromBinFile( filenameInput ) ;  // xCoord data has to be calculated from 'import file' tab
-      t1 := (sizeof(integer)*3)+(2*sizeof(boolean)) ;  // size of "numRows,numCols,SDPrec,meanCentred,colSandardized"
-      //self.yCoord.F_Mdata.LoadFromFile(filenameIn) ;
-      srFileStrm.Seek(-t1,soFromEnd) ;
-      srFileStrm.Read(self.yCoord.numRows, sizeof(integer));
-      srFileStrm.Read(self.yCoord.numCols, sizeof(integer));
-      srFileStrm.Read(self.yCoord.SDPrec, sizeof(integer));
-      srFileStrm.Read(self.yCoord.meanCentred, sizeof(boolean));
-      srFileStrm.Read(self.yCoord.colStandardized, sizeof(boolean));
- //     tFileStrm.SetSize(self.yCoord.F_Mdata.Size- t1) ;
-      self.xCoord.Filename := filenameInput ;
-      self.SeekFromBeginning(3,1,0) ;
-   end ;
-
-
-end ;
-
-
-procedure TSpectraRanges.AddBinFileEndingToTFileStrm(SDPrecIn : integer; numRowsIn, numColsIn : integer) ;
-var
-  t1 : integer ;
-  c1 : char ;
-  s1, s2 : single ;
-  d1, d2 : double ;
-  tMemStr : TMemoryStream ;
-begin
-
-   if srFileStrm = nil then
-     exit ;
-   
-   tMemStr := TMemoryStream.Create ;
-
-   if SDPrecIn = 4 then
-     t1 := (sizeof(integer)*3)+(2*sizeof(boolean))+ (sizeof(single)*2) + (sizeof(char)*2)
-   else
-   if SDPrecIn = 8 then
-     t1 := (sizeof(integer)*3)+(2*sizeof(boolean))+ (sizeof(double)*2) + (sizeof(char)*2)   ;
-
-   tMemStr.SetSize(t1) ;
-   tMemStr.Seek(0,soFromBeginning) ;
-   tMemStr.Write(numRowsIn, sizeof(integer));
-   tMemStr.Write(numColsIn, sizeof(integer));
-   tMemStr.Write(self.yCoord.meanCentred , sizeof(boolean));
-   tMemStr.Write(self.yCoord.colStandardized, sizeof(boolean));
-
-   if SDPrecIn= 4 then
-   begin
-     self.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-     self.xCoord.F_Mdata.Read(s1,4) ;
-     self.xCoord.F_Mdata.Seek(-4,soFromEnd) ;
-     self.xCoord.F_Mdata.Read(s2,4) ;
-     tMemStr.Write(s1,sizeof(single)) ;
-     tMemStr.Write(s2,sizeof(single)) ;
-   end
-   else
-   if SDPrecIn = 8 then
-   begin
-     self.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-     self.xCoord.F_Mdata.Read(d1,8) ;
-     self.xCoord.F_Mdata.Seek(-8,soFromEnd) ;
-     self.xCoord.F_Mdata.Read(d2,8) ;
-     tMemStr.Write(d1,sizeof(double)) ;
-     tMemStr.Write(d2,sizeof(double)) ;
-   end ;
-
-   tMemStr.Write(self.yCoord.SDPrec, sizeof(integer));
-
-   c1 := 'v' ;
-   tMemStr.Write(c1,sizeof(char)) ;
-   c1 := '2' ;
-   tMemStr.Write(c1,sizeof(char)) ;
-   tMemStr.Seek(0,soFromBeginning) ;
-
-   self.srFileStrm.CopyFrom(tMemStr,0) ;  // this places the data straight on disk. No need to save
-   tMemStr.Free ;
-
-end ;
-
-
-
 procedure TSpectraRanges.LoadSpectraRangeDataBinV2( filenameInput : String ) ;
+// binary format :  <DATA><rowNum><colNum><SDPrec><meanCentred><colStandardized><XHigh><XLow><'v2'> at end
 var
-  t1, t2 : integer ;
+  t1 : integer ;
   c1_v, c1_2 : char ;
   s1, s2, s3 : single ;
   d1, d2, d3 : double ;
   space : double ;
-  i64 : int64 ;
 begin
    self.yCoord.LoadMatrixDataRawBinFile( filenameInput ) ;
    self.yCoord.F_Mdata.Seek(-2,soFromEnd) ;
    self.yCoord.F_Mdata.Read(c1_v,1) ;
    self.yCoord.F_Mdata.Read(c1_2,1) ;
 
-//   messagedlg('sizeof(boolean): ' + inttostr(sizeof(boolean)) ,mtError,[mbOK],0) ;
-    if (c1_v = 'r') and (c1_2 = 'c') then   // x data is in file explicitly for each column
-   begin
-     t1 := (sizeof(int64)*2) + (sizeof(char)*2)  ;  // to locate complexMat and SDPrec value
-     self.yCoord.F_Mdata.Seek(- t1,soFromEnd) ;
-     self.yCoord.F_Mdata.Read(i64, sizeof(int64 ));
-     self.yCoord.complexMat :=  i64 ;     // if == true then have to split F_Mdata into yImaginary
-	   self.yCoord.F_Mdata.Read(i64, sizeof(int64 ));
-     self.yCoord.SDPrec :=    i64 ;        // if SDPrec == 8 then F_Mdata is double precision
-
-     // t1 = size of <DATA><variance><average><Xdata>  <rowNum64><colNum64><meanCentred><colStandardized><complexMat64><SDPrec64><'v4'>
-     t1 := (sizeof(int64 )*4 )+(2*sizeof(char)) + (sizeof(char)*2)   ;      // was (sizeof(int64 )*4 )+(2*sizeof(bool)) + (sizeof(char)*2)   ;
-
-     self.yCoord.F_Mdata.Seek(- t1,soFromEnd) ;
-     self.yCoord.F_Mdata.Read(i64 , sizeof( int64));
-     self.yCoord.numRows :=  i64 ;
-     self.yCoord.F_Mdata.Read(i64, sizeof( int64));
-     self.yCoord.numCols :=  i64 ;
-
-     self.yCoord.F_Mdata.Read(self.yCoord.meanCentred, sizeof(char));
-     self.yCoord.F_Mdata.Read(self.yCoord.colStandardized, sizeof(char));
-
-      // set up xCoord TMatrix data
-	 //  the xCoord can be complex
-     self.xCoord.SDPrec  := self.yCoord.SDPrec ;
-     self.xCoord.complexMat  := self.yCoord.complexMat ;
-     self.xCoord.numRows := 1 ;
-     self.xCoord.numCols := self.yCoord.numCols ;
-     self.xCoord.F_Mdata.SetSize(self.xCoord.SDPrec * self.xCoord.numCols * self.xCoord.complexMat ) ;  // * self.yCoord.complexMat (the xCoord is never complex)
-     self.xCoord.F_Mdata.Seek(0,soFromBeginning)  ;  //
-
-     // Read xcoord data from the yCoord data that was read from disk file
-	 // t1 = size of <DATA><variance><average>   <Xdata><rowNum><colNum><meanCentred><colStandardized><SDPrec><'v4'>
-	 t1 := (self.yCoord.numCols * self.xCoord.SDPrec * self.xCoord.complexMat) + (sizeof(int64 )*4)+(2*sizeof(char)) + (sizeof(char)*2) ;   // * self.yCoord.complexMat (the xCoord is never complex)
-	  // seek to strat of xdata
-	 self.yCoord.F_Mdata.Seek(-t1,soFromEnd) ;
-	 // Copy the xdata
-	 self.xCoord.F_Mdata.CopyFrom(self.yCoord.F_Mdata,(self.xCoord.numCols *  self.xCoord.SDPrec *  self.xCoord.complexMat)) ;   // * self.yCoord.complexMat (the xCoord is never complex)
-   if (self.yCoord.complexMat = 2) then
-   begin
-      self.xCoord.MakeUnComplex(nil);
-   end;
-
-
-	 if (self.yCoord.meanCentred) then
-	 begin
-		t1 := t1 + (self.yCoord.numCols * self.yCoord.SDPrec  * self.yCoord.complexMat) ;
-		// seek to start of average data
-		self.yCoord.F_Mdata.Seek(-t1,soFromEnd) ;
-		// Copy the yCoord average data
-		self.yCoord.F_MAverage.CopyFrom(self.yCoord.F_Mdata,(self.xCoord.numCols *  self.xCoord.SDPrec * self.yCoord.complexMat)) ;
-	 end  ;
-	 if (self.yCoord.colStandardized) then
-	 begin
-		t1 := t1 + (self.yCoord.numCols * self.yCoord.SDPrec * self.yCoord.complexMat) ;
-		// seek to start of varience  data
-		self.yCoord.F_Mdata.Seek(-t1,soFromEnd) ;
-		// Copy the yCoord variance data
-		self.yCoord.F_MVariance.CopyFrom(self.yCoord.F_Mdata,(self.xCoord.numCols *  self.xCoord.SDPrec * self.yCoord.complexMat)) ;
-		// self.yCoord.Stddev( false ) ; this is done below after conversion to single prec.
-	 end ;
-
-   // this part is 'rc' specific
-   // Get/convert the Y data offset value (predYdataYOffsetRegCoef) is placed directly past the matrix data
-    t1 :=   self.yCoord.numRows * self.yCoord.numCols * self.yCoord.SDPrec  * self.yCoord.complexMat ;
-    self.yCoord.F_Mdata.Seek(t1,soFromBeginning)  ;
-    if self.yCoord.SDPrec = 8 then
-    begin
-         self.yCoord.F_Mdata.Read(d1,sizeof(double)) ;
-         s1 := d1 ;
-         predYdataYOffsetRegCoef[1] := s1 ;
-         if self.yCoord.complexMat = 2 then
-         begin
-            self.yCoord.F_Mdata.Read(d1,sizeof(double)) ;
-            s1 := d1 ;
-            predYdataYOffsetRegCoef[2] := s1 ;
-         end;
-    end
-    else
-    if self.yCoord.SDPrec = 4 then
-    begin
-         self.yCoord.F_Mdata.Read(s1,sizeof(single)) ;
-         predYdataYOffsetRegCoef[1] := s1 ;
-         if self.yCoord.complexMat = 2 then
-         begin
-            self.yCoord.F_Mdata.Read(s1,sizeof(single)) ;
-            predYdataYOffsetRegCoef[2] := s1 ;
-         end;
-    end;
-
-     self.xCoord.F_Mdata.Seek(0,soFromBeginning)  ;
-     self.yCoord.F_Mdata.Seek(0,soFromBeginning)  ;
-	 // chop off end info data
-     self.yCoord.F_Mdata.SetSize( t1) ;
-     // split off imaginary part if dat is complex
-     if self.yCoord.complexMat = 2 then
-     begin
-       if self.yImaginary = nil then
-       begin
-         self.yImaginary := TMatrix.Create2(self.yCoord.SDPrec,self.yCoord.numRows,self.yCoord.numCols) ;
-       end ;
-       self.yCoord.MakeUnComplex(self.yImaginary);
-     end;
-     self.SeekFromBeginning(3,1,0) ;
-
-      // make into single precission if double
-      // xCoord, yCoord and yImaginary
-     if self.yCoord.SDPrec = 8 then
-     begin
-         self.yCoord.ConvertToSingle() ;
-     end;
-      if self.yImaginary <> nil then
-      begin
-        if self.yImaginary.SDPrec = 8 then
-        begin
-         self.yImaginary.ConvertToSingle() ;
-        end;
-      end;
-     if self.xCoord.SDPrec = 8 then
-     begin
-         self.xCoord.ConvertToSingle() ;
-     end;
-
-     if (self.yCoord.colStandardized) then   // this has to be done here, after the conversion to single prec.
-	   begin
-	  	self.yCoord.Stddev( false ) ;
-	   end ;
-
-
-   end
-   else
-   if (c1_v = 'v') and (c1_2 = '4') then   // x data is in file explicitly for each column
-   begin
-     t1 := (sizeof(int64)*2) + (sizeof(char)*2)  ;  // to locate complexMat and SDPrec value
-     self.yCoord.F_Mdata.Seek(- t1,soFromEnd) ;
-     self.yCoord.F_Mdata.Read(i64, sizeof(int64 ));
-     self.yCoord.complexMat :=  i64 ;     // if == true then have to split F_Mdata into yImaginary
-	   self.yCoord.F_Mdata.Read(i64, sizeof(int64 ));
-     self.yCoord.SDPrec :=    i64 ;        // if SDPrec == 8 then F_Mdata is double precision
-
-     // t1 = size of <DATA><variance><average><Xdata>  <rowNum64><colNum64><meanCentred><colStandardized><complexMat64><SDPrec64><'v4'>
-     t1 := (sizeof(int64 )*4 )+(2*sizeof(char)) + (sizeof(char)*2)   ;      // was (sizeof(int64 )*4 )+(2*sizeof(bool)) + (sizeof(char)*2)   ;
-
-     self.yCoord.F_Mdata.Seek(- t1,soFromEnd) ;
-     self.yCoord.F_Mdata.Read(i64 , sizeof( int64));
-     self.yCoord.numRows :=  i64 ;
-     self.yCoord.F_Mdata.Read(i64, sizeof( int64));
-     self.yCoord.numCols :=  i64 ;
-
-     self.yCoord.F_Mdata.Read(self.yCoord.meanCentred, sizeof(char));
-     self.yCoord.F_Mdata.Read(self.yCoord.colStandardized, sizeof(char));
-
-      // set up xCoord TMatrix data
-	 //  the xCoord can be complex
-     self.xCoord.SDPrec  := self.yCoord.SDPrec ;
-     self.xCoord.complexMat  := self.yCoord.complexMat ;
-     self.xCoord.numRows := 1 ;
-     self.xCoord.numCols := self.yCoord.numCols ;
-     self.xCoord.F_Mdata.SetSize(self.xCoord.SDPrec * self.xCoord.numCols * self.xCoord.complexMat ) ;  // * self.yCoord.complexMat (the xCoord is never complex)
-     self.xCoord.F_Mdata.Seek(0,soFromBeginning)  ;  //
-
-     // Read xcoord data from the yCoord data that was read from disk file
-	 // t1 = size of <DATA><variance><average>   <Xdata><rowNum><colNum><meanCentred><colStandardized><SDPrec><'v4'>
-	 t1 := (self.yCoord.numCols * self.xCoord.SDPrec * self.xCoord.complexMat) + (sizeof(int64 )*4)+(2*sizeof(char)) + (sizeof(char)*2) ;   // * self.yCoord.complexMat (the xCoord is never complex)
-	  // seek to strat of xdata
-	 self.yCoord.F_Mdata.Seek(-t1,soFromEnd) ;
-	 // Copy the xdata
-	 self.xCoord.F_Mdata.CopyFrom(self.yCoord.F_Mdata,(self.xCoord.numCols *  self.xCoord.SDPrec *  self.xCoord.complexMat)) ;   // * self.yCoord.complexMat (the xCoord is never complex)
-   if (self.yCoord.complexMat = 2) then
-   begin
-      self.xCoord.MakeUnComplex(nil);
-   end;
-
-
-	 if (self.yCoord.meanCentred) then
-	 begin
-		t1 := t1 + (self.yCoord.numCols * self.yCoord.SDPrec  * self.yCoord.complexMat) ;
-		// seek to start of average data
-		self.yCoord.F_Mdata.Seek(-t1,soFromEnd) ;
-		// Copy the yCoord average data
-		self.yCoord.F_MAverage.CopyFrom(self.yCoord.F_Mdata,(self.xCoord.numCols *  self.xCoord.SDPrec * self.yCoord.complexMat)) ;
-	 end  ;
-	 if (self.yCoord.colStandardized) then
-	 begin
-		t1 := t1 + (self.yCoord.numCols * self.yCoord.SDPrec * self.yCoord.complexMat) ;
-		// seek to start of varience  data
-		self.yCoord.F_Mdata.Seek(-t1,soFromEnd) ;
-		// Copy the yCoord variance data
-		self.yCoord.F_MVariance.CopyFrom(self.yCoord.F_Mdata,(self.xCoord.numCols *  self.xCoord.SDPrec * self.yCoord.complexMat)) ;
-		// self.yCoord.Stddev( false ) ; this is done below after conversion to single prec.
-	 end ;
-
-     self.xCoord.F_Mdata.Seek(0,soFromBeginning)  ;
-	 // chop off end info data
-     self.yCoord.F_Mdata.SetSize(self.yCoord.F_Mdata.Size - t1) ;
-     // split off imaginary part if dat is complex
-     if self.yCoord.complexMat = 2 then
-     begin
-       if self.yImaginary = nil then
-       begin
-         self.yImaginary := TMatrix.Create2(self.yCoord.SDPrec,self.yCoord.numRows,self.yCoord.numCols) ;
-       end ;
-       self.yCoord.MakeUnComplex(self.yImaginary);
-     end;
-     self.SeekFromBeginning(3,1,0) ;
-
-      // make into single precission if double
-      // xCoord, yCoord and yImaginary
-     if self.yCoord.SDPrec = 8 then
-     begin
-         self.yCoord.ConvertToSingle() ;
-     end;
-      if self.yImaginary <> nil then
-      begin
-        if self.yImaginary.SDPrec = 8 then
-        begin
-         self.yImaginary.ConvertToSingle() ;
-        end;
-      end;
-     if self.xCoord.SDPrec = 8 then
-     begin
-         self.xCoord.ConvertToSingle() ;
-     end;
-
-   if (self.yCoord.colStandardized) then   // this has to be done here, after the conversion to single prec.
-	 begin
-	  	self.yCoord.Stddev( false ) ;
-	 end ;
-
-
-
-   end
-   else
-   if (c1_v = 'v') and (c1_2 = '3') then   // x data is in file explicitly for each column
-   begin
-     t1 := sizeof(integer) + (sizeof(char)*2)  ;  // to locate SDPrec value
-     self.yCoord.F_Mdata.Seek(-t1,soFromEnd) ;
-     self.yCoord.F_Mdata.Read(self.yCoord.SDPrec, sizeof(integer));
-
-     // t1 = size of <DATA><Xdata>  <rowNum><colNum><meanCentred><colStandardized><SDPrec><'v3'>
-     t1 := (sizeof(integer)*3 )+(2*sizeof(boolean)) + (sizeof(char)*2)   ;
-
-     self.yCoord.F_Mdata.Seek(-t1,soFromEnd) ;
-     self.yCoord.F_Mdata.Read(self.yCoord.numRows, sizeof(integer));
-     self.yCoord.F_Mdata.Read(self.yCoord.numCols, sizeof(integer));
-
-     self.yCoord.F_Mdata.Read(self.yCoord.meanCentred, sizeof(boolean));
-     self.yCoord.F_Mdata.Read(self.yCoord.colStandardized, sizeof(boolean));  // <SDPrec><'v2'>
-
-      // t1 = size of <DATA>  <Xdata><rowNum><colNum><meanCentred><colStandardized><SDPrec><'v2'>
-     t1 := (self.yCoord.numCols * self.yCoord.SDPrec) + (sizeof(integer)*3)+(2*sizeof(boolean)) + (sizeof(char)*2) ;
-     self.yCoord.F_Mdata.Seek(-t1,soFromEnd) ;
-
-      // set up xCoord TMatrix data
-     self.xCoord.SDPrec  := self.yCoord.SDPrec ;
-     self.xCoord.numRows := 1 ;
-     self.xCoord.numCols := self.yCoord.numCols ;
-     self.xCoord.F_Mdata.SetSize(self.xCoord.SDPrec* self.xCoord.numCols) ;
-     self.xCoord.F_Mdata.Seek(0,soFromBeginning)  ;
-
-     // read xcoord data from the yCoord data that was read from file
-     if self.yCoord.SDPrec = 4 then
-     begin
-        for t2 := 0 to self.xCoord.numCols - 1 do
-        begin
-          self.yCoord.F_Mdata.Read(s1, 4) ;
-          self.xCoord.F_Mdata.Write(s1,4) ;
-        end;
-     end
-     else
-     if self.yCoord.SDPrec = 8 then
-     begin
-        for t2 := 0 to self.xCoord.numCols - 1 do
-        begin
-          self.yCoord.F_Mdata.Read(d1, 8) ;
-          self.xCoord.F_Mdata.Write(d1,8) ;
-        end;
-     end  ;
-     // Create X data
-      self.xCoord.F_Mdata.Seek(0,soFromBeginning)  ;
-
-     t1 := (self.yCoord.numCols * self.yCoord.SDPrec) + (sizeof(integer)*3)+(2*sizeof(boolean)) + (sizeof(char)*2) ;
-
-     self.yCoord.F_Mdata.SetSize(self.yCoord.F_Mdata.Size- t1) ;  // chop off end info data
-     self.SeekFromBeginning(3,1,0) ;
-
-   end
-   else
-   if (c1_v = 'v') and (c1_2 = '2') then  // binary format :  <DATA><rowNum><colNum><meanCentred><colStandardized><firstxCoord><lastxCoord><SDPrec><'v2'> at end
+   if (c1_v = 'v') and (c1_2 = '2') then
    begin
      t1 := sizeof(integer) + (sizeof(char)*2)  ;  // to locate SDPrec value
      self.yCoord.F_Mdata.Seek(-t1,soFromEnd) ;
@@ -4147,8 +2759,7 @@ begin
 
    end
    else
-   if  (c1_2 <> 'v') then  // first binary file type
-   // assumed format : <DATA><rowNum><colNum><SDPrec><meanCentred><colStandardized><'v'>
+   if  (c1_v <> 'v') then  // first binary file type -- assumed format : <DATA><rowNum><colNum><SDPrec><meanCentred><colStandardized>
    begin
       //self.yCoord.LoadMatrixDataFromBinFile( filenameInput ) ;  // xCoord data has to be calculated from 'import file' tab
       t1 := (sizeof(integer)*3)+(2*sizeof(boolean)) ;  // size of "numRows,numCols,SDPrec,meanCentred,colSandardized"
@@ -4355,8 +2966,8 @@ begin
 
       self.SGDataView.SetAllFlagsRowCols(true, self.SGDataView.flagsRow) ;
       self.SGDataView.SetAllFlagsRowCols(true, self.SGDataView.flagsCol) ;
-      self.SGDataView.RowStrTextTB.Text := '1-'+ inttostr(self.yCoord.numRows) ;  // set string text to correct range
-      self.SGDataView.ColStrTextTB.Text := '1-'+ inttostr(self.yCoord.numCols) ;
+      self.SGDataView.RowStrText.Text := '1-'+ inttostr(self.yCoord.numRows) ;  // set string text to correct range
+      self.SGDataView.ColStrText.Text := '1-'+ inttostr(self.yCoord.numCols) ;
 
       if caption <> '' then
       self.SGDataView.Caption :=     caption ;
@@ -4402,9 +3013,9 @@ begin
       self.SGDataView.SG2.Col := 0 ;
 
       if self.yCoord.numRows < 36 then
-        self.SGDataView.Height :=  (((self.yCoord.numRows+2) * (self.SGDataView.SG2.DefaultRowHeight+1)) + 104)
+        self.SGDataView.Height :=  (((self.yCoord.numRows+2) * 20) + 80)
       else
-        self.SGDataView.Height :=  (((36+2) * (self.SGDataView.SG2.DefaultRowHeight+1)) + 104) ;
+        self.SGDataView.Height :=  (((36+2) * 20) + 80) ;
 
  //     self.SGDataView.Visible := true ; // view form with data and labels
  //     tSR1.SGDataView.SG2MouseDown(nil,mbLeft,[],1,1) ; // select top left cell (cell [1,1])

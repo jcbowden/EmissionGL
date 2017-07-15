@@ -4,11 +4,11 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, OpenGL, Forms, Dialogs,
-  StdCtrls, Menus, TVarAndCoVarOperations, TMatrixObject, ExtCtrls, TSpectraRangeObject,
+  StdCtrls, Menus, TVarAndCoVarOperations, TMatrixObject, TSpectraRangeObject, ExtCtrls,
   TBatch, TPCABatchObject, TIRPolAnalysisObject2, TBatchBasicFunctions, T2DCorrelObject,
   TAreaRatioUnit, TMathBatchUnit, TPLMAnalysisUnit1, TDichroicRatioUnit, TPLSPredictBatchUnit,
   TPCRPredictBatchUnit, TPLSYPredictTestBatchUnit, TAutoProjectEVectsUnit, TRotateFactorsUnit,
-  TMatrixOperations, TRotateToFitScoresUnit, ShellAPI, TASMTimerUnit, SPCFileUnit, Math  ;
+  TMatrixOperations, TRotateToFitScoresUnit, ShellAPI, TASMTimerUnit  ;
 type
   TForm3 = class(TForm)
     BatchMemo1: TMemo;
@@ -55,17 +55,6 @@ type
     TemplateRotate2Fators1: TMenuItem;
     TemplateVectormultiplydivide1: TMenuItem;
     TemplateRotateandfitScores1: TMenuItem;
-    emplateMatrixcorrelation1: TMenuItem;
-    emplateLeverage1: TMenuItem;
-    TemplateILSClick: TMenuItem;
-    emplateConcatenate1: TMenuItem;
-    SetExecutable2: TMenuItem;
-    emplateSaveRows1: TMenuItem;
-    MatrixFunctions1: TMenuItem;
-    RegressionFunctions1: TMenuItem;
-    MicroscopyFunctions1: TMenuItem;
-    emplateInterleaveSpectra1: TMenuItem;
-    emplateMatrixmultdivbypoint1: TMenuItem;
     procedure BatchMemo1Change(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Open1Click(Sender: TObject);
@@ -122,14 +111,6 @@ type
     procedure TemplateRotate2Fators1Click(Sender: TObject);
     procedure TemplateVectormultiplydivide1Click(Sender: TObject);
     procedure TemplateRotateandfitScores1Click(Sender: TObject);
-    procedure emplateMatrixcorrelation1Click(Sender: TObject);
-    procedure emplateLeverage1Click(Sender: TObject);
-    procedure TemplateILSClickClick(Sender: TObject);
-    procedure emplateConcatenate1Click(Sender: TObject);
-    procedure SetExecutable2Click(Sender: TObject);
-    procedure emplateSaveRows1Click(Sender: TObject);
-    procedure emplateInterleaveSpectra1Click(Sender: TObject);
-    procedure emplateMatrixmultdivbypoint1Click(Sender: TObject);
  
 
   private
@@ -141,8 +122,13 @@ type
 
     function ReturnLineColor(IntensityListIn : TStringList; numBlankLines : integer) : TGLLineColor ;  // numBlankLines is 1 if line not sdded to string grid yet or 2 if line added
 
-
-    function CreateStringGridRowAndObjects8(  ) : TGLLineColor ;
+    procedure CreateStringGridRowAndObjects2( correlObj          : T2DCorrelation   ) ;
+    function  CreateStringGridRowAndObjects3                                           : TGLLineColor ;
+    procedure CreateStringGridRowAndObjects4( objectForCellRow1  : TPLMAnalysis     ) ;
+    function  CreateStringGridRowAndObjects5( objectForCellRow1  : TDichroicRatio   )  : TGLLineColor ;
+    procedure CreateStringGridRowAndObjects6( objectForCellRow1  : TPLSYPredictBatch) ;
+    procedure CreateStringGridRowAndObjects7( objectForCellRow1  : TPCRYPredictBatch) ;
+    procedure CreateStringGridRowAndObjects8( objectForCellRow1  : TSpectraRanges   ) ;
 
 
     procedure RemoveRow( messasge : string ) ;   // remove row code if errr in creaing data
@@ -151,25 +137,16 @@ type
 
     procedure FreeStringGridSpectraRanges(col, row : integer );
 
-    function MatrixPointMultiply(initialLineNum : integer; multordiv : boolean) : integer ;
     function AddOrSub(initialLineNum : integer; addorsubtract : integer) : integer ;
     // MultAndSub(): multiplies a data matrix by a vector to return the scores of the vectore on the data matrix and the residuals
     function MultAndSub(initialLineNum : integer) : integer ;  // returns the line number of the batch file
     // MatrixMultiply(): does a ordinary matrix multiplication between to matricies where the #cols of 1st = #row 2nd
-    function MatrixMultiply(initialLineNum : integer; addYOffset : boolean) : integer ;  // returns the line number of the batch file
-    // CorrelateMatrix(): Calculates correlations between elements of matricies where the #cols of 1st = #row 2nd
-    function CorrelateMatrix(initialLineNum : integer) : integer ;  // returns the line number of the batch file
-    // Leverage(): Calculates the Leverage of samples
-    // L(diagonal) = X [ X<T> X ]^-1 X
-    function Leverage(initialLineNum : integer) : integer ;  // returns the line number of the batch file
-
+    function MatrixMultiply(initialLineNum : integer) : integer ;  // returns the line number of the batch file
     // VectorAddOrSub(): Entry wise addition or subtraction of vector elements from each row of a matrix
     function VectorAddOrSub(initialLineNum : integer; addorsubtract : integer; vectorPrefactor : single) : integer ;  // returns the line number of the batch file
     // VectorMultiplyOrDivide(): Entrywise multiply or divide of vector elements with each row of a matrix
     function VectorMultiplyOrDivide(initialLineNum : integer; addorsubtract : integer; vectorPrefactor : single; y_row : string) : integer ;  // returns the line number of the batch file
 
-    function SaveRowsAsFilenames(initialLineNumIn : integer; tStrListIn: TStringList; tSRIn : TSpectraRanges) : integer ;
-    function InterleaveSpectraRanges(initialLineNumIn: integer; tStrListIn: TStringList) : integer ; // interleaves spectra withinn selected TSpectraRanges by row
     { Public declarations }
   end;
 
@@ -178,7 +155,7 @@ var
 
 implementation
 
-Uses EmissionGL, FileInfo, ColorsEM, BatchFileDlg, BLASLAPACKfreePas, TPassBatchFileToExecutableUnit ;
+Uses EmissionGL, FileInfo, ColorsEM, BatchFileDlg, AtlusBLASLAPACLibrary ;
 
 {$R *.DFM}
 
@@ -198,11 +175,8 @@ end;
 
 procedure TForm3.FormCreate(Sender: TObject);
 begin
-
-  Form3.SendToBack ;
-
+// textModified := false ;
 end;
-
 
 procedure TForm3.Open1Click(Sender: TObject);
 begin
@@ -230,20 +204,12 @@ begin
   begin
     If Execute Then
     begin
-      if Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top] is TSpectraRanges then
-      begin
-        TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList.LoadFromFile(filename)  ;
-        TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList.filename :=  extractfilename(filename) ;
-        Form3.BatchMemo1.Lines :=  TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList ;
-        TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList.textModified := false ;
-      end
-      else
-      begin
-        Form3.BatchMemo1.Lines.LoadFromFile(filename) ;
-      end;
+      TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList.LoadFromFile(filename)  ;
+      TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList.filename :=  extractfilename(filename) ;
+      Form3.BatchMemo1.Lines :=  TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList ;
       filename :=  Form4.OpenDialog1.filename ;
       Form3.Caption := extractFileName(filename) ;
-
+      TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList.textModified := false ;
       //SetCurrentDir(ExtractFilePath(filename));
       Form4.SaveDialog1.InitialDir :=  ExtractFilePath(Form4.OpenDialog1.filename) ;
       Form4.OpenDialog1.InitialDir :=  ExtractFilePath(Form4.OpenDialog1.filename) ;
@@ -254,36 +220,25 @@ end;
 
 procedure TForm3.Sa1Click(Sender: TObject);
 begin
-   if Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top] is TSpectraRanges then
-   begin
    if TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList.textModified then
    begin
      TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList.textModified := false ;
      BatchMemo1.Lines.SaveToFile(TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList.filename) ;
    end ;
-   end
-   else
-   begin
-     SaveAs1Click(Sender)  ;
-   end;
 end;
 
 procedure TForm3.SaveAs1Click(Sender: TObject);
 begin
   Form4.SaveDialog1.Title := 'Save batch file' ;
   Form4.SaveDialog1.Filter := 'batch files (*.bat)| *.bat|text (*.csv, *.txt, *.asc *.bat)|*.txt;*.csv;*.asc;*.bat|all files (*.*)|*.*'     ;
-  if Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top] is TSpectraRanges  then
-    Form4.SaveDialog1.filename := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList.filename ;
+  Form4.SaveDialog1.filename := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList.filename ;
   Form4.SaveDialog1.DefaultExt := '*.bat' ;
 
   If Form4.SaveDialog1.Execute Then
   begin
       BatchMemo1.Lines.SaveToFile(Form4.SaveDialog1.filename) ;
-      if Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top] is TSpectraRanges then
-      begin
-        TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList.filename :=  extractfilename(Form4.SaveDialog1.filename) ;
-        TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList.textModified := false ;
-      end;
+      TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList.filename :=  extractfilename(Form4.SaveDialog1.filename) ;
+      TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Selection.Top]).batchList.textModified := false ;
       Form3.Caption := extractFileName(Form4.SaveDialog1.filename) ;
       //SetCurrentDir(ExtractFilePath(Form4.SaveDialog1.filename));
       Form4.SaveDialog1.InitialDir :=  ExtractFilePath(Form4.OpenDialog1.filename) ;
@@ -325,6 +280,12 @@ end;
 
 
 
+
+
+
+
+
+
 procedure TForm3.OpenResults1Click(Sender: TObject);
 begin
     if FileExists(resulsFile) then
@@ -333,7 +294,6 @@ begin
 
     end ;
 end;
-
 
 procedure TForm3.pcstofit1Click(Sender: TObject);
 begin
@@ -355,94 +315,6 @@ begin
 BatchFileModDlg.Label1.Caption := 'autoexclude =' ;
 BatchFileModDlg.Edit1.Text := '0.0' ;
 BatchFileModDlg.Visible := true ;
-end;
-
-procedure TForm3.emplateConcatenate1Click(Sender: TObject);
-begin
-   BatchMemo1.Lines.Add('type = CONCAT') ;
-   BatchMemo1.Lines.Add('//Enter directories to search and file extension ') ;
-   BatchMemo1.Lines.Add('// if input directory =...\* then all dir in current dir will be searched') ;
-   BatchMemo1.Lines.Add('// if input directory = empty then current dir will be searched') ;
-   BatchMemo1.Lines.Add('input directory =    // this is also the output directory') ;
-   BatchMemo1.Lines.Add('file extension = .tif  // include the .') ;  //
-   BatchMemo1.Lines.Add('// 2,ave or 4,skip,flat,trans,vnorm  - this is down sampling of TIFF image') ;
-   BatchMemo1.Lines.Add('// ave: indicates average 2d data, number indicates by how many points'  ) ;
-   BatchMemo1.Lines.Add('// skip: indicates skip 2d data, number indicates by how many points'  ) ;
-   BatchMemo1.Lines.Add('// i.e. 64x64 -> 4,skip = 16x16'  ) ;
-   BatchMemo1.Lines.Add('// flat: indicates use the average of the column data as the final data (after downsampling)' ) ;
-   BatchMemo1.Lines.Add('// trans: indicates to transpose the tiff file data before averaging'  ) ;
-   BatchMemo1.Lines.Add('reformat tif = 4,skip  // reduces tiff size by 4 in each direction by skipping data') ;
-   BatchMemo1.Lines.Add('output filename = concat_files.bin  // ') ;
-   BatchMemo1.Lines.Add('') ;
-end;
-
-procedure TForm3.emplateInterleaveSpectra1Click(Sender: TObject);
-begin
-   BatchMemo1.Lines.Add('type = interleave') ;
-   BatchMemo1.Lines.Add('// this function squences through the selected rows, in order specified by the pre-colon value') ;
-   BatchMemo1.Lines.Add('// and copies the row ranges as specified in the post-colon range ') ;
-   BatchMemo1.Lines.Add('order and row ranges =') ;
-   BatchMemo1.Lines.Add('1:1-') ;
-   BatchMemo1.Lines.Add('2:6-') ;
-   BatchMemo1.Lines.Add('3:6-') ;
-   BatchMemo1.Lines.Add('4:6-') ; //   column range
-   BatchMemo1.Lines.Add('column range = 1-1555') ;
-   BatchMemo1.Lines.Add('filename = _interleaved.bin') ;  //
-   BatchMemo1.Lines.Add('') ;
-end;
-
-procedure TForm3.emplateLeverage1Click(Sender: TObject);
-begin
-  BatchMemo1.Lines.Add('type = leverage') ; // matrix multiply
-  BatchMemo1.Lines.Add('// Input:   single matrix of X data (samples in rows) ') ;
-  BatchMemo1.Lines.Add('// Output:  the leverage matrix  L ') ;
-  BatchMemo1.Lines.Add('// L = X [ X<t> X ]^-1 X<t>') ;
-  BatchMemo1.Lines.Add('') ;
-end;
-
-procedure TForm3.emplateMatrixcorrelation1Click(Sender: TObject);
-begin
-  BatchMemo1.Lines.Add('type = matrix correlation') ; // matrix multiply
-  BatchMemo1.Lines.Add('// Input:   two matricies (# cols of first = # cols of second) ') ;
-  BatchMemo1.Lines.Add('// Output:  the cross correlation matrix (R^2 values on diagonal)') ;
-  BatchMemo1.Lines.Add('// N.B.: transpose+mean centre+transpose each matrix by hand as it does not seem to want to work') ;
-  BatchMemo1.Lines.Add('') ;
-end;
-
-procedure TForm3.emplateMatrixmultdivbypoint1Click(Sender: TObject);
-begin
-  BatchMemo1.Lines.Add('type = point multiply') ;
-  BatchMemo1.Lines.Add('operation = multiply  // divide ') ;
-  BatchMemo1.Lines.Add('// Input:   x data and y data matricies (same size)') ;
-  BatchMemo1.Lines.Add('// Output:  x.row.col (* or /) y.row.col') ;
-  BatchMemo1.Lines.Add('') ;
-end;
-
-procedure TForm3.emplateSaveRows1Click(Sender: TObject);
-begin
-  BatchMemo1.Lines.Add('type = SAVE ROWS') ; // matrix multiply
-  BatchMemo1.Lines.Add('// saves each row of a file as a different name ') ;
-  BatchMemo1.Lines.Add('// as set in list below') ;
-  BatchMemo1.Lines.Add('file type  =  .bin') ;
-  BatchMemo1.Lines.Add('prefix = abc_') ;
-  BatchMemo1.Lines.Add('postfix = ') ;
-  BatchMemo1.Lines.Add('directory = C:\') ;
-  BatchMemo1.Lines.Add('// filenames are the conjunction of prefix+filename+postfix+file type') ;
-  BatchMemo1.Lines.Add('// The numbers before the file names indicates the row range ') ;
-  BatchMemo1.Lines.Add('// and the column range to be saving. Format:  rows:cols filename') ;
-  BatchMemo1.Lines.Add('file names =') ;
-  BatchMemo1.Lines.Add('1:1- density_aveyear') ;
-  BatchMemo1.Lines.Add('2:1- raddiam_aveyear') ;
-  BatchMemo1.Lines.Add('3:1- tandiam_aveyear') ;
-  BatchMemo1.Lines.Add('4:1- coarsness_aveyear') ;
-  BatchMemo1.Lines.Add('5:1- cellpop_aveyear') ;
-  BatchMemo1.Lines.Add('6:1- rayangle_aveyear') ;
-  BatchMemo1.Lines.Add('7:1- isopynic_aveyear') ;
-  BatchMemo1.Lines.Add('8:1- MFA_aveyear') ;
-  BatchMemo1.Lines.Add('9:1- diffintens_aveyear') ;
-  BatchMemo1.Lines.Add('10:1- MOE_aveyear') ;
-  BatchMemo1.Lines.Add('11:1- wallthickness_aveyear') ;
-  BatchMemo1.Lines.Add('12:1- specificsurface_aveyear') ;
 end;
 
 procedure TForm3.excludeiter1Click(Sender: TObject);
@@ -534,7 +406,7 @@ begin
         Form4.StringGrid1.Cells[4,Form4.StringGrid1.Row] := '1-'+ inttostr(xData.yCoord.numRows) +' : 1-' + inttostr(xData.yCoord.numCols) ;
         resultData.xString := xData.xString ;
         resultData.yString := xData.yString  ;
-        if xData.fft.dtime  <> 0 then
+        if xData.fft.dt <> 0 then
           resultData.fft.CopyFFTObject(xData.fft) ;
       end  // do vector addition to each line of matrix
       else
@@ -579,10 +451,8 @@ begin
 
       xData      := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Row]) ;  // this is a matrix
       if xData = nil then exit ;
-      if xData.yImaginary <> nil then xData.yCoord.MakeComplex(xData.yImaginary);
       yData      := TSpectraRanges(Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row]) ;  // this is a vector
       if yData = nil then exit ;
-      if yData.yImaginary <> nil then yData.yCoord.MakeComplex(yData.yImaginary);
 
       if xData.xCoord.numCols <>  yData.xCoord.numCols then
       begin
@@ -605,25 +475,20 @@ begin
       if (vectorPrefactor <> 1.0) then
           vectorData.yCoord.MultiplyByScalar(vectorPrefactor) ; 
 
-      // This does the multiply or divide operation
       vectorData.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
       if addorSubtract = 1  then  // multiply
-        resultData.yCoord.MultiplyMatrixByVect(vectorData.yCoord)
+        resultData.yCoord.MultiplyMatrixByVect(vectorData.yCoord.F_Mdata)
       else
       if addorSubtract = -1  then  // divide
       begin
-        DivZeroError := resultData.yCoord.DivideMatrixByVect (vectorData.yCoord) ;   // returns 1 on EZeroDivide error, otherwise 0
+        DivZeroError := resultData.yCoord.DivideMatrixByVect (vectorData.yCoord.F_Mdata) ;   // returns 1 on EZeroDivide error, otherwise 0
         if DivZeroError = 1 then
           messagedlg('Y Vector contains a zero, cannot perform division',mtError,[mbOK],0) ;
       end ;
 
-      if xData.yImaginary <> nil then xData.yCoord.MakeUnComplex(xData.yImaginary);
-      if yData.yImaginary <> nil then yData.yCoord.MakeUnComplex(yData.yImaginary);
-
-
-      // create the new results data TSpectraRange OpenGl object and grid information for GUI
       if DivZeroError <> 1 then
       begin
+        // create the new results data TSpectraRange OpenGl object and grid information for GUI
         if Form4.StringGrid1.Objects[4,Form4.StringGrid1.Row] <> nil then
           FreeStringGridSpectraRanges( 4,Form4.StringGrid1.Row ) ;
         Form4.StringGrid1.Objects[4,Form4.StringGrid1.Row] := resultData ;  // assign object to the cell
@@ -632,7 +497,7 @@ begin
         Form4.StringGrid1.Cells[4,Form4.StringGrid1.Row] := '1-'+ inttostr(xData.yCoord.numRows) +' : 1-' + inttostr(xData.yCoord.numCols) ;
         resultData.xString := xData.xString ;
         resultData.yString := xData.yString  ;
-        if xData.fft.dtime <> 0 then
+        if xData.fft.dt <> 0 then
           resultData.fft.CopyFFTObject(xData.fft) ;
       end
       else
@@ -648,89 +513,10 @@ begin
 end ;
 
 
-function TForm3.MatrixPointMultiply(initialLineNum : integer; multordiv : boolean) : integer ;
-var
-  xData, yData, resultData : TSpectraRanges ;
-  multiftrue : boolean ;
-  ps1, ps2 : ^single ;
-  res_double : double ;
-  t1, t2 : integer ;
-begin
-//    try
-      result := initialLineNum + 1 ;
 
-      xData      := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Row]) ;
-      yData      := TSpectraRanges(Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row]) ;
-
-
-      // make sure matricies are the same dimension
-      if ((xData.yCoord.numRows = yData.yCoord.numRows) and (xData.yCoord.numCols = yData.yCoord.numCols)) then
-      begin
-        resultData := TSpectraRanges.Create(xData.yCoord.SDPrec div 4, xData.yCoord.numRows, xData.yCoord.numCols, @xData.LineColor) ;
-        resultData.CopySpectraObject(xData) ;
-
-        ps1  :=  resultData.yCoord.F_Mdata.Memory ;
-        ps2  :=  yData.yCoord.F_Mdata.Memory ;
-
-        if multordiv then
-        begin
-          for t1 := 0 to ( resultData.yCoord.numRows * resultData.yCoord.numCols ) - 1 do
-          begin
-             ps1^ := ps1^ * ps2^ ;
-             inc(ps1) ;
-             inc(ps2);
-          end;
-        end
-        else
-        begin  //  multordiv is false so divide ps1^ by ps2^
-          for t1 := 0 to ( resultData.yCoord.numRows * resultData.yCoord.numCols ) - 1 do
-          begin
-            if ps2^ <> 0 then
-            begin
-               res_double := ps1^ / ps2^ ;
-             //  if (res_double < Math.MaxSingle) then
-                 ps1^ :=  res_double
-            //   else
-            //     ps1^ := Math.MaxSingle / 10.0 ;
-             end
-            else  // ps^ is zero
-            begin
-           //  messagedlg('denominator value is zero, cannot perform division' ,mtinformation,[mbOK, mbCancel],0) ;
-             Case  messagedlg('denominator value is zero, cannot perform division' ,mtinformation,[mbOK, mbCancel],0) of
-             idCancel:
-              begin
-                resultData.Free ;
-                exit ;
-              end ;
-            end ;
-            end;
-           //  break ;
-
-           inc(ps1) ;
-           inc(ps2);
-          end;
-
-        end;  //  multordiv is false so divide ps1^ by ps2^
-
-        if Form4.StringGrid1.Objects[4,Form4.StringGrid1.Row] <> nil then
-          FreeStringGridSpectraRanges( 4,Form4.StringGrid1.Row ) ;
-
-        Form4.StringGrid1.Objects[4,Form4.StringGrid1.Row] := resultData ;  // assign object to the cell
-        resultData.GLListNumber := Form4.GetLowestListNumber ;              // get openGL list number
-        SetupallXDataAs1D_or_2D(1, resultData , xData) ;                    // create GL objects in 1D or 2D
-        Form4.StringGrid1.Cells[4,Form4.StringGrid1.Row] := '1-'+ inttostr(xData.yCoord.numRows) +' : 1-' + inttostr(xData.yCoord.numCols) ;
-        resultData.xString := xData.xString ;
-        resultData.yString := xData.yString  ;
-        if xData.fft.dtime <> 0 then
-         resultData.fft.CopyFFTObject(xData.fft) ;
-      end;
-//    except
-
-//    end ;
-end ;
 
 //  '  type = add or subtract'
-//  '  operation = add  // subtract'
+//  '  opperation = add  // subtract'
 //  '// Input:   x data and y data (same size)'
 //  '// Output:  x +/- y'
 function  TForm3.AddOrSub(initialLineNum : integer; addorsubtract : integer) : integer ;   // returns the line number of the batch file
@@ -760,7 +546,7 @@ begin
       Form4.StringGrid1.Cells[4,Form4.StringGrid1.Row] := '1-'+ inttostr(xData.yCoord.numRows) +' : 1-' + inttostr(xData.yCoord.numCols) ;
       resultData.xString := xData.xString ;
       resultData.yString := xData.yString  ;
-      if xData.fft.dtime <> 0 then
+      if xData.fft.dt <> 0 then
         resultData.fft.CopyFFTObject(xData.fft) ;
     except
 
@@ -772,7 +558,7 @@ end ;
 function  TForm3.MultAndSub(initialLineNum : integer) : integer ; // returns the line number of the batch file
 // multiplies a data matrix by a vector to return the scores of the vectore on the data matrix and the residuals
 var
-  origX, tEVects, tScores, tResiduals : TSpectraRanges ;
+  origX, copyX, tEVects, tEVectsCopy, tScores, tResiduals : TSpectraRanges ;
   mo : TMatrixOps ;
   MKLalpha : single ;
   MKLEVects, MKLscores, MKLdata : pointer ;
@@ -792,28 +578,28 @@ begin
       tEVects    := TSpectraRanges(Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row]) ;
       Form4.StringGrid1.Cells[1,Form4.StringGrid1.RowCount-1] :=  Form4.StringGrid1.Cells[1,Form4.StringGrid1.Row] ;
 
- //     copyX := TSpectraRanges.Create(origX.yCoord.SDPrec div 4, origX.yCoord.numRows, origX.yCoord.numCols, @origX.LineColor) ;
- //     copyX.CopySpectraObject(origX) ;
- //     copyX.GLListNumber := Form4.GetLowestListNumber ;
+      copyX := TSpectraRanges.Create(origX.yCoord.SDPrec div 4, origX.yCoord.numRows, origX.yCoord.numCols, @origX.LineColor) ;
+      copyX.CopySpectraObject(origX) ;
+      copyX.GLListNumber := Form4.GetLowestListNumber ;
 
- //     copyX.LineColor:= CreateStringGridRowAndObjects8( ) ;  // creates new string grid line and gets new spectra line colour
- //     SetupallXDataAs1D_or_2D(1, copyX , copyX) ;
- //     Form4.StringGrid1.Cells[2,Form4.StringGrid1.RowCount-2] := '1-'+ inttostr(copyX.yCoord.numRows) +' : 1-' + inttostr(copyX.yCoord.numCols) ;
+      CreateStringGridRowAndObjects8( copyX ) ;  // creates new string grid line and gets new spectra line colour
+      SetupallXDataAs1D_or_2D(1, copyX , copyX) ;
+      Form4.StringGrid1.Cells[2,Form4.StringGrid1.RowCount-2] := '1-'+ inttostr(copyX.yCoord.numRows) +' : 1-' + inttostr(copyX.yCoord.numCols) ;
 
- //     tEVectsCopy := TSpectraRanges.Create(origX.yCoord.SDPrec div 4, origX.yCoord.numRows, origX.yCoord.numCols, @origX.LineColor) ;
- //     tEVectsCopy.CopySpectraObject(tEVects) ;
- //     tEVectsCopy.GLListNumber := Form4.GetLowestListNumber ;
+      tEVectsCopy := TSpectraRanges.Create(origX.yCoord.SDPrec div 4, origX.yCoord.numRows, origX.yCoord.numCols, @origX.LineColor) ;
+      tEVectsCopy.CopySpectraObject(tEVects) ;
+      tEVectsCopy.GLListNumber := Form4.GetLowestListNumber ;
 
 
       // create scores by projection of EVects onto original data
-      tScores := TSpectraRanges.Create(origX.yCoord.SDPrec div 4, origX.yCoord.numRows, 1, @origX.LineColor) ;
+      tScores := TSpectraRanges.Create(copyX.yCoord.SDPrec div 4, copyX.yCoord.numRows, 1, @copyX.LineColor) ;
       tScores.yCoord.Free ;
-      tScores.yCoord := mo.MultiplyMatrixByMatrix(origX.yCoord,tEVects.yCoord,false,true,1.0,false) ;
+      tScores.yCoord := mo.MultiplyMatrixByMatrix(copyX.yCoord,tEVects.yCoord,false,true,1.0,false) ;
 
 
       // copy original data so we can subtract the scores x EVects
-      tResiduals := TSpectraRanges.Create(origX.yCoord.SDPrec div 4, origX.yCoord.numRows, origX.yCoord.numCols, @origX.LineColor) ;
-      tResiduals.CopySpectraObject(origX) ;
+      tResiduals := TSpectraRanges.Create(copyX.yCoord.SDPrec div 4, copyX.yCoord.numRows, copyX.yCoord.numCols, @copyX.LineColor) ;
+      tResiduals.CopySpectraObject(copyX) ;
 
       // use BLAS level 2 routine - subtract reconstructed data from original data
       MKLEVects   := tEVects.yCoord.F_Mdata.Memory ;
@@ -823,37 +609,37 @@ begin
       MKLtint     :=  1 ;
       MKLalpha    := -1.0 ;
       // sger: a := alpha * x * y’ + a
-      sger (origX.yCoord.numCols , origX.yCoord.numRows, MKLalpha, MKLEVects, MKLtint, MKLscores , MKLtint, MKLdata, MKLlda) ;
+      sger (copyX.yCoord.numCols , copyX.yCoord.numRows, MKLalpha, MKLEVects, MKLtint, MKLscores , MKLtint, MKLdata, MKLlda) ;
 
       mo.Free ;
 
- //     Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row] := tEVectsCopy ;
- //     SetupallXDataAs1D_or_2D(1, tEVectsCopy , copyX) ;
- //     Form4.StringGrid1.Cells[3,Form4.StringGrid1.Row] := '1-'+ inttostr(tEVectsCopy.yCoord.numRows) +' : 1-' + inttostr(tEVectsCopy.yCoord.numCols) ;
+      Form4.StringGrid1.Objects[3,Form4.StringGrid1.RowCount-2] := tEVectsCopy ;
+      SetupallXDataAs1D_or_2D(1, tEVectsCopy , copyX) ;
+      Form4.StringGrid1.Cells[3,Form4.StringGrid1.RowCount-2] := '1-'+ inttostr(tEVectsCopy.yCoord.numRows) +' : 1-' + inttostr(tEVectsCopy.yCoord.numCols) ;
 
       // tScores is the scores spectra
       tScores.Transpose ;
 
-      Form4.StringGrid1.Objects[4,Form4.StringGrid1.Row] := tScores ;
+      Form4.StringGrid1.Objects[4,Form4.StringGrid1.RowCount-2] := tScores ;
       tScores.GLListNumber := Form4.GetLowestListNumber ;
       tScores.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ;
       tScores.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(),  1)   ;
       tScores.XHigh :=  tScores.XHigh * tScores.yCoord.numRows  ; // show all length of scores
-      Form4.StringGrid1.Cells[4,Form4.StringGrid1.Row] := '1-'+ inttostr(tScores.yCoord.numRows) +' : 1-' + inttostr(tScores.yCoord.numCols) ;
+      Form4.StringGrid1.Cells[4,Form4.StringGrid1.RowCount-2] := '1-'+ inttostr(tScores.yCoord.numRows) +' : 1-' + inttostr(tScores.yCoord.numCols) ;
       tScores.xString := 'Sample Number' ;
       tScores.yString := 'Score' ;
 
       // tResiduals is the 'residuals' matrix
-      Form4.StringGrid1.Objects[5,Form4.StringGrid1.Row] := tResiduals ;
+      Form4.StringGrid1.Objects[5,Form4.StringGrid1.RowCount-2] := tResiduals ;
       tResiduals.GLListNumber := Form4.GetLowestListNumber ;
-      if origX.frequencyImage then
+      if copyX.frequencyImage then
         tResiduals.frequencyImage := true ;
-      SetupallXDataAs1D_or_2D(1, tResiduals , origX) ;
-      Form4.StringGrid1.Cells[5,Form4.StringGrid1.Row] := '1-'+ inttostr(tResiduals.yCoord.numRows) +' : 1-' + inttostr(tResiduals.yCoord.numCols) ;
-      tResiduals.xString := origX.xString ;
-      tResiduals.yString := origX.yString  ;
-      if origX.fft.dtime <> 0 then
-        tResiduals.fft.CopyFFTObject(origX.fft) ;
+      SetupallXDataAs1D_or_2D(1, tResiduals , copyX) ;
+      Form4.StringGrid1.Cells[5,Form4.StringGrid1.RowCount-2] := '1-'+ inttostr(tResiduals.yCoord.numRows) +' : 1-' + inttostr(tResiduals.yCoord.numCols) ;
+      tResiduals.xString := copyX.xString ;
+      tResiduals.yString := copyX.yString  ;
+      if copyX.fft.dt <> 0 then
+        tResiduals.fft.CopyFFTObject(copyX.fft) ;
 
     except
       mo.Free ;
@@ -863,11 +649,12 @@ end ;
 
 
 
-function  TForm3.MatrixMultiply(initialLineNum : integer; addYOffset : boolean) : integer ;
+function  TForm3.MatrixMultiply(initialLineNum : integer) : integer ;
 var
   m1, m2, tResult : TSpectraRanges ;
   mo : TMatrixOps ;
 begin
+    // this is a test code for compensation of other components present1
     try
       result := initialLineNum + 1 ;
       mo    := TMatrixOps.Create ;
@@ -875,22 +662,10 @@ begin
       m1      := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Row]) ;
       m2      := TSpectraRanges(Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row]) ;
 
-
+      // create scores by projection of EVects onto original data
       tResult := TSpectraRanges.Create(m1.yCoord.SDPrec div 4, 1, m2.yCoord.numCols, @m1.LineColor) ;
       tResult.yCoord.Free ;
       tResult.yCoord := mo.MultiplyMatrixByMatrix(m1.yCoord,m2.yCoord,false,false,1.0,false) ;
-
-      if addYOffset then
-      begin
-        if m1.predYdataYOffsetRegCoef[1] <> 0.0 then
-             tResult.yCoord.AddScalar(m1.predYdataYOffsetRegCoef[1])
-        else
-        if m2.predYdataYOffsetRegCoef[1] <> 0.0 then
-             tResult.yCoord.AddScalar(m2.predYdataYOffsetRegCoef[1]) ;
-      end;
-
-      
-
       tResult.xCoord.CopyMatrix( m2.xCoord ) ;
 
       // add to column 3 (4) of TStringGrid
@@ -912,404 +687,6 @@ begin
 end ;
 
 
-// CorrelateMatrix(): Calculates correlations between elements of matricies where the #cols of 1st = #row 2nd
-function TForm3.CorrelateMatrix(initialLineNum : integer) : integer ;  // returns the line number of the batch file
-var
-  m1, m2, tResult : TSpectraRanges ;
-  vcv : TVarAndCoVarFunctions ;
-  t1 : integer ;
-  s1 : single  ;
-  d1 : double  ;
-begin
-    // this is a test code for compensation of other components present1
-    try
-      result := initialLineNum + 1 ;
-      vcv    := TVarAndCoVarFunctions.Create ;
-
-      m1      := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Row]) ;
-      m2      := TSpectraRanges(Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row]) ;
-      if  TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Row]) is  TSpectraRanges then
-      begin
-      if   TSpectraRanges(Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row]) is  TSpectraRanges then
-      begin
-        // create scores by projection of EVects onto original data
-        tResult := TSpectraRanges.Create(m1.yCoord.SDPrec div 4, 1, m2.yCoord.numRows, @m1.LineColor) ;
-        tResult.yCoord.Free ;
-        tResult.yCoord := vcv.GetSampleVarCovarOfTwoMatrix( m1.yCoord, m2.yCoord ) ;
-
-        // Set up xcoord data
-        tResult.FillXCoordData(1,1,1);
-
-        // add to column 3 (4) of TStringGrid
-        Form4.StringGrid1.Objects[4,Form4.StringGrid1.Row] := tResult ;
-        tResult.GLListNumber := Form4.GetLowestListNumber ;
-
-        tResult.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ;
-        tResult.zHigh :=  0 ;
-        tResult.zLow :=   0  ;
-        if (tResult.lineType > MAXDISPLAYTYPEFORSPECTRA) or (tResult.lineType < 1)  then tResult.lineType := 1 ;  //
-        tResult.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(),  tResult.lineType )   ;
-        Form4.StringGrid1.Cells[4,Form4.StringGrid1.Row] := '1-'+ inttostr(tResult.yCoord.numRows) +' : 1-' + inttostr(tResult.yCoord.numCols) ;
-        tResult.xString := m2.xString ;
-        tResult.yString := m1.yString  ;
-      end;
-      end;
-
-    finally
-      vcv.Free ;
-    end ;
-end ;
-
-
-// Leverage(): Calculates the Leverage of samples
-// L(diagonal) = X [ X<t> X ]^-1 X<t>
-// L is numRows by numRows in size
-function TForm3.Leverage(initialLineNum : integer) : integer ;  // returns the line number of the batch file
-var
-  tMemStr : TMemoryStream ;
-  m2, m3 : TMatrix ;
-  tSR1, tResult : TSpectraRanges   ;
-  vcv : TVarAndCoVarFunctions      ;
-  mo  : TMatrixOps  ;
-  t1  : integer ;
-  s1  : single  ;
-  d1  : double  ;
-begin
-    // this is a test code for compensation of other components present1
-    try
-      result := initialLineNum + 1 ;
-      vcv    := TVarAndCoVarFunctions.Create ;
-      mo     := TMatrixOps.Create  ;
-
-      tSR1      := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Row]) ;
-      m2 := mo.MultiplyMatrixByMatrix(tSR1.yCoord,tSR1.yCoord,true,false,1.0,false)  ;
-      mo.MatrixInverseSymmetric(m2) ;
-      m3 := mo.MultiplyMatrixByMatrix(tSR1.yCoord,m2,false,false,1.0,false) ;
-      m2.Free ;
-      m2 := mo.MultiplyMatrixByMatrix(m3,tSR1.yCoord,false,true,1.0,false)  ;
-      m3.Free ;
-      tMemStr := m2.GetDiagonal(m2) ;
-      m2.Free ;
-
-      tResult := TSpectraRanges.Create(tSR1.yCoord.SDPrec div 4, 1, tSR1.yCoord.numRows, @tSR1.LineColor) ;
-      tResult.yCoord.F_Mdata.Free ;
-      tResult.yCoord.F_Mdata := tMemStr ;
-
-      tResult.FillXCoordData(1,1,1);   // startVal, increment: single; direction : forward (1) or backward (-1) through memory
-
-      // add to column 2 (3) of TStringGrid
-      Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row] := tResult ;
-      tResult.GLListNumber := Form4.GetLowestListNumber ;
-      tResult.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ;
-      tResult.zHigh :=  0 ;
-      tResult.zLow :=   0  ;
-      if (tResult.lineType > MAXDISPLAYTYPEFORSPECTRA) or (tResult.lineType < 1)  then tResult.lineType := 1 ;  //
-      tResult.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(),  tResult.lineType )   ;
-      Form4.StringGrid1.Cells[3,Form4.StringGrid1.Row] := '1-'+ inttostr(tResult.yCoord.numRows) +' : 1-' + inttostr(tResult.yCoord.numCols) ;
-      tResult.xString := tSR1.xString ;
-      tResult.yString := tSR1.yString  ;
-
-    finally
-    begin
-      vcv.Free ;
-      mo.Free ;
-    end;
-    end ;
-end ;
-
-
-{
-type = SAVE ROWS
-// saves each row of a file as a different name
-// as set in list below
-file type  =  .bin
-prefix = abc_
-postfix =
-directory = pwd
-file names =
-1:1- density_aveyear
-2:1- raddiam_aveyear
-3:1- tandiam_aveyear
-4:1- coarsness_aveyear
-5:1- cellpop_aveyear
-6:1- rayangle_aveyear
-7:1- isopynic_aveyear
-8:1- MFA_aveyear
-9:1- diffintens_aveyear
-10:1- MOE_aveyear
-11:1- wallthickness_aveyear
-12:1- specificsurface_aveyear
-}
-function TForm3.SaveRowsAsFilenames(initialLineNumIn : integer; tStrListIn: TStringList; tSRIn : TSpectraRanges) : integer ;
-var
-  t1 : integer ;
-  linenum : integer ;
-  fileExt, prefix, postfix, saveToDir, nameStr, tstr1 : string ;
-  rowRange, colRange : string ;
-  nameList : TStringList ;
-  savetSR : TSpectraRanges ;
-  saveSPC  : ReadWriteSPC   ; // used to write a spc file to disk
-  bB : TBatchbasics ;
-  currentPos, increment : integer ;
-begin
-   bB  := TBatchBasics.Create ;
-
-  nameList := TStringList.Create ;
-  linenum:= initialLineNumIn ;
-
-   repeat
-     inc(lineNum) ;
-     tstr1 := bB.GetStringFromStrList(tStrListIn, lineNum) ;
-   until (trim(tstr1) <> '') or (lineNum > tStrListIn.Count)  ;
-   if bB.LeftSideOfEqual(tstr1) = 'file type' then
-     fileExt :=  bB.RightSideOfEqual(tstr1) ;
-   repeat
-     inc(lineNum) ;
-     tstr1 := bB.GetStringFromStrList(tStrListIn, lineNum) ;
-   until (trim(tstr1) <> '') or (lineNum > tStrListIn.Count)  ;
-   if bB.LeftSideOfEqual(tstr1) = 'prefix' then
-     prefix :=  bB.RightSideOfEqual(tstr1) ;
-
-   repeat
-     inc(lineNum) ;
-     tstr1 := bB.GetStringFromStrList(tStrListIn, lineNum) ;
-   until (trim(tstr1) <> '') or (lineNum > tStrListIn.Count)  ;
-   if bB.LeftSideOfEqual(tstr1) = 'postfix' then
-     postfix :=  bB.RightSideOfEqual(tstr1) ;
-
-   repeat
-     inc(lineNum) ;
-     tstr1 := bB.GetStringFromStrList(tStrListIn, lineNum) ;
-   until (trim(tstr1) <> '') or (lineNum > tStrListIn.Count)  ;
-   if bB.LeftSideOfEqual(tstr1) = 'directory' then
-     saveToDir :=  bB.RightSideOfEqual(tstr1) ;
-   if   pos('pwd',(lowercase(saveToDir))) <> 0   then
-   begin
-      saveToDir := trim(saveToDir) ;
-      if length(saveToDir)>3 then
-      begin
-        tstr1 := copy(saveToDir,3,length(saveToDir)-3) ;
-        saveToDir :=  GetCurrentDir() + tstr1 ;
-      end
-      else
-        saveToDir :=  GetCurrentDir() ;
-   end;
-   if copy(saveToDir,length(saveToDir)-1,1)<>'\' then  // add the backslash
-     saveToDir := saveToDir + '\' ;
-   
-
-  repeat
-     inc(lineNum) ;
-     tstr1 := bB.GetStringFromStrList(tStrListIn, lineNum) ;
-   until (trim(tstr1) <> '') or (lineNum > tStrListIn.Count)  ;
-   if bB.LeftSideOfEqual(tstr1) = 'file names' then
-   begin
-      inc(lineNum) ;
-      tstr1 := bB.GetStringFromStrList(tStrListIn, lineNum) ;
-      while (trim(tstr1) <> '') and (lineNum < tStrListIn.Count) and (bB.LeftSideOfEqual(tstr1)<>'type') do
-      begin
-       nameList.Add(tstr1) ;
-       inc(lineNum) ;
-       tstr1 := bB.GetStringFromStrList(tStrListIn, lineNum) ;
-      end;
-   end;
-
-   currentPos := 0 ;
-   rowRange := copy( nameList.Strings[0],1,pos(':',nameList.Strings[0])-1 ) ;
-   if pos('-',rowRange) > 0 then
-   if length(rowRange) > pos('-',rowRange) then
-     increment := strtoint(copy(rowRange,pos('-',rowRange)+1,length(rowRange)-pos('-',rowRange))) ;
-   increment := increment  ;
-
-   colRange := '1-' + inttostr(tSRIn.yCoord.numCols) ;
-   for t1 := 0 to nameList.Count - 1 do
-   begin
-     savetSR := TSpectraRanges.Create(tSRIn.yCoord.SDPrec,1,tSRIn.yCoord.numCols,nil) ;
-
-     rowRange := copy( nameList.Strings[t1],1,pos(':',nameList.Strings[t1])-1 ) ;
-     if length(trim(rowRange)) = 0 then
-     begin
-       rowRange := inttostr(currentPos+1) + '-' + inttostr(currentpos+increment) ;
-     end;
-     currentPos := currentPos +  increment ;
-
-     colRange := copy( nameList.Strings[t1],pos(':',nameList.Strings[t1])+1,pos(' ',nameList.Strings[t1])-pos(':',nameList.Strings[t1])) ;
-     nameStr  := copy( nameList.Strings[t1],pos(' ',nameList.Strings[t1])+1, length(nameList.Strings[t1]) - pos(' ',nameList.Strings[t1])+1) ;
-     nameStr  := saveToDir+ prefix + nameStr + postfix + fileExt ;  // fully qualified file name
-
-
-     savetSR.yCoord.FetchDataFromTMatrix(rowRange,colRange,tSRIn.yCoord) ;
-     savetSR.xCoord.FetchDataFromTMatrix('1',colRange,tSRIn.xCoord) ;
-
-     try
-     if pos('csv', fileExt) > 0 then
-        savetSR.SaveSpectraDelimExcel(nameStr, ',')
-     else if pos('txt', fileExt) > 0 then
-        savetSR.SaveSpectraDelimExcel(nameStr, ' ')
-     else if pos('bin', fileExt) > 0 then
-        savetSR.SaveSpectraRangeDataBinV3(nameStr)
-     else if pos('spc', fileExt) > 0 then
-     begin
-       saveSPC  := ReadWriteSPC.Create ;
-       saveSPC.WriteSPCDataFromSpectraRange(nameStr, savetSR) ;
-       saveSPC.Free ;
-     end
-     else if pos('raw', fileExt) > 0 then
-     begin
-       savetSR.YCoord.ReverseByteOrder ;
-       savetSR.YCoord.F_Mdata.SaveToFile(nameStr) ;
-     end ;
-     finally
-        Form4.StatusBar1.Panels[1].Text := 'Saved file: ' +  nameStr ;
-        Form4.StatusBar1.Refresh ;
-     end;
-
-     savetSR.Free ;
-   end;
-
-  result := lineNum ;
-  bB.Free ;
-  nameList.Free ;
-end;
-
-//'type = interleave'
-//'order and row ranges ='
-//'1:1-'
-//'2:6-'
-//'3:6-'
-//'4:6-'
-// 'column range = 1-'
-//'filename = _interleaved.bin'
-// This function squences through the selected rows, in order specified by the pre-colon value
-// and copies the row ranges as specified in the post-colon range
-function TForm3.InterleaveSpectraRanges(initialLineNumIn: integer; tStrListIn: TStringList) : integer ;
-var
-  t1 : integer ;
-  linenum, selectedRowNum, numColsFromRange, numRowsInteger, selectedSRInt : integer ;
-  nameStr, tstr1 : string ;
-  rowRange, colRange : string ;
-  orderList, rangeList : TStringList ;
-  interleavedSR, currentSR : TSpectraRanges ;
-  bB : TBatchbasics ;
-  colsMS : TMemoryStream ;
-  fetchedRowTM : TMatrix ;
-begin
-   bB  := TBatchBasics.Create ;
-
-  orderList := TStringList.Create ;
-  rangeList := TStringList.Create ;
-  linenum:= initialLineNumIn ;
-
-   repeat
-     inc(lineNum) ;
-     tstr1 := bB.GetStringFromStrList(tStrListIn, lineNum) ;
-   until (trim(tstr1) <> '') or (lineNum > tStrListIn.Count)  ;
-   if bB.LeftSideOfEqual(tstr1) = 'order and row ranges' then
-   begin
-      inc(lineNum) ;
-      tstr1 := bB.GetStringFromStrList(tStrListIn, lineNum) ;
-      while (trim(tstr1) <> '') and (lineNum < tStrListIn.Count) and (bB.LeftSideOfEqual(tstr1)<>'column range') do
-      begin
-       orderList.Add(copy(tstr1,1,pos(':',tstr1)-1)) ;  // this is the order in the GUI string grid that data should go in
-       rangeList.Add(copy(tstr1,pos(':',tstr1)+1,length(tstr1)-pos(':',tstr1)));
-       inc(lineNum) ;
-       tstr1 := bB.GetStringFromStrList(tStrListIn, lineNum) ;
-      end;
-   end;
-
-   colRange :=  bB.RightSideOfEqual(tstr1) ;
-   if trim(colRange) = '' then
-   begin
-    result := lineNum ;
-    messagedlg('column range value is not specified.',mtError,[mbOK],0) ;
-    exit ;
-   end;
-   
-   repeat
-     inc(lineNum) ;
-     tstr1 := bB.GetStringFromStrList(tStrListIn, lineNum) ;
-   until (trim(tstr1) <> '') or (lineNum > tStrListIn.Count)  ;
-   if bB.LeftSideOfEqual(tstr1) = 'filename' then
-   nameStr :=  bB.RightSideOfEqual(tstr1) ;
-
-   SelectStrLst.SortListNumeric ;
-   selectedRowNum := StrToInt(SelectStrLst.Strings[strtoint(orderList.Strings[0])-1]) ;
-   currentSR := TSpectraRanges(Form4.StringGrid1.Objects[Form4.StringGrid1.Col,selectedRowNum]) ;
-   // we should check that all spectra are same precission, and same yCoord.numCols length
-   if copy(colRange,length(colRange)-1,1) = '-' then
-       colRange := colRange +  inttostr(currentSR.yCoord.numCols) ;
-
-   // determine the number of columns in each spectra
-   colsMS := TMemoryStream.Create ;
-   numColsFromRange := currentSR.xCoord.GetTotalRowsColsFromString(colRange, colsMS) ;
-   colsMS.Free ;
-   // new tSR to place data into
-   interleavedSR := TSpectraRanges.Create(currentSR.yCoord.SDPrec,0,0,nil) ;
-
-
-   // determine the number of rows to be added per SpectraRange selected
-   colsMS := TMemoryStream.Create ;
-   rowRange := rangeList.Strings[0] ;
-   if pos('-',trim(rowRange)) = length(trim(rowRange)) then       // sampleRange string is open ended (e.g. '12-')
-    rowRange := rowRange + inttostr(currentSR.yCoord.numRows) ;
-   numRowsInteger := currentSR.xCoord.GetTotalRowsColsFromString(rowRange, colsMS) ;
-   colsMS.Free ;
-
-   // Now numRowsInteger is determined then make sure ranges are single integers that represent
-   // the strating rows to merge. These values will be incremented after each row is extracted and merged
-   // in the final merged SR
-   for t1 := 0 to rangeList.Count - 1 do
-   begin
-     rowRange := rangeList.Strings[t1] ;
-     if pos('-',trim(rowRange)) > 0 then       // sampleRange string is open ended (e.g. '12-')
-       rowRange := copy(rowRange,1,pos('-',trim(rowRange))-1) ;
-     rangeList.Strings[t1] := rowRange ;
-   end;
-
-   // copy the xCoord data
-   fetchedRowTM := TMatrix.Create(currentSR.yCoord.SDPrec) ;
-   fetchedRowTM.FetchDataFromTMatrix('1',colRange,currentSR.xCoord) ;
-   interleavedSR.xCoord.CopyMatrix(fetchedRowTM);
-
-   // extract each row alternately from the list of SpectraRanges and add to the interleaved version
-   for t1 := 0 to (orderList.Count * numRowsInteger) - 1 do
-   begin
-     selectedSRInt  := strtoint(orderList.Strings[t1 mod orderList.Count])-1 ; // subtract 1 as Strings[] are in 0 referenced order
-     selectedRowNum := StrToInt(SelectStrLst.Strings[selectedSRInt]) ;
-     rowRange       := rangeList.Strings[t1 mod orderList.Count] ;    // this should be a single integer
-     currentSR      := TSpectraRanges(Form4.StringGrid1.Objects[Form4.StringGrid1.Col,selectedRowNum]) ;
-
-     fetchedRowTM.FetchDataFromTMatrix(rowRange,colRange,currentSR.yCoord) ;
-     interleavedSR.yCoord.AddRowToEndOfData(fetchedRowTM,1,numColsFromRange);
-
-     rowRange := inttostr( strtoint(rowRange) + 1 );   // increment the row to be inserted next time around
-     if strtoint(rowRange) > currentSR.yCoord.numRows then
-       break ;
-     
-     rangeList.Strings[t1 mod orderList.Count] := rowRange ;
-   end;
-
-   fetchedRowTM.Free ;
-   bB.Free ;
-   orderList.Free ;
-   rangeList.Free ;
-   result := lineNum ;
-
-   selectedRowNum := StrToInt(SelectStrLst.Strings[0]) ;
-   Form4.StringGrid1.Objects[3,selectedRowNum] := interleavedSR ;
-   interleavedSR.GLListNumber := Form4.GetLowestListNumber ;
-   interleavedSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ;
-   interleavedSR.zHigh :=  0 ;
-   interleavedSR.zLow :=   0  ;
-   if (interleavedSR.lineType > MAXDISPLAYTYPEFORSPECTRA) or (interleavedSR.lineType < 1)  then interleavedSR.lineType := 1 ;  //
-   interleavedSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(),  interleavedSR.lineType )   ;
-   Form4.StringGrid1.Cells[3,selectedRowNum] := '1-'+ inttostr(interleavedSR.yCoord.numRows) +' : 1-' + inttostr(interleavedSR.yCoord.numCols) ;
-   interleavedSR.xString := currentSR.xString ;
-   interleavedSR.yString := currentSR.yString  ;
-
-
-end;
-
 
 
 
@@ -1319,16 +696,17 @@ var
    lineNumStr : string ;
    t1, t2, iter : integer ;
    s1, s2 : single ;
-
+//   tReg : TRegression ;
    tStrList : TStringList ;
    tstr1, tstr2, tFilename  : string ;
    // variables for batch processing
    resBool : boolean ;
 
-   bFE    : TPassBatchFileToExecutable ;
-
    tIRPol : TIRPolAnalysis2 ;
    tPLM   : TPLMAnalysis ;
+   tPCA   : TPCABatch ;
+   tPLS   : TPLSYPredictBatch ;
+   tPCR   : TPCRYPredictBatch ;
    tYPredict : TPLSYPredictTestBatch ;
    t2DCorrel : T2DCorrelation ;
    tPeakRatio :  TAreaRatio ;
@@ -1336,6 +714,7 @@ var
    tAutoProject : TAutoProjectEVects ;
    tRotateVect  : TRotateFactor3D ;
    tRotateFitScores  : TRotateToFitScores ;
+ //  tPCRRes : TPCResults ;
 
    colArray : TGLLineColor ;
    tSR, tSR2, tSR3 : TSpectraRanges ;
@@ -1355,8 +734,6 @@ var
 begin
    try
      bB  := TBatchBasics.Create ;
-
-
      resBool := false ; // result of EVect data file from batch file entry 'data file'
      tTimer := TASMTimer.Create(0) ;
 
@@ -1518,7 +895,7 @@ begin
 
               // ******** ALLWAYS CREATE NEW ROW IN STRING GRID  ********
               // create new line and objects in StringGrid using CreateStringGridRowAndObjects
-              colArray := CreateStringGridRowAndObjects8();
+              CreateStringGridRowAndObjects4( tPLM ) ;
               // **** this rearranges original data in interleaved format to 'blocked' format  ****
               if not tPLM.GetAllXData( tSR ) then
               begin
@@ -1655,41 +1032,6 @@ begin
              inc(lineNum) ;
 
           end
-          else if (bB.RightSideOfEqual(tstr1) = 'save rows') then
-          begin
-              // this saves specified rows as a specified file name and file type to a specified directory
-              // this is the selected col and row
-              tSR := TSpectraRanges(Form4.StringGrid1.Objects[Form4.StringGrid1.Col,Form4.StringGrid1.Row]) ;
-              inc(lineNum) ;
-              lineNum := SaveRowsAsFilenames(lineNum, tStrList, tSR) ;
-
-              for t1 :=  initialLineNum to lineNum -1 do
-              begin
-                 tSR.batchList.Add(bB.GetStringFromStrList(tStrList, t1)) ;
-              end ;
-              repeat
-                 inc(lineNum) ;
-                 tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
-              until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
-          end
-          else if (bB.RightSideOfEqual(tstr1) = 'interleave') then
-          begin
-              BatchMemo1.Lines.Add('type = interleave') ;
-              // this function squences through the selected rows, in order specified by the pre-colon value
-              // and copies the row ranges as specified in the post-colon range
-              tSR := TSpectraRanges(Form4.StringGrid1.Objects[Form4.StringGrid1.Col,Form4.StringGrid1.Row]) ;
-              inc(lineNum) ;
-              lineNum := InterleaveSpectraRanges(lineNum, tStrList) ;
-
-              for t1 :=  initialLineNum to lineNum -1 do
-              begin
-                 tSR.batchList.Add(bB.GetStringFromStrList(tStrList, t1)) ;
-              end ;
-              repeat
-                 inc(lineNum) ;
-                 tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
-              until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
-          end
           else if (bB.RightSideOfEqual(tstr1) = 'area ratio') then
           begin
               tSR := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Row]) ;  // this is the selected row
@@ -1697,9 +1039,9 @@ begin
               tPeakRatio := TAreaRatio.Create(tSR.xCoord.SDPrec div 4) ;   // this has to be freed on deletion of row or close of appliction
               lineNum := tPeakRatio.GetAreaRatioBatchArguments(lineNum, iter, tStrList) ;
 
-              // ******** CREATE NEW ROW IN STRING GRID  ********
+              // ******** ALLWAYS CREATE NEW ROW IN STRING GRID  ********
               // create new line and objects in StringGrid using CreateStringGridRowAndObjects
-              colArray := CreateStringGridRowAndObjects8() ;
+              colArray := CreateStringGridRowAndObjects3 ;
 
               if  (tPeakRatio.ProcessAreaRatioData( tSR, @colArray ) = false) then
               begin
@@ -1746,7 +1088,7 @@ begin
 
               // ******** ALLWAYS CREATE NEW ROW IN STRING GRID  ********
               // create new line and objects in StringGrid using CreateStringGridRowAndObjects
-              colArray := CreateStringGridRowAndObjects8( ) ;
+              colArray := CreateStringGridRowAndObjects5( tDichroicRatioObj ) ;
 
               if  (tDichroicRatioObj.ProcessDichroicRatioData( tSR, @colArray ) = false) then
               begin
@@ -1759,7 +1101,7 @@ begin
               //  tDichroicRatioObj.allXData.interleaved := 1 ;
               SetupallXDataAs1D_or_2D(1, tDichroicRatioObj.allXData , tSR) ;
               Form4.StringGrid1.Cells[2,Form4.StringGrid1.RowCount-2] := tDichroicRatioObj.allXData.ReturnRowColRangeString ;
-              if tSR.fft.dtime  <> 0 then
+              if tSR.fft.dt <> 0 then
                     tDichroicRatioObj.allXData.fft.CopyFFTObject(tSR.fft) ;
 
               Form4.StringGrid1.Objects[5,Form4.StringGrid1.RowCount-2] := tDichroicRatioObj.ratioData ;
@@ -1826,41 +1168,13 @@ begin
           end
           else if (bB.RightSideOfEqual(tstr1) = 'matrix multiply') then     //   type = matrix multiply
           begin
-             repeat
-                 inc(lineNum) ;
-                 tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
-            until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
-            if bB.LeftSideOfEqual(tstr1) = 'add y offset' then
-              if bB.RightSideOfEqual(tstr1) = 'true' then
-                lineNum :=  MatrixMultiply(lineNum, true)
-              else
-                lineNum :=  MatrixMultiply(lineNum, false) ;
-
-          //  lineNum :=  MatrixMultiply(lineNum) ; // function defined above
+            lineNum :=  MatrixMultiply(lineNum) ; // function defined above
             repeat
                  inc(lineNum) ;
                  tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
             until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
-
           end
-          else if (bB.RightSideOfEqual(tstr1) = 'matrix correlation') then     //   type = matrix
-          begin
-            lineNum :=  CorrelateMatrix(lineNum) ; // function defined above
-            repeat
-                 inc(lineNum) ;
-                 tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
-            until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
 
-          end
-          else if (bB.RightSideOfEqual(tstr1) = 'leverage') then     //   type = matrix
-          begin
-            lineNum :=  Leverage(lineNum) ; // function defined above
-            repeat
-                 inc(lineNum) ;
-                 tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
-            until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
-
-          end
 
           else if (bB.RightSideOfEqual(tstr1) = 'rotate factors') then     //      type = Rotate Factors
           begin
@@ -1922,7 +1236,7 @@ begin
               tSR2.GLListNumber := Form4.GetLowestListNumber ;
               SetupallXDataAs1D_or_2D(1, tSR2 , tSR) ;
               Form4.StringGrid1.Cells[2,Form4.StringGrid1.RowCount-2] := '1-'+ inttostr(tRotateVect.RotatedPC1.yCoord.numRows) +' : 1-' + inttostr(tRotateVect.RotatedPC1.yCoord.numCols) ;
-              if tSR.fft.dtime  <> 0 then
+              if tSR.fft.dt <> 0 then
                     tRotateVect.RotatedPC1.fft.CopyFFTObject(tSR.fft) ;
 
               Form4.StringGrid1.Objects[4,Form4.StringGrid1.RowCount-2] := tRotateVect.RotatedPC1;
@@ -1932,7 +1246,7 @@ begin
               Form4.StringGrid1.Cells[4,Form4.StringGrid1.RowCount-2] := tRotateVect.RotatedPC1.ReturnRowColRangeString ;
               tRotateVect.RotatedPC1.xString := tSR2.xString ;
               tRotateVect.RotatedPC1.yString := tSR2.yString  ;
-              if tSR.fft.dtime  <> 0 then
+              if tSR.fft.dt <> 0 then
                     tRotateVect.RotatedPC1.fft.CopyFFTObject(tSR.fft) ;
 
               Form4.StringGrid1.Objects[5,Form4.StringGrid1.RowCount-2] := tRotateVect.RotatedPC2;
@@ -1942,7 +1256,7 @@ begin
               Form4.StringGrid1.Cells[5,Form4.StringGrid1.RowCount-2] := tRotateVect.RotatedPC2.ReturnRowColRangeString ;
               tRotateVect.RotatedPC2.xString := tSR2.xString ;
               tRotateVect.RotatedPC2.yString := tSR2.yString  ;
-              if tSR.fft.dtime  <> 0 then
+              if tSR.fft.dt <> 0 then
                     tRotateVect.RotatedPC2.fft.CopyFFTObject(tSR.fft) ;
 
               Form4.StringGrid1.Objects[6,Form4.StringGrid1.RowCount-2] := tRotateVect.RotatedPC3;
@@ -1952,7 +1266,7 @@ begin
               Form4.StringGrid1.Cells[6,Form4.StringGrid1.RowCount-2] := tRotateVect.RotatedPC3.ReturnRowColRangeString ;
               tRotateVect.RotatedPC3.xString := tSR2.xString ;
               tRotateVect.RotatedPC3.yString := tSR2.yString  ;
-              if tSR.fft.dtime  <> 0 then
+              if tSR.fft.dt <> 0 then
                     tRotateVect.RotatedPC3.fft.CopyFFTObject(tSR.fft) ;
 
               Form4.StringGrid1.Objects[7,Form4.StringGrid1.RowCount-2] := tRotateVect.combinedRotatedXYZ;
@@ -1962,7 +1276,7 @@ begin
               Form4.StringGrid1.Cells[7,Form4.StringGrid1.RowCount-2] := tRotateVect.combinedRotatedXYZ.ReturnRowColRangeString ;
               tRotateVect.combinedRotatedXYZ.xString := tSR2.xString ;
               tRotateVect.combinedRotatedXYZ.yString := tSR2.yString  ;
-              if tSR.fft.dtime  <> 0 then
+              if tSR.fft.dt <> 0 then
                     tRotateVect.combinedRotatedXYZ.fft.CopyFFTObject(tSR.fft) ;
 
               if tRotateVect.fitToFactorBool then
@@ -2036,8 +1350,8 @@ begin
               Form4.StringGrid1.Objects[2,Form4.StringGrid1.RowCount-2] :=  tRotateFitScores.allXData ;
               SetupallXDataAs1D_or_2D(1, tRotateFitScores.allXData , tSR) ;
               Form4.StringGrid1.Cells[2,Form4.StringGrid1.RowCount-2] := tRotateFitScores.allXData.ReturnRowColRangeString ;
-              if tSR.fft.dtime  <> 0 then
-                    tRotateFitScores.allXData.fft.CopyFFTObject(tSR.fft) ;
+              if tSR.fft.dt <> 0 then
+                    tPCR.allXData.fft.CopyFFTObject(tSR.fft) ;
 
 
               Form4.StringGrid1.Objects[3,Form4.StringGrid1.RowCount-2] :=  tRotateFitScores.origEVectSpectra ;
@@ -2048,7 +1362,7 @@ begin
               SetupNativeMatrixAs1D_or_2D( tRotateFitScores.origEVectSpectra, tSR ) ;
   //            tRotateFitScores.origEVectSpectra.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1)   ;
               Form4.StringGrid1.Cells[3,Form4.StringGrid1.RowCount-2] := tRotateFitScores.origEVectSpectra.ReturnRowColRangeString ;
-              if tSR.fft.dtime  <> 0 then
+              if tSR.fft.dt <> 0 then
                     tRotateFitScores.origEVectSpectra.fft.CopyFFTObject(tSR.fft) ;
 
 
@@ -2060,7 +1374,7 @@ begin
               SetupNativeMatrixAs1D_or_2D( tRotateFitScores.scoresNew, tSR ) ;
 //              tRotateFitScores.scoresNew.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1)   ;
               Form4.StringGrid1.Cells[4,Form4.StringGrid1.RowCount-2] := tRotateFitScores.scoresNew.ReturnRowColRangeString ;
-              if tSR.fft.dtime  <> 0 then
+              if tSR.fft.dt <> 0 then
                     tRotateFitScores.scoresNew.fft.CopyFFTObject(tSR.fft) ;
 
               Form4.StringGrid1.Objects[5,Form4.StringGrid1.RowCount-2] :=  tRotateFitScores.rotatedVectSpectra ;
@@ -2071,7 +1385,7 @@ begin
               SetupNativeMatrixAs1D_or_2D( tRotateFitScores.rotatedVectSpectra, tSR ) ;
 //              tRotateFitScores.rotatedVectSpectra.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1)   ;
               Form4.StringGrid1.Cells[5,Form4.StringGrid1.RowCount-2] := tRotateFitScores.rotatedVectSpectra.ReturnRowColRangeString ;
-              if tSR.fft.dtime  <> 0 then
+              if tSR.fft.dt <> 0 then
                     tRotateFitScores.rotatedVectSpectra.fft.CopyFFTObject(tSR.fft) ;
 
 
@@ -2083,7 +1397,7 @@ begin
               SetupNativeMatrixAs1D_or_2D( tRotateFitScores.ResidualXData, tSr ) ;
 //              tRotateFitScores.ResidualXData.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1)   ;
               Form4.StringGrid1.Cells[7,Form4.StringGrid1.RowCount-2] := tRotateFitScores.ResidualXData.ReturnRowColRangeString ;
-              if tSR.fft.dtime  <> 0 then
+              if tSR.fft.dt <> 0 then
                     tRotateFitScores.ResidualXData.fft.CopyFFTObject(tSR.fft) ;
 
                Form4.StringGrid1.Cells[8,Form4.StringGrid1.RowCount-2] :=  floattoStrF(tRotateFitScores.Angle_min,ffGeneral,7,5) ;
@@ -2108,23 +1422,6 @@ begin
               end ;
 
 
-          end
-          else if (bB.RightSideOfEqual(tstr1) = 'point multiply') then     //   type = add or subtract
-          begin
-            repeat
-                 inc(lineNum) ;
-                 tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
-            until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
-            if bB.LeftSideOfEqual(tstr1) = 'operation' then
-              if bB.RightSideOfEqual(tstr1) = 'multiply' then
-                lineNum :=  MatrixPointMultiply(lineNum, true)
-              else
-                lineNum :=  MatrixPointMultiply(lineNum, false) ;
-
-            repeat
-                 inc(lineNum) ;
-                 tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
-            until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
           end
           else if (bB.RightSideOfEqual(tstr1) = 'add or subtract') then     //   type = add or subtract
           begin
@@ -2175,7 +1472,6 @@ begin
           begin
 
 
-          // 1/ input part
             repeat
                  inc(lineNum) ;
                  tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
@@ -2200,10 +1496,10 @@ begin
             if bB.LeftSideOfEqual(tstr1) = 'y row' then
                 tstr2 := bB.RightSideOfEqual(tstr1) ;
 
-            // 2/ this function does the multiply/divide
+            // this function does the multiply/divide
             lineNum :=  VectorMultiplyOrDivide(lineNum, AddOrSubtractOperation, vectorPrefactor, tstr2) ;
 
-            // 3/ this tidys up the remaining lines
+            // this tidys up the remaining lines
             repeat
                  inc(lineNum) ;
                  tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
@@ -2215,207 +1511,702 @@ begin
           else if (bB.RightSideOfEqual(tstr1) = 'pcr') then
           begin
              try
+              // This is the X data (Y data is specified in batch file as "YinXData = true" or "YinXData = false"
+              tSR  := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Row]) ;
+
+              // Create PCR batch file processing object
+              tPCR := TPCRYPredictBatch.Create(tSR.xCoord.SDPrec div 4) ;   // this has to be released on deletion of row or close of appliction
+
+              lineNumStr := tPCR.GetBatchArguments(lineNum, iter, tStrList) ;
+              if pos(',',lineNumStr) > 0 then
+              begin
+                 tPCR.Free ;
+                 exit ;
+              end
+              else
+              lineNum := strtoint( lineNumStr ) ;
+
+              if tPCR.YinXData = true then
+                tSR2 := tSR
+              else
+                tSR2 := TSpectraRanges(Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row]) ;
+
 
               // ******** CREATE NEW ROW IN STRING GRID  ********
               // create new line and objects in StringGrid using CreateStringGridRowAndObjects
               // this creates LineColour
-              colArray := CreateStringGridRowAndObjects8( ) ;
-              bFE := TPassBatchFileToExecutable.Create( Form2.MVA_executable ) ; // MVA_executable is external executable path and name
-              bFE.lineCol :=  colArray ;
-              tstr2 :=  bFE.ReadBatchSection(tStrList,lineNum) ; // returns current line number in tStrList batch file
-              if pos(',', tstr2) <> 0 then                       // or returns line number + ',' + errorstring
+              CreateStringGridRowAndObjects7( tPCR ) ;
+
+              // This gets the data from the X an Y data column spectra and does all the processing of the batch file
+              // and creation of a model with desired number of PCs included
+              tTimer.setTimeDifSecUpdateT1 ;
+              tStr1 := tPCR.ProcessPCRBatchFile(tSR,tSR2) ;
+              if  length(tStr1 ) > 0 then
               begin
-               // error occured (as ',' was found in return value :
-               // remove added row from StringGrid1
-                bFE.Free ;
-                RemoveRow('PCR code error, line '+tstr2 ) ;
-                lineNum := strtoint(copy(tstr2,1,pos(',',tstr2)-1)) ;
+                 messagedlg('Function ProcessPLSBatchFile() failed. Line :'+inttostr(lineNum) + ' Error: '+ tStr1 ,mtError,[mbOK],0) ;
+                 tPCR.Free ;
+                 Form4.StatusBar1.Panels[1].Text := 'Function ProcessPLSBatchFile() failed. Line :'+inttostr(lineNum) + ' Error: '+ tStr1 ;
+                 exit ;
+              end ;
+              tTimer.setTimeDifSec ;
+              Form4.StatusBar1.Panels[1].Text := 'processing time: ' + floattostrf(tTimer.getRecordedTime,ffGeneral,5,4) ;
 
-                tstr1 := bB.GetStringFromStrList(tStrList,lineNum) ;
-                while (bB.LeftSideOfEqual(tstr1) <> 'type')  and (lineNum <= tStrList.Count)  do
-                begin
-                  inc(lineNum) ;
-                  tstr1 := bB.GetStringFromStrList(tStrList,lineNum) ;
-                end;
-              end
-              else
+              // *** THESE ARE THE RESULTS  ***  Graph and add to stringgrid1
+              tPCR.allXData.interleaved := 1 ;
+              tPCR.allXData.GLListNumber := Form4.GetLowestListNumber ;
+
+              Form4.StringGrid1.Objects[1,Form4.StringGrid1.RowCount-2]  :=  tPCR ;
+
+              Form4.StringGrid1.Objects[2,Form4.StringGrid1.RowCount-2] :=  tPCR.allXData ;
+              SetupallXDataAs1D_or_2D(1, tPCR.allXData , tSR) ;
+              Form4.StringGrid1.Cells[2,Form4.StringGrid1.RowCount-2] := tPCR.allXData.ReturnRowColRangeString ;
+              if tSR.fft.dt <> 0 then
+                    tPCR.allXData.fft.CopyFFTObject(tSR.fft) ;
+
+              tPCR.allYData.interleaved := 1 ;
+              tPCR.allYData.GLListNumber := Form4.GetLowestListNumber ;
+              tPCR.allYData.lineType := 10 ;
+              SetupallXDataAs1D_or_2D(1, tPCR.allYData , tSR2) ;  // may need to use  SetupNativeMatrixAs1D_or_2D
+              Form4.StringGrid1.Objects[3,Form4.StringGrid1.RowCount-2] :=  tPCR.allYData ;
+              Form4.StringGrid1.Cells[3,Form4.StringGrid1.RowCount-2] := tPCR.allYData.ReturnRowColRangeString ;
+              // this may not be needed
+              if tSR2.fft.dt <> 0 then
+                    tPCR.allYData.fft.CopyFFTObject(tSR2.fft) ;
+
+              Form4.StringGrid1.Objects[4,Form4.StringGrid1.RowCount-2] := tPCR.scoresSpectra ;
+              tPCR.scoresSpectra.yCoord.Transpose ;
+              tPCR.scoresSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              if tSR.frequencyImage then
+                tPCR.scoresSpectra.nativeImage := true ;
+              SetupNativeMatrixAs1D_or_2D( tPCR.scoresSpectra, tSr ) ;
+              Form4.StringGrid1.Cells[4,Form4.StringGrid1.RowCount-2] := tPCR.scoresSpectra.ReturnRowColRangeString ;
+              tPCR.scoresSpectra.xString := 'Sample Number' ;
+              tPCR.scoresSpectra.yString := 'Score' ;
+              tPCR.scoresSpectra.numImagesOrAngles := tPCR.numPCs ;
+
+
+              Form4.StringGrid1.Objects[5,Form4.StringGrid1.RowCount-2] := tPCR.eigenVSpectra ;
+              tPCR.eigenVSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              tPCR.eigenVSpectra.SetOpenGLXYRange(Form2.GetWhichLineToDisplay());
+              tPCR.eigenVSpectra.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1)   ;
+              Form4.StringGrid1.Cells[5,Form4.StringGrid1.RowCount-2] := tPCR.eigenVSpectra.ReturnRowColRangeString ;
+              tPCR.eigenVSpectra.xString := tPCR.allXData.xString ;
+              tPCR.eigenVSpectra.yString := tPCR.allXData.yString  ;
+              if tSR.fft.dt <> 0 then
+                    tPCR.eigenVSpectra.fft.CopyFFTObject(tSR.fft) ;
+
+              Form4.StringGrid1.Objects[6,Form4.StringGrid1.RowCount-2] := tPCR.eigenValSpectra ;
+              tPCR.eigenValSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              tPCR.eigenValSpectra.SetOpenGLXYRange(Form2.GetWhichLineToDisplay());
+              tPCR.eigenValSpectra.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 4)   ;   // 4 = lines with dots
+              tPCR.eigenValSpectra.YLow :=  0 ;
+              Form4.StringGrid1.Cells[6,Form4.StringGrid1.RowCount-2] := tPCR.eigenValSpectra.ReturnRowColRangeString ;
+              tPCR.eigenValSpectra.xString := 'PC Number' ;
+              tPCR.eigenValSpectra.yString := 'Variance' ;
+
+{              Form4.StringGrid1.Objects[7,Form4.StringGrid1.RowCount-2] := tPCR.XresidualsSpectra ;
+              tPCR.XresidualsSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              if tSR.frequencyImage then
+                tPCR.XresidualsSpectra.frequencyImage := true ;
+              SetupallXDataAs1D_or_2D(1, tPCR.XresidualsSpectra , tSR) ;
+              Form4.StringGrid1.Cells[7,Form4.StringGrid1.RowCount-2] := tPCR.XresidualsSpectra.ReturnRowColRangeString ;
+              tPCR.XresidualsSpectra.xString := tPCR.allXData.xString ;
+              tPCR.XresidualsSpectra.yString := tPCR.allXData.yString  ;
+              if tSR.fft.dt <> 0 then
+                    tPCR.XresidualsSpectra.fft.CopyFFTObject(tSR.fft) ;
+
+              Form4.StringGrid1.Objects[8,Form4.StringGrid1.RowCount-2] := tPCR.regenSpectra ;
+              tPCR.regenSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              if tSR.frequencyImage then
+                tPCR.regenSpectra.frequencyImage := true ;
+              SetupallXDataAs1D_or_2D(1, tPCR.regenSpectra , tSR) ;
+              Form4.StringGrid1.Cells[8,Form4.StringGrid1.RowCount-2] := tPCR.regenSpectra.ReturnRowColRangeString ;
+              tPCR.regenSpectra.xString := tPCR.allXData.xString ;
+              tPCR.regenSpectra.yString := tPCR.allXData.yString  ;
+              if tSR.fft.dt <> 0 then
+                    tPCR.regenSpectra.fft.CopyFFTObject(tSR.fft) ;
+}
+
+              //  y residuals
+              Form4.StringGrid1.Objects[9,Form4.StringGrid1.RowCount-2] := tPCR.YresidualsSpectra ;
+              tPCR.YresidualsSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              if tSR.frequencyImage then
+                tPCR.YresidualsSpectra.nativeImage := true ; // 1 image for each PC
+              SetupNativeMatrixAs1D_or_2D( tPCR.YresidualsSpectra, tSr ) ;
+              Form4.StringGrid1.Cells[9,Form4.StringGrid1.RowCount-2] := tPCR.YresidualsSpectra.ReturnRowColRangeString ;
+              tPCR.YresidualsSpectra.xString := 'PC number' ;
+              tPCR.YresidualsSpectra.yString := 'Y Residual'  ;
+              if tSR.fft.dt <> 0 then
+                    tPCR.YresidualsSpectra.fft.CopyFFTObject(tSR.fft) ;
+
+
+              // this is a scatter type plot      
+              Form4.StringGrid1.Objects[10,Form4.StringGrid1.RowCount-2] := tPCR.predictedYPCR ;
+ //             tPCR.predYPLSSpectra.lineType := 4 ;
+              tPCR.predictedYPCR.xyScatterPlot := true ;
+              tPCR.predictedYPCR.GLListNumber := Form4.GetLowestListNumber ;
+              tPCR.predictedYPCR.SetOpenGLXYRangeScatterPlot(Form2.GetWhichLineToDisplay());
+              tPCR.predictedYPCR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 10)   ;
+              Form4.StringGrid1.Cells[10,Form4.StringGrid1.RowCount-2] := tPCR.predictedYPCR.ReturnRowColRangeString ;
+              tPCR.predictedYPCR.xString := 'Known Y' ;
+              tPCR.predictedYPCR.yString := 'Predicted Y'  ;
+              if tSR.fft.dt <> 0 then
+                    tPCR.predictedYPCR.fft.CopyFFTObject(tSR.fft) ;
+
+
+              Form4.StringGrid1.Objects[11,Form4.StringGrid1.RowCount-2] := tPCR.modelPCRSpectra ;
+              tPCR.modelPCRSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              tPCR.modelPCRSpectra.SetOpenGLXYRange(Form2.GetWhichLineToDisplay());
+              tPCR.modelPCRSpectra.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1)   ;
+              Form4.StringGrid1.Cells[11,Form4.StringGrid1.RowCount-2] := tPCR.modelPCRSpectra.ReturnRowColRangeString ;
+              tPCR.modelPCRSpectra.xString := tPCR.allXData.xString ;
+              tPCR.modelPCRSpectra.yString := 'PCR Model'  ;
+              if tSR.fft.dt <> 0 then
+                    tPCR.modelPCRSpectra.fft.CopyFFTObject(tSR.fft) ;     
+
+
+              Form4.StringGrid1.Objects[12,Form4.StringGrid1.RowCount-2] := tPCR.regresCoefSpectra ;
+              tPCR.regresCoefSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              tPCR.regresCoefSpectra.SetOpenGLXYRange(Form2.GetWhichLineToDisplay());
+              tPCR.regresCoefSpectra.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1)   ;
+              Form4.StringGrid1.Cells[12,Form4.StringGrid1.RowCount-2] := tPCR.regresCoefSpectra.ReturnRowColRangeString ;
+              tPCR.regresCoefSpectra.xString := tPCR.allXData.xString ;
+              tPCR.regresCoefSpectra.yString := 'variable coefficients'  ;
+              if tSR.fft.dt <> 0 then
+                    tPCR.regresCoefSpectra.fft.CopyFFTObject(tSR.fft) ;
+
+
+              Form4.StringGrid1.Objects[13,Form4.StringGrid1.RowCount-2] := tPCR.R_sqrd_PCR ;
+              tPCR.R_sqrd_PCR.GLListNumber := Form4.GetLowestListNumber ;
+              tPCR.R_sqrd_PCR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay());
+              Form4.StringGrid1.Cells[13,Form4.StringGrid1.RowCount-2] := '1' +' : 1-' + inttostr(tPCR.R_sqrd_PCR.yCoord.numCols) ;
+              tPCR.R_sqrd_PCR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 3)   ;
+              tPCR.R_sqrd_PCR.xString :=  'PC number' ;
+              tPCR.R_sqrd_PCR.yString := 'R^2'  ;
+              if tSR.fft.dt <> 0 then
+                    tPCR.R_sqrd_PCR.fft.CopyFFTObject(tSR.fft) ;
+              tPCR.R_sqrd_PCR.yLow := 0.0 ;
+              tPCR.R_sqrd_PCR.yHigh := 1.0 ;
+
+              TSpectraRanges(Form4.StringGrid1.Objects[4,Form4.StringGrid1.RowCount-2]).columnLabel  := 'scores'     ;   // PCR
+              TSpectraRanges(Form4.StringGrid1.Objects[5,Form4.StringGrid1.RowCount-2]).columnLabel  := 'eignevects'   ;
+              TSpectraRanges(Form4.StringGrid1.Objects[6,Form4.StringGrid1.RowCount-2]).columnLabel  := 'eigenvals:' ;    // plot of variance spanned by each PC
+              TSpectraRanges(Form4.StringGrid1.Objects[7,Form4.StringGrid1.RowCount-2]).columnLabel  := 'x resid.'   ;    // residual data left after subtraction of desired PC range of eigenvectors.
+              TSpectraRanges(Form4.StringGrid1.Objects[8,Form4.StringGrid1.RowCount-2]).columnLabel  := 'x regen. '  ;    // regenerated data from desired set of PCs  specified
+              TSpectraRanges(Form4.StringGrid1.Objects[9,Form4.StringGrid1.RowCount-2]).columnLabel  := 'y resid.'   ;    // regression residual y data for each PC added. Good for outlier detection.
+              TSpectraRanges(Form4.StringGrid1.Objects[10,Form4.StringGrid1.RowCount-2]).columnLabel := 'y pred.'    ;    // plot of measured vs predicted for set of PC's specified
+              TSpectraRanges(Form4.StringGrid1.Objects[11,Form4.StringGrid1.RowCount-2]).columnLabel := 'model:'     ;    // PCR specific
+              TSpectraRanges(Form4.StringGrid1.Objects[12,Form4.StringGrid1.RowCount-2]).columnLabel := 'reg. coef.' ;    // result of regression. Plot of Variables vs Absorbance for number of PC's specified
+              TSpectraRanges(Form4.StringGrid1.Objects[13,Form4.StringGrid1.RowCount-2]).columnLabel := 'R^2'        ;    // Single value of R value for regression. If IR-pol then plot of position vs R value OR if 2D then
+
+              Form4.StringGrid1.Cells[1,Form4.StringGrid1.RowCount-2] := ExtractFileName(tPCR.allXData.XCoord.Filename) ;
+
+               // add batch file text to created data
+              tSR := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.RowCount-2]) ;
+              tSR.batchList.Add('// from line: '+inttostr(Form4.StringGrid1.Row)) ;
+              tSR.batchList.Add('//processing time: ' + floattostrf(tTimer.getRecordedTime,ffGeneral,5,4) + ' / ' + floattostrf(tTimer.returnCPUSpeedGHz,ffGeneral,5,4) + 'GHz') ;
+             
+              for t1 :=  initialLineNum to lineNum-1   do
               begin
-                Form4.StringGrid1.Cells[1,Form4.StringGrid1.RowCount-2]  := 'PID: PCR' + bFE.batchFilename ;
-                Form4.StringGrid1.Objects[1,Form4.StringGrid1.RowCount-2]  := bFE ;
-                lineNum := strtoint(copy(tstr2,1,length(tstr2))) ;
-              end;
-
-
+                 tSR.batchList.Add(bB.GetStringFromStrList(tStrList, t1)) ;
+              end ;
             except
-            begin
               RemoveRow('PCR code encountered a problem') ;
-              bFE.Free ;
-            end;
             end ;
           end
           else if  (bB.RightSideOfEqual(tstr1) = 'pls1') then
           begin
-             try
+            try
+              // This is the X data (Y data is specified in batch file as "YinXData = true" or "YinXData = false"
+              tSR  := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Row]) ;
+
+              // Create PLS batch file processing object
+              tPLS := TPLSYPredictBatch.Create(tSR.xCoord.SDPrec div 4) ;   // this has to be released on deletion of row or close of appliction
+
+              lineNumStr := tPLS.GetBatchArguments(lineNum, iter, tStrList) ;
+              if pos(',',lineNumStr) > 0 then
+              begin
+                 tPLS.Free ;
+                 exit ;
+              end
+              else
+              lineNum := strtoint( lineNumStr ) ;
+
+              if tPLS.YinXData = true then
+                tSR2 := tSR
+              else
+                tSR2 := TSpectraRanges(Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row]) ;
+
 
               // ******** CREATE NEW ROW IN STRING GRID  ********
               // create new line and objects in StringGrid using CreateStringGridRowAndObjects
               // this creates LineColour
-              colArray := CreateStringGridRowAndObjects8( ) ;
-              bFE := TPassBatchFileToExecutable.Create( Form2.MVA_executable ) ; // MVA_executable is external executable path and name
-              bFE.lineCol :=  colArray ;
-              tstr2 :=  bFE.ReadBatchSection(tStrList,lineNum) ; // returns current line number in tStrList batch file
-              if pos(',', tstr2) <> 0 then                       // or returns line number + ',' + errorstring
+              CreateStringGridRowAndObjects6( tPLS ) ;
+
+              // This gets the data from the X an Y data column spectra and does all the processing of the batch file
+              // and creation of a model with desired number of PCs included
+              tTimer.setTimeDifSecUpdateT1 ;
+              tStr1 := tPLS.ProcessPLSBatchFile(tSR,tSR2) ;
+              if  length(tStr1 ) > 0 then
               begin
-               // error occured (as ',' was found in return value :
-               // remove added row from StringGrid1
-                bFE.Free ;
-                RemoveRow('PLS code encountered a problem '+tstr2 ) ;
-                lineNum := strtoint(copy(tstr2,1,pos(',',tstr2)-1)) ;
+                 messagedlg('Function ProcessPLSBatchFile() failed. Line :'+inttostr(lineNum) + ' Error: '+ tStr1 ,mtError,[mbOK],0) ;
+                 tPLS.Free ;
+               //  RemoveRow('Function ProcessPLSBatchFile() failed. Line :'+inttostr(lineNum) + ' Error: '+ tSr1) ;
+                 exit ;
+              end ;
+              tTimer.setTimeDifSec ;
+              Form4.StatusBar1.Panels[1].Text := 'processing time: ' + floattostrf(tTimer.getRecordedTime,ffGeneral,5,4) ;
 
-                tstr1 := bB.GetStringFromStrList(tStrList,lineNum) ;
-                while (bB.LeftSideOfEqual(tstr1) <> 'type')  and (lineNum <= tStrList.Count)  do
-                begin
-                  inc(lineNum) ;
-                  tstr1 := bB.GetStringFromStrList(tStrList,lineNum) ;
-                end;
-              end
-              else
+              // *** THESE ARE THE RESULTS  ***  Graph and add to stringgrid1
+              tPLS.allXData.interleaved := 1 ;
+              tPLS.allXData.GLListNumber := Form4.GetLowestListNumber ;
+
+              Form4.StringGrid1.Objects[1,Form4.StringGrid1.RowCount-2]  :=  tPLS ;
+
+              Form4.StringGrid1.Objects[2,Form4.StringGrid1.RowCount-2] :=  tPLS.allXData ;
+              SetupallXDataAs1D_or_2D(1, tPLS.allXData , tSR) ;
+              Form4.StringGrid1.Cells[2,Form4.StringGrid1.RowCount-2] := tPLS.allXData.ReturnRowColRangeString ;
+              if tSR.fft.dt <> 0 then
+                    tPLS.allXData.fft.CopyFFTObject(tSR.fft) ;
+
+              tPLS.allYData.interleaved := 1 ;
+              tPLS.allYData.GLListNumber := Form4.GetLowestListNumber ;
+              tPLS.allYData.lineType := 10 ;
+              SetupallXDataAs1D_or_2D(1, tPLS.allYData , tSR2) ;  // may need to use  SetupNativeMatrixAs1D_or_2D
+              Form4.StringGrid1.Objects[3,Form4.StringGrid1.RowCount-2] :=  tPLS.allYData ;
+              Form4.StringGrid1.Cells[3,Form4.StringGrid1.RowCount-2] := tPLS.allYData.ReturnRowColRangeString ;
+              // this may not be needed
+              if tSR2.fft.dt <> 0 then
+                    tPLS.allYData.fft.CopyFFTObject(tSR2.fft) ;
+
+              Form4.StringGrid1.Objects[4,Form4.StringGrid1.RowCount-2] := tPLS.scoresSpectra ;
+              tPLS.scoresSpectra.yCoord.Transpose ;
+              tPLS.scoresSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              if tSR.frequencyImage then
+                tPLS.scoresSpectra.nativeImage := true ;
+              SetupNativeMatrixAs1D_or_2D( tPLS.scoresSpectra, tSr ) ;
+              Form4.StringGrid1.Cells[4,Form4.StringGrid1.RowCount-2] := tPLS.scoresSpectra.ReturnRowColRangeString ;
+              tPLS.scoresSpectra.xString := 'Sample Number' ;
+              tPLS.scoresSpectra.yString := 'Score' ;
+              tPLS.scoresSpectra.numImagesOrAngles := tPLS.numPCs ;
+
+
+              Form4.StringGrid1.Objects[5,Form4.StringGrid1.RowCount-2] := tPLS.eigenVSpectra ;
+              tPLS.eigenVSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              tPLS.eigenVSpectra.SetOpenGLXYRange(Form2.GetWhichLineToDisplay());
+              tPLS.eigenVSpectra.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1)   ;
+              Form4.StringGrid1.Cells[5,Form4.StringGrid1.RowCount-2] := tPLS.eigenVSpectra.ReturnRowColRangeString ;
+              tPLS.eigenVSpectra.xString := tPLS.allXData.xString ;
+              tPLS.eigenVSpectra.yString := tPLS.allXData.yString  ;
+              if tSR.fft.dt <> 0 then
+                    tPLS.eigenVSpectra.fft.CopyFFTObject(tSR.fft) ;
+
+              Form4.StringGrid1.Objects[6,Form4.StringGrid1.RowCount-2] := tPLS.eigenValSpectra ;
+              tPLS.eigenValSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              tPLS.eigenValSpectra.SetOpenGLXYRange(Form2.GetWhichLineToDisplay());
+              tPLS.eigenValSpectra.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 4)   ;   // 4 = lines with dots
+              tPLS.eigenValSpectra.YLow :=  0 ;
+              Form4.StringGrid1.Cells[6,Form4.StringGrid1.RowCount-2] := tPLS.eigenValSpectra.ReturnRowColRangeString ;
+              tPLS.eigenValSpectra.xString := 'PC Number' ;
+              tPLS.eigenValSpectra.yString := 'Variance' ;
+
+    {          Form4.StringGrid1.Objects[7,Form4.StringGrid1.RowCount-2] := tPLS.XresidualsSpectra ;
+              tPLS.XresidualsSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              if tSR.frequencyImage then
+                tPLS.XresidualsSpectra.frequencyImage := true ;
+              SetupallXDataAs1D_or_2D(1, tPLS.XresidualsSpectra , tSR) ;
+              Form4.StringGrid1.Cells[7,Form4.StringGrid1.RowCount-2] := tPLS.XresidualsSpectra.ReturnRowColRangeString ;
+              tPLS.XresidualsSpectra.xString := tPLS.allXData.xString ;
+              tPLS.XresidualsSpectra.yString := tPLS.allXData.yString  ;
+              if tSR.fft.dt <> 0 then
+                    tPLS.XresidualsSpectra.fft.CopyFFTObject(tSR.fft) ;
+
+              Form4.StringGrid1.Objects[8,Form4.StringGrid1.RowCount-2] := tPLS.regenSpectra ;
+              tPLS.regenSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              if tSR.frequencyImage then
+                tPLS.regenSpectra.frequencyImage := true ;
+              SetupallXDataAs1D_or_2D(1, tPLS.regenSpectra , tSR) ;
+              Form4.StringGrid1.Cells[8,Form4.StringGrid1.RowCount-2] := tPLS.regenSpectra.ReturnRowColRangeString ;
+              tPLS.regenSpectra.xString := tPLS.allXData.xString ;
+              tPLS.regenSpectra.yString := tPLS.allXData.yString  ;
+              if tSR.fft.dt <> 0 then
+                    tPLS.regenSpectra.fft.CopyFFTObject(tSR.fft) ;      }
+
+
+              //  y residuals
+              Form4.StringGrid1.Objects[9,Form4.StringGrid1.RowCount-2] := tPLS.YresidualsSpectra ;
+              tPLS.YresidualsSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              if tSR.frequencyImage then
+                tPLS.YresidualsSpectra.nativeImage := true ; // 1 image for each PC
+              SetupNativeMatrixAs1D_or_2D( tPLS.YresidualsSpectra, tSr ) ;
+              Form4.StringGrid1.Cells[9,Form4.StringGrid1.RowCount-2] := tPLS.YresidualsSpectra.ReturnRowColRangeString ;
+              tPLS.YresidualsSpectra.xString := 'PC number' ;
+              tPLS.YresidualsSpectra.yString := 'Y Residual'  ;
+              if tSR.fft.dt <> 0 then
+                    tPLS.YresidualsSpectra.fft.CopyFFTObject(tSR.fft) ;
+
+
+              // this is a scatter type plot      
+              Form4.StringGrid1.Objects[10,Form4.StringGrid1.RowCount-2] := tPLS.predYPLSSpectra ;
+ //             tPLS.predYPLSSpectra.lineType := 4 ;
+              tPLS.predYPLSSpectra.xyScatterPlot := true ;
+              tPLS.predYPLSSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              tPLS.predYPLSSpectra.SetOpenGLXYRangeScatterPlot(Form2.GetWhichLineToDisplay());
+              tPLS.predYPLSSpectra.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 10)   ;
+              Form4.StringGrid1.Cells[10,Form4.StringGrid1.RowCount-2] := tPLS.predYPLSSpectra.ReturnRowColRangeString ;
+              tPLS.predYPLSSpectra.xString := 'Known Y' ;
+              tPLS.predYPLSSpectra.yString := 'Predicted Y'  ;
+              if tSR.fft.dt <> 0 then
+                    tPLS.predYPLSSpectra.fft.CopyFFTObject(tSR.fft) ;
+
+
+              Form4.StringGrid1.Objects[11,Form4.StringGrid1.RowCount-2] := tPLS.weightsSpectra ;
+              tPLS.weightsSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              tPLS.weightsSpectra.SetOpenGLXYRange(Form2.GetWhichLineToDisplay());
+              tPLS.weightsSpectra.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1)   ;
+              Form4.StringGrid1.Cells[11,Form4.StringGrid1.RowCount-2] := tPLS.weightsSpectra.ReturnRowColRangeString ;
+              tPLS.weightsSpectra.xString := tPLS.allXData.xString ;
+              tPLS.weightsSpectra.yString := 'X weight'  ;
+              if tSR.fft.dt <> 0 then
+                    tPLS.weightsSpectra.fft.CopyFFTObject(tSR.fft) ;
+
+
+              Form4.StringGrid1.Objects[12,Form4.StringGrid1.RowCount-2] := tPLS.regresCoefSpectra ;
+              tPLS.regresCoefSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              tPLS.regresCoefSpectra.SetOpenGLXYRange(Form2.GetWhichLineToDisplay());
+              tPLS.regresCoefSpectra.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1)   ;
+              Form4.StringGrid1.Cells[12,Form4.StringGrid1.RowCount-2] := tPLS.regresCoefSpectra.ReturnRowColRangeString ;
+              tPLS.regresCoefSpectra.xString := tPLS.allXData.xString ;
+              tPLS.regresCoefSpectra.yString := 'variable coefficients'  ;
+              if tSR.fft.dt <> 0 then
+                    tPLS.weightsSpectra.fft.CopyFFTObject(tSR.fft) ;
+
+
+              Form4.StringGrid1.Objects[13,Form4.StringGrid1.RowCount-2] := tPLS.R_sqrd_PLS ;
+              tPLS.R_sqrd_PLS.GLListNumber := Form4.GetLowestListNumber ;
+              tPLS.R_sqrd_PLS.SetOpenGLXYRange(Form2.GetWhichLineToDisplay());
+              Form4.StringGrid1.Cells[13,Form4.StringGrid1.RowCount-2] := '1' +' : 1-' + inttostr(tPLS.R_sqrd_PLS.yCoord.numCols) ;
+              tPLS.R_sqrd_PLS.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 3)   ;
+              tPLS.R_sqrd_PLS.xString :=  'PC number' ;
+              tPLS.R_sqrd_PLS.yString := 'R^2'  ;
+              if tSR.fft.dt <> 0 then
+                    tPLS.R_sqrd_PLS.fft.CopyFFTObject(tSR.fft) ;
+              tPLS.R_sqrd_PLS.yLow := 0.0 ;
+              tPLS.R_sqrd_PLS.yHigh := 1.0 ;
+
+
+              TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.RowCount-2]).columnLabel  := 'X data'     ;   // PCR
+              TSpectraRanges(Form4.StringGrid1.Objects[3,Form4.StringGrid1.RowCount-2]).columnLabel  := 'Y data'   ;
+              TSpectraRanges(Form4.StringGrid1.Objects[4,Form4.StringGrid1.RowCount-2]).columnLabel  := 'scores'     ;   // PCR
+              TSpectraRanges(Form4.StringGrid1.Objects[5,Form4.StringGrid1.RowCount-2]).columnLabel  := 'eignevects'   ;
+              TSpectraRanges(Form4.StringGrid1.Objects[6,Form4.StringGrid1.RowCount-2]).columnLabel  := 'eigenvals:' ;    // plot of variance spanned by each PC
+            //  TSpectraRanges(Form4.StringGrid1.Objects[7,Form4.StringGrid1.RowCount-2]).columnLabel  := 'x resid.'   ;    // residual data left after subtraction of desired PC range of eigenvectors.
+            //  TSpectraRanges(Form4.StringGrid1.Objects[8,Form4.StringGrid1.RowCount-2]).columnLabel  := 'x regen. '  ;    // regenerated data from desired set of PCs  specified
+              TSpectraRanges(Form4.StringGrid1.Objects[9,Form4.StringGrid1.RowCount-2]).columnLabel  := 'y resid.'   ;    // regression residual y data for each PC added. Good for outlier detection.
+              TSpectraRanges(Form4.StringGrid1.Objects[10,Form4.StringGrid1.RowCount-2]).columnLabel := 'y pred.'    ;    // plot of measured vs predicted for set of PC's specified
+              TSpectraRanges(Form4.StringGrid1.Objects[11,Form4.StringGrid1.RowCount-2]).columnLabel := 'weights:'     ;    // PCR specific
+              TSpectraRanges(Form4.StringGrid1.Objects[12,Form4.StringGrid1.RowCount-2]).columnLabel := 'reg. coef.' ;    // result of regression. Plot of Variables vs Absorbance for number of PC's specified
+              TSpectraRanges(Form4.StringGrid1.Objects[13,Form4.StringGrid1.RowCount-2]).columnLabel := 'R^2'     ;
+
+
+              Form4.StringGrid1.Cells[1,Form4.StringGrid1.RowCount-2] := ExtractFileName(tPLS.allXData.XCoord.Filename) ;
+
+               // add batch file text to created data
+              tSR := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.RowCount-2]) ;
+              tSR.batchList.Add('// from line: '+inttostr(Form4.StringGrid1.Row)) ;
+              tSR.batchList.Add('//processing time: ' + floattostrf(tTimer.getRecordedTime,ffGeneral,5,4) + ' / ' + floattostrf(tTimer.returnCPUSpeedGHz,ffGeneral,5,4) + 'GHz') ;
+
+              for t1 :=  initialLineNum to lineNum-1   do
               begin
-                Form4.StringGrid1.Cells[1,Form4.StringGrid1.RowCount-2]  := 'PID: PLS' + bFE.batchFilename ;
-                Form4.StringGrid1.Objects[1,Form4.StringGrid1.RowCount-2]  := bFE ;
-                lineNum := strtoint(copy(tstr2,1,length(tstr2))) ;
-              end;
-
-
+                 tSR.batchList.Add(bB.GetStringFromStrList(tStrList, t1)) ;
+              end ;
             except
-            begin
-              RemoveRow('PLS code encountered a problem') ;
-              bFE.Free ;
-            end;
-            end ;
-          end
-          else if  (bB.RightSideOfEqual(tstr1) = 'ils') then
-          begin
-             try
-
-              // ******** CREATE NEW ROW IN STRING GRID  ********
-              // create new line and objects in StringGrid using CreateStringGridRowAndObjects
-              // this creates LineColour
-              colArray := CreateStringGridRowAndObjects8( ) ;
-              bFE := TPassBatchFileToExecutable.Create( Form2.MVA_executable ) ; // MVA_executable is external executable path and name
-              bFE.lineCol :=  colArray ;
-              tstr2 :=  bFE.ReadBatchSection(tStrList,lineNum) ; // returns current line number in tStrList batch file
-              if pos(',', tstr2) <> 0 then                       // or returns line number + ',' + errorstring
-              begin
-               // error occured (as ',' was found in return value :
-               // remove added row from StringGrid1
-                bFE.Free ;
-                RemoveRow('ILS code encountered a problem '+tstr2 ) ;
-                lineNum := strtoint(copy(tstr2,1,pos(',',tstr2)-1)) ;
-
-                tstr1 := bB.GetStringFromStrList(tStrList,lineNum) ;
-                while (bB.LeftSideOfEqual(tstr1) <> 'type')  and (lineNum <= tStrList.Count)  do
-                begin
-                  inc(lineNum) ;
-                  tstr1 := bB.GetStringFromStrList(tStrList,lineNum) ;
-                end;
-              end
-              else
-              begin
-                Form4.StringGrid1.Cells[1,Form4.StringGrid1.RowCount-2]  := 'PID: ILS' + bFE.batchFilename ;
-                Form4.StringGrid1.Objects[1,Form4.StringGrid1.RowCount-2]  := bFE ;
-                lineNum := strtoint(copy(tstr2,1,length(tstr2))) ;
-              end;
-
-            except
-            begin
-              RemoveRow('ILS code encountered a problem') ;
-              bFE.Free ;
-            end;
+              RemoveRow('PLS1 code encountered a problem') ;
             end ;
           end
           else if  (bB.RightSideOfEqual(tstr1) = 'predict y') then
           begin
              try
+               // This is the X data (Y data is specified in batch file as "YinXData = true" or "YinXData = false"
+               tSR  := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Row]) ;
 
-              // ******** CREATE NEW ROW IN STRING GRID  ********
-              // create new line and objects in StringGrid using CreateStringGridRowAndObjects
-              // this creates LineColour
-              colArray := CreateStringGridRowAndObjects8( ) ;
-              bFE := TPassBatchFileToExecutable.Create( Form2.MVA_executable ) ; // MVA_executable is external executable path and name
-              bFE.lineCol :=  colArray ;
-              tstr2 :=  bFE.ReadBatchSection(tStrList,lineNum) ; // returns current line number in tStrList batch file
-              if pos(',', tstr2) <> 0 then                       // or returns line number + ',' + errorstring
+               // Create PLS batch file processing object
+               tYPredict := TPLSYPredictTestBatch.Create(tSR.yCoord.SDPrec div 4) ;   // this has to be released on deletion of row or close of appliction
+
+               lineNumStr := tYPredict.GetBatchArguments(lineNum, iter, tStrList) ;
+               if pos(',',lineNumStr) > 0 then
+               begin
+                 tYPredict.Free ;
+                 exit ;
+               end
+               else
+               lineNum := strtoint( lineNumStr ) ;
+
+               // this is the source of the Y data
+               if tYPredict.YinXData = true then
+                 tSR2 := tSR   // Y data is in X data matrix
+               else
+                 tSR2 := TSpectraRanges(Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row]) ; // this is Y data
+
+                // this is the regression coeficients
+                tSR3  := TSpectraRanges(Form4.StringGrid1.Objects[4,Form4.StringGrid1.Row]) ; // these are regression coeficients
+
+               // This gets the data from the X an Y data column spectra and does all the processing of the batch file
+               // and creation of a model with desired number of PCs included
+               tTimer.setTimeDifSecUpdateT1 ;
+               tStr1 := tYPredict.TestModelData(tSR,tSR2, tSR3) ; // this does the processing
+               if  length(tStr1 ) > 0 then
+               begin
+                 messagedlg('Function TestModelData() failed. Line :'+inttostr(lineNum) + ' Error: '+ tStr1 ,mtError,[mbOK],0) ;
+                 tYPredict.Free ;
+               //  RemoveRow('Function ProcessPLSBatchFile() failed. Line :'+inttostr(lineNum) + ' Error: '+ tSr1) ;
+                 exit ;
+               end ;
+               tTimer.setTimeDifSec ;
+               Form4.StatusBar1.Panels[1].Text := 'processing time: ' + floattostrf(tTimer.getRecordedTime,ffGeneral,5,4) ;
+
+
+              tYPredict.allXData.interleaved := 1 ;
+              tYPredict.allXData.GLListNumber := Form4.GetLowestListNumber ;
+
+              Form4.StringGrid1.Objects[1,Form4.StringGrid1.RowCount-2]  :=  tYPredict ;
+
+              Form4.StringGrid1.Objects[5,Form4.StringGrid1.Row] :=  tYPredict.allXData ;
+              SetupallXDataAs1D_or_2D(1, tYPredict.allXData , tSR) ;
+              Form4.StringGrid1.Cells[5,Form4.StringGrid1.Row] := tYPredict.allXData.ReturnRowColRangeString ;
+              if tSR.fft.dt <> 0 then
+                    tYPredict.allXData.fft.CopyFFTObject(tSR.fft) ;
+
+              if tYPredict.YDataExists then
               begin
-               // error occured (as ',' was found in return value :
-               // remove added row from StringGrid1
-                bFE.Free ;
-                RemoveRow('Predict Y code encountered a problem '+tstr2 ) ;
-                lineNum := strtoint(copy(tstr2,1,pos(',',tstr2)-1)) ;
+                tYPredict.allYData.interleaved := 1 ;
+                tYPredict.allYData.GLListNumber := Form4.GetLowestListNumber ;
+                tYPredict.allYData.lineType := 10 ;
+                SetupallXDataAs1D_or_2D(1, tYPredict.allYData , tSR2) ;  // may need to use  SetupNativeMatrixAs1D_or_2D
+                Form4.StringGrid1.Objects[6,Form4.StringGrid1.Row] :=  tYPredict.allYData ;
+                Form4.StringGrid1.Cells[6,Form4.StringGrid1.Row] := tYPredict.allYData.ReturnRowColRangeString ;
+                // this may not be needed
+                if tSR2.fft.dt <> 0 then
+                    tYPredict.allYData.fft.CopyFFTObject(tSR2.fft) ;
 
-                tstr1 := bB.GetStringFromStrList(tStrList,lineNum) ;
-                while (bB.LeftSideOfEqual(tstr1) <> 'type')  and (lineNum <= tStrList.Count)  do
-                begin
-                  inc(lineNum) ;
-                  tstr1 := bB.GetStringFromStrList(tStrList,lineNum) ;
-                end;
+                 //  y residuals
+                Form4.StringGrid1.Objects[9,Form4.StringGrid1.Row] := tYPredict.YresidualsSpectra ;
+                tYPredict.YresidualsSpectra.GLListNumber := Form4.GetLowestListNumber ;
+                if tSR.frequencyImage then
+                  tYPredict.YresidualsSpectra.nativeImage := true ; // 1 image for each PC
+                SetupNativeMatrixAs1D_or_2D( tYPredict.YresidualsSpectra, tSr ) ;
+                Form4.StringGrid1.Cells[9,Form4.StringGrid1.Row] := tYPredict.YresidualsSpectra.ReturnRowColRangeString ;
+                tYPredict.YresidualsSpectra.xString := 'PC number' ;
+                tYPredict.YresidualsSpectra.yString := 'Y Residual'  ;
+                if tSR.fft.dt <> 0 then
+                    tYPredict.YresidualsSpectra.fft.CopyFFTObject(tSR.fft) ;
+               end ;
+
+              // this is a scatter type plot      
+              Form4.StringGrid1.Objects[10,Form4.StringGrid1.Row] := tYPredict.predYSpectra ;
+ //             tPLS.predYPLSSpectra.lineType := 4 ;
+              tYPredict.predYSpectra.xyScatterPlot := true ;
+              tYPredict.predYSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              tYPredict.predYSpectra.SetOpenGLXYRangeScatterPlot(Form2.GetWhichLineToDisplay());
+              tYPredict.predYSpectra.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 10)   ;
+              Form4.StringGrid1.Cells[10,Form4.StringGrid1.Row] := tYPredict.predYSpectra.ReturnRowColRangeString ;
+              tYPredict.predYSpectra.xString := 'Known Y' ;
+              tYPredict.predYSpectra.yString := 'Predicted Y'  ;
+              if tSR.fft.dt <> 0 then
+                    tYPredict.predYSpectra.fft.CopyFFTObject(tSR.fft) ;
+
+              if tYPredict.YDataExists then
+              begin
+                Form4.StringGrid1.Objects[13,Form4.StringGrid1.Row] := tYPredict.R_sqrd ;
+                tYPredict.R_sqrd.GLListNumber := Form4.GetLowestListNumber ;
+                tYPredict.R_sqrd.SetOpenGLXYRange(Form2.GetWhichLineToDisplay());
+                Form4.StringGrid1.Cells[13,Form4.StringGrid1.Row] := tYPredict.R_sqrd.ReturnRowColRangeString ;
+                tYPredict.R_sqrd.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 3)   ;
+                tYPredict.R_sqrd.xString :=  'PC number' ;
+                tYPredict.R_sqrd.yString := 'R^2'  ;
+                if tSR.fft.dt <> 0 then
+                    tYPredict.R_sqrd.fft.CopyFFTObject(tSR.fft) ;
+                tYPredict.R_sqrd.yLow := 0.0 ;
+                tYPredict.R_sqrd.yHigh := 1.0 ;
+
+                Form4.StringGrid1.Objects[12,Form4.StringGrid1.Row] := tYPredict.SEPSpectra ;
+                tYPredict.SEPSpectra.GLListNumber := Form4.GetLowestListNumber ;
+                tYPredict.SEPSpectra.SetOpenGLXYRange(Form2.GetWhichLineToDisplay());
+                Form4.StringGrid1.Cells[12,Form4.StringGrid1.Row] := tYPredict.SEPSpectra.ReturnRowColRangeString ;
+                tYPredict.SEPSpectra.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 3)   ;
+                tYPredict.SEPSpectra.xString :=  'PC number' ;
+                tYPredict.SEPSpectra.yString := 'SEP'  ;
+                if tSR.fft.dt <> 0 then
+                    tYPredict.R_sqrd.fft.CopyFFTObject(tSR.fft) ;
+
+                // N.B. this function does not create a new line, so use 'RowCount-1' not 'RowCount-2'
+                TSpectraRanges(Form4.StringGrid1.Objects[4,Form4.StringGrid1.RowCount-1]).columnLabel  := 'reg. coef.'     ;   // PCR
+                TSpectraRanges(Form4.StringGrid1.Objects[5,Form4.StringGrid1.RowCount-1]).columnLabel  := 'x data'   ;
+                TSpectraRanges(Form4.StringGrid1.Objects[6,Form4.StringGrid1.RowCount-1]).columnLabel  := 'y data' ;
+                //TSpectraRanges(Form4.StringGrid1.Objects[7,Form4.StringGrid1.RowCount-2]).columnLabel  := 'x resid.'   ;
+                //TSpectraRanges(Form4.StringGrid1.Objects[8,Form4.StringGrid1.RowCount-2]).columnLabel  := 'x regen. '  ;    // regenerated data from desired set of PCs  specified
+                TSpectraRanges(Form4.StringGrid1.Objects[9,Form4.StringGrid1.RowCount-1]).columnLabel  := 'y resid.'   ;    // regression residual y data for each PC added. Good for outlier detection.
+                TSpectraRanges(Form4.StringGrid1.Objects[10,Form4.StringGrid1.RowCount-1]).columnLabel := 'y pred.'    ;    // plot of measured vs predicted for set of PC's specified
+                //TSpectraRanges(Form4.StringGrid1.Objects[11,Form4.StringGrid1.RowCount-2]).columnLabel := 'weights:'     ;    // PCR specific
+                //TSpectraRanges(Form4.StringGrid1.Objects[12,Form4.StringGrid1.RowCount-2]).columnLabel := 'reg. coef.' ;    // result of regression. Plot of Variables vs Absorbance for number of PC's specified
+                TSpectraRanges(Form4.StringGrid1.Objects[13,Form4.StringGrid1.RowCount-1]).columnLabel := 'R^2'
               end
               else
               begin
-                Form4.StringGrid1.Cells[1,Form4.StringGrid1.RowCount-2]  := 'PID: Predict Y' + bFE.batchFilename ;
-                Form4.StringGrid1.Objects[1,Form4.StringGrid1.RowCount-2]  := bFE ;
-                lineNum := strtoint(copy(tstr2,1,length(tstr2))) ;
+                TSpectraRanges(Form4.StringGrid1.Objects[4,Form4.StringGrid1.RowCount-1]).columnLabel  := 'reg. coef.'     ;   // PCR
+                TSpectraRanges(Form4.StringGrid1.Objects[5,Form4.StringGrid1.RowCount-1]).columnLabel  := 'x data'   ;
+                TSpectraRanges(Form4.StringGrid1.Objects[6,Form4.StringGrid1.RowCount-1]).columnLabel  := 'y data' ;
               end;
-
-
-            except
-            begin
-              RemoveRow('Predict Y code encountered a problem') ;
-              bFE.Free ;
-            end;
-            end ;
-          end
+             except
+             begin
+               // RemoveRow('PLS1 code encountered a problem') ;
+               Form4.StatusBar1.Panels[0].Text :=  'Predict Y data code encountered a problem' ;
+             end ;
+             end ;
+          end 
           else if  (bB.RightSideOfEqual(tstr1) = 'pca') then
           begin
-             try
-              // ******** CREATE NEW ROW IN STRING GRID  ********
-              // create new line and objects in StringGrid using CreateStringGridRowAndObjects
-              // this creates LineColour
-              colArray := CreateStringGridRowAndObjects8( ) ;
-              bFE := TPassBatchFileToExecutable.Create( Form2.MVA_executable ) ; // MVA_executable is external executable path and name
-              bFE.lineCol :=  colArray ;
-              tstr2 :=  bFE.ReadBatchSection(tStrList,lineNum) ; // returns current line number in tStrList batch file
-              if pos(',', tstr2) <> 0 then                       // or returns line number + ',' + errorstring
-              begin
-               // error occured (as ',' was found in return value :
-               // remove added row from StringGrid1
-                bFE.Free ;
-                RemoveRow('PCA code encountered a problem '+tstr2 ) ;
-                lineNum := strtoint(copy(tstr2,1,pos(',',tstr2)-1)) ;
+              tSR := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Row]) ;
 
-                tstr1 := bB.GetStringFromStrList(tStrList,lineNum) ;
-                while (bB.LeftSideOfEqual(tstr1) <> 'type')  and (lineNum <= tStrList.Count)  do
-                begin
-                  inc(lineNum) ;
-                  tstr1 := bB.GetStringFromStrList(tStrList,lineNum) ;
-                end;
+              tPCA := TPCABatch.Create(tSR.xCoord.SDPrec div 4) ;   // this has to be released on deletion of row or close of appliction
+
+              lineNumStr := tPCA.GetPCABatchArguments(lineNum, iter, tStrList) ;
+              if pos(',',lineNumStr) > 0 then
+              begin
+                 tPCA.Free ;
+                 exit ;
               end
               else
+              lineNum := strtoint( lineNumStr ) ;
+
+              if not tPCA.GetAllXData(tPCA.interleaved, tSR ) then
               begin
-                Form4.StringGrid1.Cells[1,Form4.StringGrid1.RowCount-2]  := 'PID: PCA' + bFE.batchFilename ;
-                Form4.StringGrid1.Objects[1,Form4.StringGrid1.RowCount-2]  := bFE ;
-                lineNum := strtoint(copy(tstr2,1,length(tstr2))) ;
-              end;
+                 tPCA.Free ;
+               //  RemoveRow('Function TPCABatch.GetAllXData() failed during data processing. Line number: '+inttostr(lineNum)) ;
+                 exit ;
+              end ;
+
+               // GET CURRENT INTENSITY VALUE AND RED/GREEN/BLUE VALUE
+              tPCA.allXData.LineColor := ReturnLineColor(IntensityList,1) ;   //  ReturnLineColor is dependent upon the number of lines in the string grid
+              colArray :=  tPCA.allXData.LineColor ;
+
+              tTimer.setTimeDifSecUpdateT1 ;
+              if  (tPCA.ProcessPCAData( @colArray ) = false) then
+              begin
+                 tPCA.Free ;
+              //   RemoveRow('Function tPCA.ProcessPCAData() failed during data processing. Line number: '+inttostr(lineNum)) ;
+                 exit ;
+              end ;
+              tTimer.setTimeDifSec ;
+              Form4.StatusBar1.Panels[1].Text := 'processing time: ' + floattostrf(tTimer.getRecordedTime,ffGeneral,5,4) + ' / ' + floattostrf(tTimer.returnCPUSpeedGHz,ffGeneral,5,4) + 'GHz' ;
 
 
-            except
-            begin
-              RemoveRow('PCA code encountered a problem') ;
-              bFE.Free ;
-            end;
-            end ;
+              // ******** CREATE NEW ROW IN STRING GRID  ********
+              // create new line and objects in StringGrid using CreateStringGridRowAndObjects
+              Form4.StringGrid1.RowCount := Form4.StringGrid1.RowCount + 1 ;  // add extra line to stringgrid1 ;
+
+              Form4.StringGrid1.Objects[1,Form4.StringGrid1.RowCount-2]  :=  tPCA ; // Create spectra object
+              Form4.StringGrid1.Objects[2,Form4.StringGrid1.RowCount-2]  :=  tPCA.allXData ;
+              // *** THESE ARE THE RESULTS  ***  Graph and add to stringgrid1
+              tPCA.allXData.interleaved := 1 ;
+              tPCA.allXData.GLListNumber := Form4.GetLowestListNumber ;
+              SetupallXDataAs1D_or_2D(1, tPCA.allXData , tSR) ;    // creates GLList calls: SetOpenGLXYRange() & CreateGLList()
+              Form4.StringGrid1.Cells[2,Form4.StringGrid1.RowCount-2] := tPCA.allXData.ReturnRowColRangeString ;
+              if tSR.fft.dt <> 0 then
+                    tPCA.allXData.fft.CopyFFTObject(tSR.fft) ;
+
+              Form4.StringGrid1.Objects[4,Form4.StringGrid1.RowCount-2] := tPCA.scoresSpectra ;
+              tPCA.scoresSpectra.yCoord.Transpose ;
+              tPCA.scoresSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              if tSR.frequencyImage then
+                tPCA.scoresSpectra.nativeImage := true ;
+              SetupNativeMatrixAs1D_or_2D( tPCA.scoresSpectra, tSr ) ;
+              Form4.StringGrid1.Cells[4,Form4.StringGrid1.RowCount-2] := tPCA.scoresSpectra.ReturnRowColRangeString ;
+              tPCA.scoresSpectra.xString := 'Sample Number' ;
+              tPCA.scoresSpectra.yString := 'Score' ;
+              tPCA.scoresSpectra.numImagesOrAngles := tPCA.numPCs ;
 
 
+              Form4.StringGrid1.Objects[5,Form4.StringGrid1.RowCount-2] := tPCA.eigenVSpectra ;
+              tPCA.eigenVSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              tPCA.eigenVSpectra.SetOpenGLXYRange(Form2.GetWhichLineToDisplay());
+              tPCA.eigenVSpectra.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1)   ;
+              Form4.StringGrid1.Cells[5,Form4.StringGrid1.RowCount-2] := tPCA.eigenVSpectra.ReturnRowColRangeString ;
+              tPCA.eigenVSpectra.xString := tPCA.allXData.xString ;
+              tPCA.eigenVSpectra.yString := tPCA.allXData.yString  ;
+              if tSR.fft.dt <> 0 then
+                    tPCA.eigenVSpectra.fft.CopyFFTObject(tSR.fft) ;
+
+              Form4.StringGrid1.Objects[6,Form4.StringGrid1.RowCount-2] := tPCA.eigenValSpectra ;
+              tPCA.eigenValSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              tPCA.eigenValSpectra.SetOpenGLXYRange(Form2.GetWhichLineToDisplay());
+              tPCA.eigenValSpectra.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 4)   ;   // 4 = lines with dots
+              tPCA.eigenValSpectra.YLow :=  0 ;
+              Form4.StringGrid1.Cells[6,Form4.StringGrid1.RowCount-2] := tPCA.eigenValSpectra.ReturnRowColRangeString ;
+              tPCA.eigenValSpectra.xString := 'PC Number' ;
+              tPCA.eigenValSpectra.yString := 'Variance' ;
+
+              Form4.StringGrid1.Objects[7,Form4.StringGrid1.RowCount-2] := tPCA.XresidualsSpectra ;
+              tPCA.XresidualsSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              if tSR.frequencyImage then
+                tPCA.XresidualsSpectra.frequencyImage := true ;
+              SetupallXDataAs1D_or_2D(1, tPCA.XresidualsSpectra , tSR) ;
+              Form4.StringGrid1.Cells[7,Form4.StringGrid1.RowCount-2] := tPCA.XresidualsSpectra.ReturnRowColRangeString ;
+              tPCA.XresidualsSpectra.xString := tPCA.allXData.xString ;
+              tPCA.XresidualsSpectra.yString := tPCA.allXData.yString  ;
+              if tSR.fft.dt <> 0 then
+                    tPCA.XresidualsSpectra.fft.CopyFFTObject(tSR.fft) ;
+
+              Form4.StringGrid1.Objects[8,Form4.StringGrid1.RowCount-2] := tPCA.regenSpectra ;
+              tPCA.regenSpectra.GLListNumber := Form4.GetLowestListNumber ;
+              if tSR.frequencyImage then
+                tPCA.regenSpectra.frequencyImage := true ;
+              SetupallXDataAs1D_or_2D(1, tPCA.regenSpectra , tSR) ;
+              Form4.StringGrid1.Cells[8,Form4.StringGrid1.RowCount-2] := tPCA.regenSpectra.ReturnRowColRangeString ;
+              tPCA.regenSpectra.xString := tPCA.allXData.xString ;
+              tPCA.regenSpectra.yString := tPCA.allXData.yString  ;
+              if tSR.fft.dt <> 0 then
+                    tPCA.regenSpectra.fft.CopyFFTObject(tSR.fft) ;
+
+
+              // create and return the EVects vectors ( = eigenvectors * sqrt(scores * scores') )
+              tSR2 := TSpectraRanges.Create(tSR.yCoord.SDPrec div 4, 1,1,nil) ;
+              tSR2.CopySpectraObject(tPCA.eigenVSpectra) ;
+              tSR2.yCoord.ClearData(tSR2.yCoord.SDPrec div 4) ;
+              tSR2.yCoord  := tPCA.tPCAnalysis.ReturnVectorLoadings ; ;
+              Form4.StringGrid1.Objects[9,Form4.StringGrid1.RowCount-2] :=  tSR2 ;
+              tSR2.GLListNumber := Form4.GetLowestListNumber ;
+              tSR2.SetOpenGLXYRange(Form2.GetWhichLineToDisplay());
+              tSR2.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 1)   ;
+              Form4.StringGrid1.Cells[9,Form4.StringGrid1.RowCount-2] := tSR2.ReturnRowColRangeString ;
+              tSR2.xString := tPCA.allXData.xString ;
+              tSR2.yString := tPCA.allXData.yString  ;
+              if tSR.fft.dt <> 0 then
+                    tSR2.fft.CopyFFTObject(tSR.fft) ;
+
+              TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.RowCount-2]).columnLabel  := 'X data'     ;
+              TSpectraRanges(Form4.StringGrid1.Objects[4,Form4.StringGrid1.RowCount-2]).columnLabel  := 'scores'     ;   // PCR
+              TSpectraRanges(Form4.StringGrid1.Objects[5,Form4.StringGrid1.RowCount-2]).columnLabel  := 'eignevects'   ;
+              TSpectraRanges(Form4.StringGrid1.Objects[6,Form4.StringGrid1.RowCount-2]).columnLabel  := 'eigenvals:' ;    // plot of variance spanned by each PC
+              TSpectraRanges(Form4.StringGrid1.Objects[7,Form4.StringGrid1.RowCount-2]).columnLabel  := 'x resid.'   ;    // residual data left after subtraction of desired PC range of eigenvectors.
+              TSpectraRanges(Form4.StringGrid1.Objects[8,Form4.StringGrid1.RowCount-2]).columnLabel  := 'x regen. '  ;    // regenerated data from desired set of PCs  specified
+              TSpectraRanges(Form4.StringGrid1.Objects[9,Form4.StringGrid1.RowCount-2]).columnLabel  := 'loadings'   ;    // regression residual y data for each PC added. Good for outlier detection.
+              //TSpectraRanges(Form4.StringGrid1.Objects[10,Form4.StringGrid1.RowCount-2]).columnLabel := 'y pred.'    ;    // plot of measured vs predicted for set of PC's specified
+              //TSpectraRanges(Form4.StringGrid1.Objects[11,Form4.StringGrid1.RowCount-2]).columnLabel := 'weights:'     ;    // PCR specific
+              //TSpectraRanges(Form4.StringGrid1.Objects[12,Form4.StringGrid1.RowCount-2]).columnLabel := 'reg. coef.' ;    // result of regression. Plot of Variables vs Absorbance for number of PC's specified
+              //TSpectraRanges(Form4.StringGrid1.Objects[13,Form4.StringGrid1.RowCount-2]).columnLabel := 'R^2'
+
+
+              Form4.StringGrid1.Cells[1,Form4.StringGrid1.RowCount-2] := ExtractFileName(tPCA.allXData.XCoord.Filename) ;
+
+               // add batch file text to created data
+              tSR := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.RowCount-2]) ;
+              tSR.batchList.Add('// from line: '+inttostr(Form4.StringGrid1.Row)) ;
+              tSR.batchList.Add('//processing time: ' + floattostrf(tTimer.getRecordedTime,ffGeneral,5,4) + ' / ' + floattostrf(tTimer.returnCPUSpeedGHz,ffGeneral,5,4) + 'GHz') ;
+              for t1 :=  initialLineNum to lineNum-1   do
+              begin
+                 tSR.batchList.Add(bB.GetStringFromStrList(tStrList, t1)) ;
+              end ;
           end
           else if  (bB.RightSideOfEqual(tstr1) = 'auto project evects') then
           begin
@@ -2476,7 +2267,7 @@ begin
               tAutoProject.allXData.GLListNumber := Form4.GetLowestListNumber ;
               SetupallXDataAs1D_or_2D(1, tAutoProject.allXData , tSR) ;   // calls: SetOpenGLXYRange() & CreateGLList()
               Form4.StringGrid1.Cells[2,Form4.StringGrid1.RowCount-2] := tAutoProject.allXData.ReturnRowColRangeString ;
-              if tSR.fft.dtime  <> 0 then
+              if tSR.fft.dt <> 0 then
                     tAutoProject.allXData.fft.CopyFFTObject(tSR.fft) ;
 
 
@@ -2511,7 +2302,7 @@ begin
               Form4.StringGrid1.Cells[5,Form4.StringGrid1.RowCount-2] := tAutoProject.eigenVSpectra.ReturnRowColRangeString ;
               tAutoProject.eigenVSpectra.xString := tAutoProject.allXData.xString ;
               tAutoProject.eigenVSpectra.yString := tAutoProject.allXData.yString  ;
-              if tSR.fft.dtime  <> 0 then
+              if tSR.fft.dt <> 0 then
                     tAutoProject.eigenVSpectra.fft.CopyFFTObject(tSR.fft) ;
 
               Form4.StringGrid1.Objects[6,Form4.StringGrid1.RowCount-2] := tAutoProject.eigenValSpectra ;
@@ -2531,7 +2322,7 @@ begin
               Form4.StringGrid1.Cells[7,Form4.StringGrid1.RowCount-2] := tAutoProject.XresidualsSpectra.ReturnRowColRangeString ;
               tAutoProject.XresidualsSpectra.xString := tAutoProject.allXData.xString ;
               tAutoProject.XresidualsSpectra.yString := tAutoProject.allXData.yString  ;
-              if tSR.fft.dtime  <> 0 then
+              if tSR.fft.dt <> 0 then
                     tAutoProject.XresidualsSpectra.fft.CopyFFTObject(tSR.fft) ;
 
               Form4.StringGrid1.Objects[8,Form4.StringGrid1.RowCount-2] := tAutoProject.regenSpectra ;
@@ -2542,7 +2333,7 @@ begin
               Form4.StringGrid1.Cells[8,Form4.StringGrid1.RowCount-2] := tAutoProject.regenSpectra.ReturnRowColRangeString ;
               tAutoProject.regenSpectra.xString := tAutoProject.allXData.xString ;
               tAutoProject.regenSpectra.yString := tAutoProject.allXData.yString  ;
-              if tSR.fft.dtime  <> 0 then
+              if tSR.fft.dt <> 0 then
                     tAutoProject.regenSpectra.fft.CopyFFTObject(tSR.fft) ;
 
               TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.RowCount-2]).columnLabel  := 'X data'     ;   // PCR
@@ -2576,7 +2367,9 @@ begin
 
               // ******** ALLWAYS CREATE NEW ROW IN STRING GRID  ********
               // create new line and objects in StringGrid using CreateStringGridRowAndObjects
-              colArray := CreateStringGridRowAndObjects8(  ) ;
+              CreateStringGridRowAndObjects2( t2DCorrel ) ;
+
+              colArray :=  TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.RowCount-2]).LineColor ;
 
               if  (t2DCorrel.GetAllXData( tSR ) = false ) then
               begin
@@ -2649,6 +2442,88 @@ begin
               for t1 :=  initialLineNum to lineNum -1  do
               begin
                  tSR.batchList.Add(bB.GetStringFromStrList(tStrList, t1)) ;
+              end ;
+           end
+           else
+           if (bB.RightSideOfEqual(tstr1) = 'regen from pcs') then
+           begin
+              if Form4.StringGrid1.Objects[1,Form4.StringGrid1.Row] is TBatchMVA then
+              begin
+                  // ********************** load number of PCs to regenerate data from ******************************************
+                  repeat
+                    inc(lineNum) ;
+                    tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
+                  until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
+                  if bB.LeftSideOfEqual(tstr1) = 'pcs for regeneration' then
+                    PCStr :=  bB.RightSideOfEqual(tstr1) ;
+                  // ********************** Mean Centre ******************************************
+                  repeat
+                    inc(lineNum) ;
+                    tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
+                  until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
+                  if bB.LeftSideOfEqual(tstr1) = 'mean centred' then
+                  begin
+                    if bB.RightSideOfEqual(tstr1) = 'true'  then
+                       meanCentreBool := true
+                    else
+                       meanCentreBool :=  false ;
+                  end ;
+
+
+
+                  if Form4.StringGrid1.Objects[1,Form4.StringGrid1.Row] is TPCABatch then
+                  begin
+                    tPCA := TPCABatch(Form4.StringGrid1.Objects[1,Form4.StringGrid1.Row]) ;
+                    tPCA.tPCAnalysis.RegenerateData( PCStr ,'1-'+inttostr(tPCA.tPCAnalysis.EVects.numCols),meanCentreBool,tPCA.tPCAnalysis.XResiduals.F_MAverage)  ;
+                    tPCA.tPCAnalysis.CalcResidualData( meanCentreBool ) ;
+
+                    tPCA.regenSpectra.yCoord.CopyMatrix(tPCA.tPCAnalysis.RegenMatrix)  ;
+                   if tPCA.regenSpectra.frequencyImage then
+                      tPCA.regenSpectra.frequencyImage := true ;
+                   SetupallXDataAs1D_or_2D(1, tPCA.regenSpectra , tPCA.regenSpectra) ;
+                   tPCA.regenSpectra.xString := tPCA.allXData.xString ;
+                   tPCA.regenSpectra.yString := tPCA.allXData.yString  ;
+
+                   tPCA.XresidualsSpectra.yCoord.CopyMatrix(tPCA.tPCAnalysis.XResiduals )  ;
+                   if tPCA.XresidualsSpectra.frequencyImage then
+                     tPCA.XresidualsSpectra.frequencyImage := true ;
+                   SetupallXDataAs1D_or_2D(1, tPCA.XresidualsSpectra , tPCA.XresidualsSpectra) ;
+                   tPCA.XresidualsSpectra.xString := tPCA.allXData.xString ;
+                   tPCA.XresidualsSpectra.yString := tPCA.allXData.yString  ;
+                 end
+                 else
+                 if Form4.StringGrid1.Objects[1,Form4.StringGrid1.Row] is TPLSYPredictBatch then
+                 begin
+                    tPLS := TPLSYPredictBatch(Form4.StringGrid1.Objects[1,Form4.StringGrid1.Row]) ;
+                    tPLS.PLSResultsObject.RegenerateData( PCStr ,'1-'+inttostr(tPLS.PLSResultsObject.XEVects.numCols),meanCentreBool,tPLS.PLSResultsObject.XResiduals.F_MAverage)  ;
+                    tPLS.PLSResultsObject.CalcResidualData( meanCentreBool ) ;
+
+                    tPLS.regenSpectra.yCoord.CopyMatrix(tPLS.PLSResultsObject.XRegenMatrix)  ;
+                   if tPLS.regenSpectra.frequencyImage then
+                      tPLS.regenSpectra.frequencyImage := true ;
+                   SetupallXDataAs1D_or_2D(1, tPLS.regenSpectra , tPLS.regenSpectra) ;
+                   tPLS.regenSpectra.xString := tPLS.allXData.xString ;
+                   tPLS.regenSpectra.yString := tPLS.allXData.yString  ;
+
+                   tPLS.XresidualsSpectra.yCoord.CopyMatrix(tPLS.PLSResultsObject.XResiduals )  ;
+                   if tPLS.XresidualsSpectra.frequencyImage then
+                     tPLS.XresidualsSpectra.frequencyImage := true ;
+                   SetupallXDataAs1D_or_2D(1, tPLS.XresidualsSpectra , tPLS.XresidualsSpectra) ;
+                   tPLS.XresidualsSpectra.xString := tPLS.allXData.xString ;
+                   tPLS.XresidualsSpectra.yString := tPLS.allXData.yString  ;
+                 end
+                 else
+                 if Form4.StringGrid1.Objects[1,Form4.StringGrid1.Row] is TPCRYPredictBatch then
+                 begin
+
+                 end ;
+
+              end
+              else
+              begin
+                 lineNum := lineNum + 1 ;
+
+
               end ;
            end
            else
@@ -2739,7 +2614,8 @@ begin
      scoresSpectra.XLow :=  scoresSpectra.image2DSpecR.XLow ;
      scoresSpectra.YHigh :=  (scoresSpectra.yPix) * scoresSpectra.yPixSpacing  ;    // need to spread the image out in the Y direction as much as in X direction
      scoresSpectra.YLow :=  0 ;
-     scoresSpectra.image2DSpecR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 9) ;
+//     if not Form2.NoImageCB1.Checked then   // if this CB is not checked then creat the GLlist display image of data
+       scoresSpectra.image2DSpecR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 9) ;
      // SpectObj.YHigh & SpectObj.YLow should be saved to optimise contrast in the 2D image   Solution: they are stored in SpectObj.image2DSpecR.YHigh and YLow
   end
   else
@@ -2750,31 +2626,6 @@ begin
   result := true ;
 
 end ;
-
-procedure TForm3.SetExecutable2Click(Sender: TObject);
-var
-  presentDir : string ;
-begin
-  Form4.OpenDialog1.Filter := 'exe files (*.exe)|all files (*.*)|*.*'    ;
-  Form4.OpenDialog1.Title := 'Load exe file' ;
-  Form4.OpenDialog1.DefaultExt := '*.exe' ;
-  Form4.OpenDialog1.filename := '*.exe' ;
-
-  With Form4.OpenDialog1 do
-  begin
-    Form4.OpenDialog1.FileName :=  Form2.MVA_executable ;
-    GetDir(0,presentDir) ;
-    if DirectoryExists(ExtractFilePath(Form2.MVA_executable)) then
-       ChDir( ExtractFilePath(Form2.MVA_executable) ) ;
-    
-    if Execute Then
-    begin
-       Form2.MVA_executable := filename ;
-    end ;
-
-    ChDir(presentDir) ; // change back to original directory
-  end ;
-end;
 
 function TForm3.SetupallXDataAs1D_or_2D(numImages : integer ; allXDataIn : TSpectraRanges ; tSr : TSpectraRanges) : boolean  ;
 var
@@ -2860,33 +2711,6 @@ var
 begin
   lineNum := Form4.StringGrid1.RowCount-2 ;
   // Remove objects
-  if Form4.StringGrid1.Objects[1,lineNum] is TSpectraRanges then
-    TSpectraRanges(Form4.StringGrid1.Objects[1,lineNum]).Free ;
-  if Form4.StringGrid1.Objects[2,lineNum] is TSpectraRanges then
-    TSpectraRanges(Form4.StringGrid1.Objects[2,lineNum]).Free ;
-  if Form4.StringGrid1.Objects[3,lineNum] is TSpectraRanges then
-    TSpectraRanges(Form4.StringGrid1.Objects[3,lineNum]).Free ;
-  if Form4.StringGrid1.Objects[4,lineNum] is TSpectraRanges then
-    TSpectraRanges(Form4.StringGrid1.Objects[4,lineNum]).Free ;
-  if Form4.StringGrid1.Objects[5,lineNum] is TSpectraRanges then
-    TSpectraRanges(Form4.StringGrid1.Objects[5,lineNum]).Free ;
-  if Form4.StringGrid1.Objects[6,lineNum] is TSpectraRanges then
-    TSpectraRanges(Form4.StringGrid1.Objects[6,lineNum]).Free ;
-  if Form4.StringGrid1.Objects[7,lineNum] is TSpectraRanges then
-    TSpectraRanges(Form4.StringGrid1.Objects[7,lineNum]).Free ;
-  if Form4.StringGrid1.Objects[8,lineNum] is TSpectraRanges then
-    TSpectraRanges(Form4.StringGrid1.Objects[8,lineNum]).Free ;
-  if Form4.StringGrid1.Objects[9,lineNum] is TSpectraRanges then
-    TSpectraRanges(Form4.StringGrid1.Objects[9,lineNum]).Free ;
-  if Form4.StringGrid1.Objects[10,lineNum] is TSpectraRanges then
-    TSpectraRanges(Form4.StringGrid1.Objects[10,lineNum]).Free ;
-  if Form4.StringGrid1.Objects[11,lineNum] is TSpectraRanges then
-    TSpectraRanges(Form4.StringGrid1.Objects[11,lineNum]).Free ;
-  if Form4.StringGrid1.Objects[12,lineNum] is TSpectraRanges then
-    TSpectraRanges(Form4.StringGrid1.Objects[12,lineNum]).Free ;
-  if Form4.StringGrid1.Objects[13,lineNum] is TSpectraRanges then
-    TSpectraRanges(Form4.StringGrid1.Objects[13,lineNum]).Free ;
-
   Form4.StringGrid1.Objects[1,lineNum]   :=  nil ;
   Form4.StringGrid1.Objects[2,lineNum]   :=  nil ;
   Form4.StringGrid1.Objects[3,lineNum]   :=  nil ;
@@ -2916,8 +2740,7 @@ begin
   Form4.StringGrid1.Cells[13,lineNum]  :=  '' ;
 
   Form4.StringGrid1.RowCount := Form4.StringGrid1.RowCount - 1 ;  // remove line from stringgrid1 ;
-  Form4.StatusBar1.Panels[1].Text :=  messasge ;
-  Form4.StatusBar1.Hint := messasge ;
+  Form4.StatusBar1.Panels[0].Text :=  messasge ;
   //messagedlg(messasge ,mtError,[mbOK],0) ;
 end ;
 
@@ -2962,7 +2785,7 @@ end ;
 
 
 
-function TForm3.CreateStringGridRowAndObjects8() : TGLLineColor ;
+procedure TForm3.CreateStringGridRowAndObjects8(objectForCellRow1 : TSpectraRanges) ;
 // SGRowIn is the row the analysis was described in
 // Used when new line has to be produced...
 //       i.e. 1/ When not all samples are being used from the source matrix (X Data column)
@@ -2973,10 +2796,139 @@ begin
   With Form4.StringGrid1 Do
     begin
         Form4.StringGrid1.RowCount := Form4.StringGrid1.RowCount + 1 ;  // add extra line to stringgrid1 ;
-        result := ReturnLineColor(IntensityList, 2)  ;
+
+        objectForCellRow1.LineColor := ReturnLineColor(IntensityList, 2)  ;
+        Objects[2,Form4.StringGrid1.RowCount-2]  :=  objectForCellRow1 ;
     end ;
 end ;
 
+
+
+procedure TForm3.CreateStringGridRowAndObjects7(objectForCellRow1 : TPCRYPredictBatch) ;
+// SGRowIn is the row the analysis was described in
+// Used when new line has to be produced...
+//       i.e. 1/ When not all samples are being used from the source matrix (X Data column)
+var
+  stringNum, t1 : integer ;
+   tStr : string ;
+begin
+  With Form4.StringGrid1 Do
+    begin
+        Form4.StringGrid1.RowCount := Form4.StringGrid1.RowCount + 1 ;  // add extra line to stringgrid1 ;
+
+        // copy line colour to PLS batch object
+        objectForCellRow1.LineColor := ReturnLineColor(IntensityList, 2)  ;
+
+        Objects[1,Form4.StringGrid1.RowCount-2]  :=  objectForCellRow1 ; // Create spectra object
+        Objects[2,Form4.StringGrid1.RowCount-2]  :=  objectForCellRow1.allXData ;
+        Objects[3,Form4.StringGrid1.RowCount-2]  :=  objectForCellRow1.allYData ;
+    end ;
+end ;
+
+
+procedure TForm3.CreateStringGridRowAndObjects6(objectForCellRow1 : TPLSYPredictBatch) ;
+// SGRowIn is the row the analysis was described in
+// Used when new line has to be produced...
+//       i.e. 1/ When not all samples are being used from the source matrix (X Data column)
+var
+  stringNum, t1 : integer ;
+   tStr : string ;
+begin
+  With Form4.StringGrid1 Do
+    begin
+        Form4.StringGrid1.RowCount := Form4.StringGrid1.RowCount + 1 ;  // add extra line to stringgrid1 ;
+
+        objectForCellRow1.LineColor := ReturnLineColor(IntensityList, 2)  ;
+
+        Objects[1,Form4.StringGrid1.RowCount-2]  :=  objectForCellRow1 ; // Create spectra object
+        Objects[2,Form4.StringGrid1.RowCount-2]  :=  objectForCellRow1.allXData ;
+        Objects[3,Form4.StringGrid1.RowCount-2]  :=  objectForCellRow1.allYData ;
+    end ;
+end ;
+
+
+
+function TForm3.CreateStringGridRowAndObjects5( objectForCellRow1 : TDichroicRatio ) : TGLLineColor ;
+var
+  stringNum, t1 : integer ;
+   LineColor : TGLLineColor ;
+   tStr : string ;
+begin
+  With Form4.StringGrid1 Do
+    begin
+        Form4.StringGrid1.RowCount := Form4.StringGrid1.RowCount + 1 ;  // add extra line to stringgrid1 ;
+
+        objectForCellRow1.allXData.GLListNumber := Form4.GetLowestListNumber ; // gets lowest GLListNumber
+        objectForCellRow1.allXData.LineColor := ReturnLineColor(IntensityList, 2)  ;
+
+        Objects[1,Form4.StringGrid1.RowCount-2]  :=  objectForCellRow1 ; // Create spectra object
+        Objects[2,Form4.StringGrid1.RowCount-2]  :=  objectForCellRow1.allXData ;
+
+    end ;
+end ;
+
+
+procedure TForm3.CreateStringGridRowAndObjects4(objectForCellRow1 : TPLMAnalysis) ;
+// SGRowIn is the row the analysis was described in
+// Used when new line has to be produced...
+//       i.e. 1/ When not all samples are being used from the source matrix (X Data column)
+//            2/ When TRegression object has already been produced in row where all samples are used from source X Data
+var
+  stringNum, t1 : integer ;
+   LineColor : TGLLineColor ;
+   tStr : string ;
+begin
+  With Form4.StringGrid1 Do
+    begin
+        Form4.StringGrid1.RowCount := Form4.StringGrid1.RowCount + 1 ;  // add extra line to stringgrid1 ;
+
+        // GET CURRENT INTENSITY VALUE AND RED/GREEN/BLUE VALUE
+        objectForCellRow1.allXData.LineColor := ReturnLineColor(IntensityList, 2)  ; ;
+
+        t1 := Form4.GetLowestListNumber ; // gets lowest GLListNumber
+        objectForCellRow1.allXData.GLListNumber := t1 ;
+
+        Objects[1,Form4.StringGrid1.RowCount-2]  :=  objectForCellRow1 ; // Create spectra object
+        Objects[2,Form4.StringGrid1.RowCount-2]  :=  objectForCellRow1.allXData ;
+    end ;
+end ;
+
+
+function TForm3.CreateStringGridRowAndObjects3( ) : TGLLineColor ;
+var
+  stringNum, t1 : integer ;
+   LineColor : TGLLineColor ;
+   tStr : string ;
+begin
+  With Form4.StringGrid1 Do
+    begin
+        Form4.StringGrid1.RowCount := Form4.StringGrid1.RowCount + 1 ;  // add extra line to stringgrid1 ;
+
+        // GET CURRENT INTENSITY VALUE AND RED/GREEN/BLUE VALUE
+        result := ReturnLineColor(IntensityList, 2)   ;
+    end ;
+end ;
+
+procedure TForm3.CreateStringGridRowAndObjects2( correlObj : T2DCorrelation ) ;
+var
+  stringNum, t1 : integer ;
+   LineColor : TGLLineColor ;
+   tStr : string ;
+begin
+  With Form4.StringGrid1 Do
+    begin
+        Form4.StringGrid1.RowCount := Form4.StringGrid1.RowCount + 1 ;  // add extra line to stringgrid1 ;
+
+        // GET CURRENT INTENSITY VALUE AND RED/GREEN/BLUE VALUE
+        correlObj.allXData.LineColor := ReturnLineColor(IntensityList, 2)  ; ;
+
+        t1 := Form4.GetLowestListNumber ; // gets lowest GLListNumber
+        correlObj.allXData.GLListNumber := t1 ;
+
+        Objects[1,Form4.StringGrid1.RowCount-2]  :=  correlObj ; // Create spectra object
+        Objects[2,Form4.StringGrid1.RowCount-2]  :=  correlObj.allXData ;
+    end ;
+end ;
 
 
 
@@ -3083,77 +3035,48 @@ end;
 
 procedure TForm3.TemplatePLS1Click(Sender: TObject);
 begin
-   BatchMemo1.Lines.Add('type = PLS1  // edit choice to PLS1 *OR* PCR') ;
-   BatchMemo1.Lines.Add('batch filename = analysis.bat') ;
+   BatchMemo1.Lines.Add('type = PLS1') ;
+//   BatchMemo1.Lines.Add('start row = 1') ;
    BatchMemo1.Lines.Add('// input x and y data') ;
-
-   BatchMemo1.Lines.Add('x data file = x.bin') ;
-   BatchMemo1.Lines.Add('y data file = y.bin') ;
-
-   BatchMemo1.Lines.Add('x sample range = 1-      // (ROWS)') ;    // can select subset using this
-   BatchMemo1.Lines.Add('x var range = 1-65536   // (COLS)') ;
-   BatchMemo1.Lines.Add('y in x data = false') ;
-   BatchMemo1.Lines.Add('y sample range = 1-     // (ROWS)') ;    // can select subset using this
-   BatchMemo1.Lines.Add('y var range = 1-1       // (COLS)') ;
+   BatchMemo1.Lines.Add('x sample range = 1-10     // (ROWS)') ;    // can select subset using this
+   BatchMemo1.Lines.Add('x var range = 2-520       // (COLS)') ;
+   BatchMemo1.Lines.Add('y in x data = true') ;
+   BatchMemo1.Lines.Add('y sample range = 1-10     // (ROWS)') ;    // can select subset using this
+   BatchMemo1.Lines.Add('y var range = 1-1         // (COLS)') ;
    BatchMemo1.Lines.Add('number of PCs = 1-20') ;
    BatchMemo1.Lines.Add('// pre-processing') ;  //
    BatchMemo1.Lines.Add('mean centre = true') ;  //
    BatchMemo1.Lines.Add('column standardise = false') ;  //
    BatchMemo1.Lines.Add('smooth =   // average,15  // fourier,15,50,remove complex  // %,power') ;  //
    BatchMemo1.Lines.Add('derivative =   // fourier,2,remove complex,true,1 // inputs: "diff type: 1st 2nd deriv etc: true = Hanning Window: 1 2 3 etc = zero fill"  N.B. type=fourier only available;') ;
-   BatchMemo1.Lines.Add('normalise x =  // "vn,pre" OR "vn,post" OR "" pre indicates vector normalise before mean centering ') ;
-   BatchMemo1.Lines.Add('// EVects output - none of these are used') ;
+   BatchMemo1.Lines.Add('// EVects output') ;
    BatchMemo1.Lines.Add('positive or negative =  ') ;
    BatchMemo1.Lines.Add('autoexclude =     // 0.75 ') ;
    BatchMemo1.Lines.Add('normalised output = true') ;
-   BatchMemo1.Lines.Add('results file = pls1_results.out') ;
+   BatchMemo1.Lines.Add('results file = PLS.out') ;
    BatchMemo1.Lines.Add('') ;
 
-
-end;
-
-procedure TForm3.TemplateILSClickClick(Sender: TObject);
-begin
-   BatchMemo1.Lines.Add('type = ILS // inverse least squares') ;
-   BatchMemo1.Lines.Add('batch filename = analysis.bat') ;
-   BatchMemo1.Lines.Add('// input (optional)x, y and scores/evectors') ;
-   BatchMemo1.Lines.Add('// if x is input then data type = evectors') ;
-   BatchMemo1.Lines.Add('// if x is omitted then data type = scores') ;
-   BatchMemo1.Lines.Add('x data file  = x.bin') ;
-   BatchMemo1.Lines.Add('y data file  = y.bin') ;
-   BatchMemo1.Lines.Add('scores file  = scores.bin') ;
-   BatchMemo1.Lines.Add('evects file  = evects.bin') ;
-   BatchMemo1.Lines.Add('SEP X file   =    // validation data (for SEP) for bootstrap') ;
-   BatchMemo1.Lines.Add('SEP Y file   =    // validation data (for SEP) for bootstrap') ;
-   BatchMemo1.Lines.Add('bootstrap stats =    // SEC (if original x data present) or SEP (if test data present) or empty for no') ;
-   BatchMemo1.Lines.Add('bootstrap iters =    // the number of iterations to go through in the bootstrap procedure') ;
-   BatchMemo1.Lines.Add('random seed     = 100 //  if = 0 then calls system.randomize()') ;
-   BatchMemo1.Lines.Add('individual pcs = true    // if true, model is made with each PC individually otherwise collectively') ;
-//   BatchMemo1.Lines.Add('deflate x = false     // true for PLS data ') ;  
-   BatchMemo1.Lines.Add('x sample range = 1-     // (ROWS)') ;    // can select subset using this
-   BatchMemo1.Lines.Add('x var range = 1-65536   // (COLS)') ;
-   BatchMemo1.Lines.Add('y in x data = false') ;
-   BatchMemo1.Lines.Add('y sample range = 1-     // (ROWS)') ;    // can select subset using this
-   BatchMemo1.Lines.Add('y var range = 1-1       // (COLS)') ;
-   BatchMemo1.Lines.Add('// if bootstrap stats =  SEP then these need to be specified') ;
-   BatchMemo1.Lines.Add('SEP x sample range = 1-        // (ROWS)') ;
-   BatchMemo1.Lines.Add('SEP x var range    = 1-65536   // (COLS)') ;
-   BatchMemo1.Lines.Add('SEP y sample range = 1-        // (ROWS)') ;
-   BatchMemo1.Lines.Add('SEP y var range    = 6-6       // (COLS)') ;
-   BatchMemo1.Lines.Add('number of PCs = 1-20    // has to be <= evects.rows or scores.cols. Selected range used to make regression model') ;
-   BatchMemo1.Lines.Add('// pre-processing') ;  //
-   BatchMemo1.Lines.Add('mean centre = true') ;  //
-   BatchMemo1.Lines.Add('column standardise = false') ;  //
-   BatchMemo1.Lines.Add('smooth =   // average,15  // fourier,15,50,remove complex  // %,power') ;  //
-   BatchMemo1.Lines.Add('derivative =   // fourier,2,remove complex,true,1 // inputs: "diff type: 1st 2nd deriv etc: true = Hanning Window: 1 2 3 etc = zero fill"  N.B. type=fourier only available;') ;
-   BatchMemo1.Lines.Add('normalise x =  // "vn,pre" OR "vn,post" OR "" pre indicates vector normalise before mean centering ') ;
-
-   BatchMemo1.Lines.Add('// EVects output - none of these are used') ;
-   BatchMemo1.Lines.Add('positive or negative =  ') ;
-   BatchMemo1.Lines.Add('autoexclude =     // 0.75 ') ;
-   BatchMemo1.Lines.Add('normalised output = true') ;
-   BatchMemo1.Lines.Add('results file = pls1_results2.out') ;
-   BatchMemo1.Lines.Add('') ;
+{
+type = PLS
+// input x and y data
+x sample range = 1-686     // (ROWS)
+x var range = 2-520        // (COLS)
+y in x data = true
+y sample range = 1-686     // (ROWS)
+y var range = 1-1          // (COLS)
+number of PCs = 1-20
+// pre-processing
+mean centre = true
+column standardise = false
+smooth = average,15  // fourier,15,50,remove complex  // %,power
+derivative = fourier, 2, remove complex, true, 1 // inputs: "diff type: 1st 2nd deriv etc: true = Hanning Window: 1 2 3 etc = zero fill"  N.B. type=fourier only available;
+// EVects output
+pos or neg range =              // 1200-1260 cm-1
+positive or negative = positive
+normalised EVects = true
+// output
+results file = PLS.out
+}
 end;
 
 procedure TForm3.TemplateInvert2Click(Sender: TObject);
@@ -3166,38 +3089,31 @@ end;
 
 procedure TForm3.TemplatePCR2Click(Sender: TObject);
 begin
-   BatchMemo1.Lines.Add('type = PCR  // edit choice to PLS1 *OR* PCR') ;
-   BatchMemo1.Lines.Add('batch filename = analysis.bat') ;
+   BatchMemo1.Lines.Add('type = PCR') ;
+//   BatchMemo1.Lines.Add('start row = 1') ;
    BatchMemo1.Lines.Add('// input x and y data') ;
-
-   BatchMemo1.Lines.Add('x data file = x.bin') ;
-   BatchMemo1.Lines.Add('y data file = y.bin') ;
-
-   BatchMemo1.Lines.Add('x sample range = 1-      // (ROWS)') ;    // can select subset using this
-   BatchMemo1.Lines.Add('x var range = 1-65536   // (COLS)') ;
-   BatchMemo1.Lines.Add('y in x data = false') ;
-   BatchMemo1.Lines.Add('y sample range = 1-     // (ROWS)') ;    // can select subset using this
-   BatchMemo1.Lines.Add('y var range = 1-1       // (COLS)') ;
+   BatchMemo1.Lines.Add('x sample range = 1-10     // (ROWS)') ;    // can select subset using this
+   BatchMemo1.Lines.Add('x var range = 2-520       // (COLS)') ;
+   BatchMemo1.Lines.Add('y in x data = true') ;
+   BatchMemo1.Lines.Add('y sample range = 1-10     // (ROWS)') ;    // can select subset using this
+   BatchMemo1.Lines.Add('y var range = 1-1         // (COLS)') ;
    BatchMemo1.Lines.Add('number of PCs = 1-20') ;
    BatchMemo1.Lines.Add('// pre-processing') ;  //
    BatchMemo1.Lines.Add('mean centre = true') ;  //
    BatchMemo1.Lines.Add('column standardise = false') ;  //
    BatchMemo1.Lines.Add('smooth =   // average,15  // fourier,15,50,remove complex  // %,power') ;  //
    BatchMemo1.Lines.Add('derivative =   // fourier,2,remove complex,true,1 // inputs: "diff type: 1st 2nd deriv etc: true = Hanning Window: 1 2 3 etc = zero fill"  N.B. type=fourier only available;') ;
-   BatchMemo1.Lines.Add('normalise x =  // "vn,pre" OR "vn,post" OR "" pre indicates vector normalise before mean centering ') ;
    BatchMemo1.Lines.Add('// EVects output - none of these are used') ;
    BatchMemo1.Lines.Add('positive or negative =  ') ;
    BatchMemo1.Lines.Add('autoexclude =     // 0.75 ') ;
-   BatchMemo1.Lines.Add('normalised output = false  // false is best - true is not implemented') ;
-   BatchMemo1.Lines.Add('results file = pcr_results.out') ;
+   BatchMemo1.Lines.Add('normalised output = true') ;
+   BatchMemo1.Lines.Add('results file = PCR.out') ;
    BatchMemo1.Lines.Add('') ;
 end;
 
 procedure TForm3.TemplatePCA2Click(Sender: TObject);
 begin
    BatchMemo1.Lines.Add('type = PCA') ;
-   BatchMemo1.Lines.Add('batch filename = analysis.bat') ;
-   BatchMemo1.Lines.Add('x data file = x.bin') ;
    BatchMemo1.Lines.Add('sample range = 1-  // can select subset using this') ; // can select subset using this
    BatchMemo1.Lines.Add('x var range = 1-') ;
    BatchMemo1.Lines.Add('number of PCs = 1-6') ;
@@ -3211,10 +3127,6 @@ begin
  }
    BatchMemo1.Lines.Add('mean centre = true') ;  //
    BatchMemo1.Lines.Add('column standardise = false') ;  //
-   BatchMemo1.Lines.Add('smooth =   // average,15  // fourier,15,50,remove complex  // %,power') ;  //
-   BatchMemo1.Lines.Add('derivative =   // fourier,2,remove complex,true,1 // inputs: "diff type: 1st 2nd deriv etc: true = Hanning Window: 1 2 3 etc = zero fill"  N.B. type=fourier only available;') ;
-   BatchMemo1.Lines.Add('normalise x =  // "vn,pre" OR "vn,post" OR "" pre indicates vector normalise before mean centering ') ;
-
    BatchMemo1.Lines.Add('normalised output = true') ;
    BatchMemo1.Lines.Add('results file = PCA.out') ;
 end;
@@ -3299,29 +3211,7 @@ end;
 
 procedure TForm3.TemplatePLSPCRVerify1Click(Sender: TObject);
 begin
-   BatchMemo1.Lines.Add('type = PREDICT Y') ;
-   BatchMemo1.Lines.Add('batch filename = analysis.bat') ;
-   BatchMemo1.Lines.Add('// X column: new x data; Y column: Y reference data; Then regression coefficients ') ;
-   BatchMemo1.Lines.Add('// input x and y data') ;
-   BatchMemo1.Lines.Add('x data file = x.bin') ;
-   BatchMemo1.Lines.Add('y data file = y.bin') ;
-   BatchMemo1.Lines.Add('reg coef file = regcoef.bin') ;
-   BatchMemo1.Lines.Add('x sample range = 1-      // (ROWS)') ;    // can select subset using this
-   BatchMemo1.Lines.Add('x var range = 1-65536    // (COLS)') ;
-   BatchMemo1.Lines.Add('y in x data = false') ;
-   BatchMemo1.Lines.Add('y sample range = 1-      // (ROWS)') ;    // can select subset using this
-   BatchMemo1.Lines.Add('y var range = 1-1        // (COLS)') ;
-   BatchMemo1.Lines.Add('// pre-processing') ;
-   BatchMemo1.Lines.Add('mean centre = true') ;
-   BatchMemo1.Lines.Add('column standardise = false') ;
-   BatchMemo1.Lines.Add('smooth =   // average,15  // fourier,15,50,remove complex  // %,power') ;
-   BatchMemo1.Lines.Add('derivative =   // fourier,2,remove complex,true,1 // inputs: "diff type: 1st 2nd deriv etc: true = Hanning Window: 1 2 3 etc = zero fill"  N.B. type=fourier only available;') ;
-   BatchMemo1.Lines.Add('normalise x = // "vn,pre" OR "vn,post" OR "" pre indicates vector normalise before mean centering ') ;
-
-   BatchMemo1.Lines.Add('results file = prediction_results.out') ;
-   BatchMemo1.Lines.Add('') ;
-
-{    BatchMemo1.Lines.Add('type = PREDICT Y') ;
+    BatchMemo1.Lines.Add('type = PREDICT Y') ;
     BatchMemo1.Lines.Add('// X column: new x data; Y column: Y reference data; Then regression coefficients ') ;
 //   BatchMemo1.Lines.Add('start row = 1') ;
    BatchMemo1.Lines.Add('// input x and y data') ;
@@ -3338,7 +3228,7 @@ begin
    BatchMemo1.Lines.Add('derivative =   // fourier,2,remove complex,true,1 // inputs: "diff type: 1st 2nd deriv etc: true = Hanning Window: 1 2 3 etc = zero fill"  N.B. type=fourier only available;') ;
 
    BatchMemo1.Lines.Add('results file = PLS.out') ;
-   BatchMemo1.Lines.Add('') ;    }
+   BatchMemo1.Lines.Add('') ;
 
 end;
 
@@ -3353,8 +3243,8 @@ end;
 procedure TForm3.TemplateMatrixsubtract1Click(Sender: TObject);
 begin
   BatchMemo1.Lines.Add('type = add or subtract') ;
-  BatchMemo1.Lines.Add('operation = subtract  // add') ;
-  BatchMemo1.Lines.Add('// Input:   x data and y data matricies (same size)') ;
+  BatchMemo1.Lines.Add('operation = add  // subtract') ;
+  BatchMemo1.Lines.Add('// Input:   x data and y data (same size)') ;
   BatchMemo1.Lines.Add('// Output:  x +/- y') ;
   BatchMemo1.Lines.Add('') ;
 end;
@@ -3362,7 +3252,6 @@ end;
 procedure TForm3.TemplateMultiplyMatrices1Click(Sender: TObject);
 begin
   BatchMemo1.Lines.Add('type = matrix multiply') ; // matrix multiply
-  BatchMemo1.Lines.Add('add y offset = true  // false  // used to add back a PLS models y data offset (= average value of calibration data)') ; // matrix multiply
   BatchMemo1.Lines.Add('// Input:   two matricies ') ;
   BatchMemo1.Lines.Add('// Output:  the product of the two matricies') ;
   BatchMemo1.Lines.Add('') ;
@@ -3381,7 +3270,7 @@ end;
 procedure TForm3.TemplateVectormultiplydivide1Click(Sender: TObject);
 begin
   BatchMemo1.Lines.Add('type = vector multiply or divide') ;
-  BatchMemo1.Lines.Add('operation = multiply   // divide') ;
+  BatchMemo1.Lines.Add('operation = divide  // multiply') ;
   BatchMemo1.Lines.Add('prefactor = 1.0  // scales vector data') ;
   BatchMemo1.Lines.Add('y row = y.1      // 1st row of y matrix is used as vector') ;
   BatchMemo1.Lines.Add('// Input:   x data (vector or matrix) and y data (vector - same size)') ;

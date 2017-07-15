@@ -102,11 +102,7 @@ begin
   if meanCentre then
     allXData.yCoord.MeanCentre() ;
   if colstd then
-  begin
-    if meanCentre = false then
-       allXData.yCoord.Average ;
     allXData.yCoord.ColStandardize() ;
-  end;
 
   // *****************   Get the x data of TSpectraRanges object - X data can be disjoint (it just will display disjointedly) *****************
   allXData.xString := sourceSpecRange.xString ;

@@ -6,7 +6,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   FileInfo{for access to StatusBar1}, PCAResultsObject, TMatrixObject,
-  TSpectraRangeObject, BLASLAPACKfreePas, TBatch ;
+  TSpectraRangeObject, AtlusBLASLAPACLibrary, TBatch ;
 
 
 

@@ -1,12 +1,9 @@
 unit TVarAndCoVarOperations;
-//{$define FREEPASCAL=1}
-{$ifdef FREEPASCAL}
-{$mode delphi}
-{$endif}
+
 interface
 
-uses  classes,  TMatrixOperations, TMatrixObject  ;
 
+uses  classes, Dialogs, SysUtils, controls, TMatrixOperations, TMatrixObject  ;
 type
   TVarAndCoVarFunctions = class(TObject)
   public
@@ -26,12 +23,7 @@ type
     // uses  StandardiseVarCovar() and takes off diagonals and square them.
     // varStandardisedCovar is from StandardisedVarCovar(); sample1, sample2 are indices to the 2D correlation matrix
     function ReturnCorrelCoeffFromStandardisedVarCovar(varStandardisedCovar : TMatrix; sample1, sample2  : integer) : single ;
-
-    // Returns covariance between rows of two different input maticies (have to have same number of rows)
-    function GetSampleVarCovarOfTwoMatrix(dataM1,dataM2  : TMatrix) : TMatrix ;
-
   private
-    procedure MultiplyAverages( inDataMat : TMatrix; multFact : single ) ;
 end;
 
 
@@ -60,172 +52,13 @@ end;
 
 
 
-procedure TVarAndCoVarFunctions.MultiplyAverages( inDataMat : TMatrix; multFact : single ) ;
-var
-  t1 : integer ;
-  m1_ave   : single ;
-  m1_ave_d : double ;
-begin
-  // pre-multiply the averages
-  inDataMat.F_MAverage.Seek(0,soFromBeginning) ;
-  if inDataMat.SDPrec = 4 then
-  begin
-    for t1 := 0 to inDataMat.numCols - 1 do
-    begin
-      inDataMat.F_MAverage.Read(m1_ave,inDataMat.SDPrec) ;
-      inDataMat.F_MAverage.Seek(-inDataMat.SDPrec,soFromCurrent) ;
-      m1_ave := m1_ave * multFact; // these are not averages now, but the total sum of the column (as required)
-      inDataMat.F_MAverage.Write(m1_ave,inDataMat.SDPrec) ;
-    end;
-  end
-  else
-  if inDataMat.SDPrec = 8 then
-  begin
-    for t1 := 0 to inDataMat.numCols - 1 do
-    begin
-      inDataMat.F_MAverage.Read(m1_ave_d,inDataMat.SDPrec) ;
-      inDataMat.F_MAverage.Seek(-inDataMat.SDPrec,soFromCurrent) ;
-      m1_ave_d := m1_ave_d * multFact; // these are not averages now, but the total sum of the column (as required)
-      inDataMat.F_MAverage.Write(m1_ave_d,inDataMat.SDPrec) ;
-    end;
-  end  ;
-
-  inDataMat.F_MAverage.Seek(0,soFromBeginning) ;
-end;
-
-
-
-function TVarAndCoVarFunctions.GetSampleVarCovarOfTwoMatrix(dataM1,dataM2  : TMatrix) : TMatrix ;   // dataMatrix has to be mean centred
-// returns variance / covariance matrix
-var
-  tMat : TMatrix ;
-  t1, t2, SD  : integer ;
-  s1, m1_ave,   m2_ave,   sd1,   sd2,   i_div    : single  ;
-  d1, m1_ave_d, m2_ave_d, sd1_d, sd2_d, i_div_d  : double  ;
-  originallyMC_M1, originallyMC_M2 : boolean ;
-begin
-try
-  // transpose as we want the variance within a sample (within a single spectra)
-  dataM1.Transpose  ;   // have to untranspose  after
-  dataM2.Transpose  ;   // have to untranspose  after
-  // do this so matrix multiplication will give us the variance and covariance matrix
-  //(do not need to subtract the mean as this zeros it)
-  if dataM1.meancentred = true  then
-    originallyMC_M1 := true
-  else
-    originallyMC_M1 := false ;
-  if dataM2.meancentred = true  then
-    originallyMC_M2 := true
-  else
-    originallyMC_M2 := false ;
-
-  dataM1.MeanCentre ;   // have to unmeancentre after
-  dataM2.MeanCentre ;   // have to unmeancentre after
- // dataM1.SaveMatrixDataBin('D:\aa_NIR_correlation\M1.bin', 1,10);
- // dataM2.SaveMatrixDataBin('D:\aa_NIR_correlation\M2.bin', 1,10);
-
-
-  dataM1.Stddev(true) ;
-  dataM2.Stddev(true) ;
-
-  if dataM1.numRows = dataM2.numRows then
-    tMat :=  mo.MultiplyMatrixByMatrix(dataM1,dataM2, true,false, dataM1.numRows , false) ;   // was 1/(dataMatrix.numCols-1), which was WRONG
-  // could exchange 1.0 for  dataM1.numRows and then remove from (below):
-
-  // pre-multiply the averages to obtain *sum* of all data in a column
-  MultiplyAverages( dataM1, dataM1.numRows ) ;
-  MultiplyAverages( dataM2, dataM2.numRows ) ;
-
-
-  SD := tMat.SDPrec ;
-  if SD = 4 then
-  begin
-    i_div := dataM2.numRows ;
-    i_div := i_div * ( i_div - 1.0) ;
-    tMat.F_Mdata.Seek(0,soFromBeginning) ;
-    for t1 := 0 to tMat.numRows - 1 do
-    begin
-      dataM1.F_MAverage.Read(m1_ave,SD) ;
-      dataM1.F_MStdDev.Read(sd1,SD) ;
-
-      for t2 := 0 to tMat.numCols - 1 do
-      begin
-         dataM2.F_MAverage.Read(m2_ave,SD) ;
-         dataM2.F_MStdDev.Read(sd2,SD) ;
-         tMat.F_Mdata.Read(s1,SD);
-         tMat.F_Mdata.Seek(-SD,soFromCurrent) ;
-         s1 := ((s1 ) - ( m1_ave  *  m2_ave)) / i_div ;   // was (s1 * dataM1.numRows) but the multiply is done in the MultiplyMatrixByMatrix () function above
-         s1 := s1 / (sd1 * sd2) ;
-         tMat.F_Mdata.Write(s1,SD);
-      end;
-      dataM2.F_MAverage.Seek(0,soFromBeginning) ;
-      dataM2.F_MStdDev.Seek(0,soFromBeginning) ;
-    end;
-  end
-  else
-  if SD = 8  then
-  begin
-    i_div_d := dataM2.numRows ;
-    i_div_d := i_div_d * ( i_div_d - 1.0) ;
-    tMat.F_Mdata.Seek(0,soFromBeginning) ;
-    for t1 := 0 to tMat.numRows - 1 do
-    begin
-      dataM1.F_MAverage.Read(m1_ave_d,SD) ;
-      dataM1.F_MStdDev.Read(sd1_d,SD) ;
-
-      for t2 := 0 to tMat.numCols - 1 do
-      begin
-         dataM2.F_MAverage.Read(m2_ave_d,SD) ;
-         dataM2.F_MStdDev.Read(sd2_d,SD) ;
-         tMat.F_Mdata.Read(d1,SD);
-         tMat.F_Mdata.Seek(-SD,soFromCurrent) ;
-         d1 := ((d1 ) - ( m1_ave_d  *  m2_ave_d)) / i_div ;   // was (s1 * dataM1.numRows) but the multiply is done in the MultiplyMatrixByMatrix () function above
-         d1 := d1 / (sd1_d * sd2_d) ;
-         tMat.F_Mdata.Write(d1,SD);
-      end;
-      dataM2.F_MAverage.Seek(0,soFromBeginning) ;
-      dataM2.F_MStdDev.Seek(0,soFromBeginning) ;
-    end;
-  end;
-  // reset stream position to start of stream
-  tMat.F_Mdata.Seek(0,soFromBeginning) ;
-  dataM1.F_MAverage.Seek(0,soFromBeginning) ;
-  dataM1.F_MStdDev.Seek(0,soFromBeginning) ;
-  dataM2.F_MAverage.Seek(0,soFromBeginning) ;
-  dataM2.F_MStdDev.Seek(0,soFromBeginning) ;
-
-  // undo everything done to original matricies
-  MultiplyAverages( dataM1, 1.0/dataM1.numRows ) ;
-  MultiplyAverages( dataM2, 1.0/dataM2.numRows ) ;
-
-
-
-
-  if originallyMC_M1 = true  then
-  else dataM1.AddVectToMatrixRows(dataM1.F_MAverage) ;   // unmeancentre;
-  if originallyMC_M2 = true  then
-  else dataM2.AddVectToMatrixRows(dataM2.F_MAverage) ;   // unmeancentre
-
-  dataM1.Transpose  ;   // have to untranspose  after
-  dataM2.Transpose  ;   // have to untranspose  after
-
-  finally
-     Result := tMat ;
-  end;
-end ;
-
-
-
-
-
 function TVarAndCoVarFunctions.GetVarCovarMatrix(dataMatrix : TMatrix) : TMatrix ;   // dataMatrix has to be mean centred
 // returns variance / covariance matrix
 // Diagonals of Var/Covar matrix is variance. sqrt(variance) is the stddev
 var
   matCopy : TMatrix ;
 begin
-  try
-     matCopy := TMatrix.Create(dataMatrix.SDPrec) ;
+     matCopy := TMatrix.Create(dataMatrix.SDPrec div 4) ;
      matCopy.CopyMatrix(dataMatrix) ;
      if dataMatrix.meanCentred = false then
        matCopy.MeanCentre ;   // THIS WOULD MODIFY the input data - So copy to new TMatrix (above)
@@ -234,10 +67,7 @@ begin
     if matCopy.numRows > 1 then
     result :=  mo.MultiplyMatrixByMatrix(matCopy,matCopy,true,false, 1/(matCopy.numRows-1), true) ;   // was 1/(dataMatrix.numCols-1), which was WRONG
 
-
-  finally
-    matCopy.Free  ;
-  end;
+    matCopy.Free ;
 end ;
 
 

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, classes, SysUtils, Dialogs,  TMatrixObject,
-  TBatchBasicFunctions, TVarAndCoVarOperations, TSpectraRangeObject, TMaxMinObject  ;
+  TBatchBasicFunctions, TVarAndCoVarOperations, TSpectraRangeObject  ;
 
 
 type
@@ -54,7 +54,7 @@ end;
 implementation
 
 uses
-  Fileinfo , BLASLAPACKfreePas  ;
+  Fileinfo , AtlusBLASLAPACLibrary  ;
 
 
 constructor TPLMAnalysis.Create(SDPrec : integer) ;

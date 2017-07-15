@@ -1,19 +1,15 @@
 unit FFTUnit;
-//{$define FREEPASCAL=1}
-{$ifdef FREEPASCAL}
-{$mode delphi}
-{$endif}
 
 interface
 
-uses  classes,  Math,   TMatrixObject ;
+uses  Windows, OpenGL, classes, Dialogs,  Math, SysUtils, TMatrixObject ;
 
 type
   TFFTFunctions = class
   public
     // Fourier Transform
     numPoints : integer ;
-    dtime, dfreq, nyquistFreq : single ;  // time space between data points and frequency space between freq. data
+    dt, dfreq, nyquistFreq : single ;  // time space between data points and frequency space between freq. data
     hanningWindow : boolean ;          // not sure why this is in here
     FFTReverse : boolean ; // false = forward, true is reverse
     firstXVal : single ;   // used to store where data was displayed from before FFT taken
@@ -27,21 +23,19 @@ type
     procedure Set_numPoints(numIn : integer) ;
 
     procedure ComputeFFTSingle(ForwardOrReverse : integer; ZeroFillIn : integer; p1 : pointer)  ;
-    procedure ComputeFFT_FFTW(ForwardOrReverse : integer; ZeroFillIn : integer; p1 : pointer) ;
-
     procedure CreateButterworthFilter(percentage, pow : single; p1 : pointer ) ;
     procedure MultiplyFFT(bw_p, p1 : pointer ) ;  // p1 is FFT data, bw_p is step type function
     procedure ConvolveByFFT(Spec1, Spec2 : TMemoryStream) ; // multiply two FFT by one another and inverse FFT to get convolution
     procedure CorrelateByFFT(Spec1, Spec2 : TMemoryStream) ;
     procedure FFTBandPass( percentage, pow : single; zero : boolean; zeroFill : integer ; p1 : pointer ) ;
     procedure MultiplySpectra(spec1, spec2 : TMemoryStream ) ;  // multiply spec1 by spec2 and place answer in spec1 - multiply Y values only
-    procedure SaveFFT;
+    procedure SaveFFT(SaveDialog : TSaveDialog) ;
     procedure DiffOrIntUsingFFT( p1 : pointer; order : integer ; zeroFillIn : integer ) ; // ; order 1 = 1st deriv, 2 = 2nd etc.
     procedure DeconvolveByFFT(tspec : TMemoryStream) ;
     procedure ApplyHanningWindow(numberOfVals : integer; inputRealImagStr : TMemoryStream) ;  // numberOfVals is size of FFTMemstream and is returned by ClosestPowofTwo()
     function  ClosestPowofTwo(numPoints : integer) : integer ;
-    function  MultiplyRealImagReturnReal( ri1, ri2 : array of single) : single ;   // returns real part of multiplication
-    function  MultiplyRealImagReturnImag( ri1, ri2 : array of single) : single ;   // retuns imaginary part of multiplication
+    function  MultiplyRealImagReal( ri1, ri2 : array of single) : single ;   // returns real part of multiplication
+    function  MultiplyRealImagImag( ri1, ri2 : array of single) : single ;   // retuns imaginary part of multiplication
 //    procedure ScaleFFTData(max : single; spectra : TMemoryStream) ;
 //    procedure ScaleFFTDataDouble(max : double; spectra : TMemoryStream) ;
 
@@ -51,12 +45,11 @@ type
 
 implementation
 
-uses TSpectraRangeObject, FileInfo;
-
+uses TSpectraRangeObject ;
 
 constructor TFFTFunctions.Create; // found in implementation part below
 begin
-  dtime := 0.0 ;
+  dt := 0.0 ;
   FFTReverse := false ;
   inherited Create;
 end ;
@@ -74,7 +67,7 @@ end;
 procedure TFFTFunctions.CopyFFTObject( sourceFFT : TFFTFunctions )  ;
 begin
     self.numPoints := sourceFFT.numPoints ;
-    self.dtime:=  sourceFFT.dtime ;
+    self.dt:=  sourceFFT.dt ;
     self.dfreq := sourceFFT.dfreq ;
     self.nyquistFreq := sourceFFT.nyquistFreq ;  // time space between data points and frequency space between freq. data
     self.hanningWindow := sourceFFT.hanningWindow ;          // not sure why this is in here
@@ -85,7 +78,7 @@ end ;
 
 procedure TFFTFunctions.Set_dt(last, first : single) ;
 begin
-   dtime := last - first ;
+   dt := last - first ;
 end ;
 
 procedure TFFTFunctions.Set_numPoints(numIn : integer) ;
@@ -124,7 +117,7 @@ var
   tempRealImag : Array [0..1] of single ;
   dataj, datai : Array [0..1] of single ;
   tempSwap : single ;
-  freq, dt_2 : single ;
+  freq : single ;
 
   tSR : TSpectraRanges ;
   newYMatrix, newImagMatrix : TMatrix ;  // place new (possibly) enlarged y data values in here and copy all old Y data
@@ -134,13 +127,12 @@ var
 begin
 
  tSR := TSpectraRanges( p1 ) ;
- newYMatrix := TMatrix.Create(tSR.yCoord.SDPrec) ;
- // need to enlarge size of this if zero fill or numberofVals greater than original YCoord matrix
- newYMatrix.CopyMatrix( tSR.yCoord ) ;
- newImagMatrix := TMatrix.Create(tSR.yCoord.SDPrec) ;
- // need to enlarge size of this if zero fill or numberofVals greater than original YCoord matrix
+ newYMatrix := TMatrix.Create(tSR.yCoord.SDPrec div 4) ;
+ newYMatrix.CopyMatrix( tSR.yCoord ) ;  // need to enlarge size of this if zero fill or numberofVals greater than original YCoord matrix
+
+ newImagMatrix := TMatrix.Create(tSR.yCoord.SDPrec div 4) ;
  if tSR.yImaginary <> nil then
-   newImagMatrix.CopyMatrix( tSR.yImaginary ) ;
+   newImagMatrix.CopyMatrix( tSR.yImaginary ) ;  // need to enlarge size of this if zero fill or numberofVals greater than original YCoord matrix
  // need to set numRow and numCol size if it did not exist
 
 try
@@ -148,24 +140,23 @@ try
   // get first x value and then get last x value and divide by (total number of values - 1)
   tSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
   tSR.xCoord.F_Mdata.Read(s1,tSR.xCoord.SDPrec) ;
-  dt_2 := s1  ;   // this is used soon
+  dt := s1  ;   // this is used soon
 
   if tSR.fft.FFTReverse = false then
       tSR.fft.firstXVal := s1 ;  // only needed on forward FFT, used to offset data after reverse FFT
 
-  // get last x data
   tSR.xCoord.F_Mdata.Seek(-tSR.xCoord.SDPrec,soFromEnd) ;
   tSR.xCoord.F_Mdata.Read(s1,tSR.xCoord.SDPrec) ; // last x value
-  // calculate difference
-  dt_2 := s1 - dt_2 ;
-  dtime := dt_2 / (tSR.xCoord.numCols -1) ; // full range divided by number in range - 1
-//  if self.FFTReverse = false then nyquistFreq := 1 / (2*dt) ;
-  nyquistFreq := 1 / (2*dtime) ;
+  dt := s1 - dt ;
 
+
+  dt := dt / (tSR.xCoord.numCols -1) ; // full range divided by number in range - 1
+//  if self.FFTReverse = false then nyquistFreq := 1 / (2*dt) ;
+  nyquistFreq := 1 / (2*dt) ;
   // calculate closest power of two
   numberOfVals := ClosestPowofTwo(tSR.xCoord.numCols) ;
-
   // add zeros to end of data to increase frequency resolution (Zero-fill)
+
   if zeroFillFFT > 1 then    // data has been zero filled previously
     numberOfVals :=  numberOfVals
   else                      // data has not been zero filled
@@ -174,11 +165,11 @@ try
      numberOfVals :=  numberOfVals *  zeroFillFFT ;
   end ;
 
-  dfreq  := 1 / ((numberOfVals) * dtime) ;  // this is the new XCoord data spacing
+  dfreq  := 1 / ((numberOfVals) * dt) ;  // this is the new XCoord data spacing
 
   // Resize the new Y matrix
   newYMatrix.numCols := numberOfVals ;
-  newYMatrix.numRows := tSR.yCoord.numRows ;  // this is not needed as it stays the same
+  newYMatrix.numRows := tSR.yCoord.numRows ;  // this is not needed as it stay the same
   newYMatrix.F_Mdata.SetSize(newYMatrix.numRows * newYMatrix.numCols * newYMatrix.SDPrec) ;
 
   // Resize the new Imaginary matrix
@@ -211,7 +202,7 @@ try
        tSR.yCoord.F_Mdata.Read(s1,tSR.yCoord.SDPrec) ;
        tMStr.Write(s1,tSR.yCoord.SDPrec);
        if tSR.yImaginary = nil then
-         s1 := 0.0
+         s1 := 0.0 
        else
          tSR.yImaginary.F_Mdata.Read(s1,tSR.yCoord.SDPrec) ;
        tMStr.Write(s1,tSR.yCoord.SDPrec);
@@ -229,7 +220,7 @@ try
   begin
     ApplyHanningWindow(numberOfVals, tMStr) ;
   end ;
-  // blackman window
+  // blackman window     
 
 
    // This is the bit-reversal section of the routine.
@@ -322,7 +313,7 @@ end ;
   // If first time around, place x data (frequency data) in xCoord TMatrix - clear it and resize it first
   if (spectraNumber =  1) then
   begin
-      tSR.xCoord.ClearData(tSR.xCoord.SDPrec) ;
+      tSR.xCoord.ClearData(tSR.xCoord.SDPrec div 4) ;
       tSR.xCoord.numCols := tMStr.Size div (tSR.xCoord.SDPrec*2) ;
       tSR.xCoord.numRows := 1 ;
       tSR.xCoord.F_Mdata.SetSize(tSR.xCoord.numCols * tSR.xCoord.SDPrec) ;
@@ -404,296 +395,160 @@ end ;
 
 
 
-procedure TFFTFunctions.ComputeFFT_FFTW(ForwardOrReverse : integer; ZeroFillIn : integer; p1 : pointer) ;
+
+{procedure TFFTFunctions.FFTDeconvolution(tspec : TSpectraRanges) ;
 var
-  n, mmax, m,  j, istep, i, ii : Longint	 ;
-  wtemp,wr,wpr,wpi,wi,theta : double ; // Double precision for the trigonometric recurrences.
-//  tempr,tempi : single ;
-  numberOfVals : Longint	 ; // this is value "nn" in original code
-  NumPointsInArray : Longint	 ;
-  t1, upper, lower : Longint ;
-  tempXY : Array [0..1] of single ;
-  tempRealImag : Array [0..1] of single ;
-  dataj, datai : Array [0..1] of single ;
-  tempSwap : single ;
-  freq, dt_2 : single ;
-
-  tSR : TSpectraRanges ;
-  newYMatrix, newImagMatrix : TMatrix ;  // place new (possibly) enlarged y data values in here and copy all old Y data
-  tMStr : TMemoryStream ; // this is temporary inteleaved real+imaginary data pairs
-  s1 : single ;
-  spectraNumber : integer ;
+  tint, origSize, pos : integer ;
+  den, num : array[0..1] of single ;  // den is instrument func, num is original spectrum, congden is the complex conjugate of the denominator
+  den_d, num_d, congden_d : array[0..1] of double ;  // den is instrument func, num is original spectrum, congden is the complex conjugate of the denominator
+  tempxy_d : array[0..1] of single ;
+  tempxy : array[0..1] of single ;
+  tempRange : TGLRangeArray ;
+  divden_d, fftScale : double ;
+  scaleFact : single ;
+  filter :  TSpectraRanges ;
+  doubleStream : TMemoryStream ;
 begin
+  origSize := FMemStream.Size ;
 
- tSR := TSpectraRanges( p1 ) ;
- newYMatrix := TMatrix.Create(tSR.yCoord.SDPrec) ;
- // need to enlarge size of this if zero fill or numberofVals greater than original YCoord matrix
- newYMatrix.CopyMatrix( tSR.yCoord ) ;
- newImagMatrix := TMatrix.Create(tSR.yCoord.SDPrec) ;
- // need to enlarge size of this if zero fill or numberofVals greater than original YCoord matrix
- if tSR.yImaginary <> nil then
-   newImagMatrix.CopyMatrix( tSR.yImaginary ) ;
- // need to set numRow and numCol size if it did not exist
+  // for rescale
+  tempRange := FindYLimits(FMemStream) ;
+  scaleFact :=  tempRange[3] - tempRange[2] ;
 
-try
-  // calculate dt - the spacing of the data
-  // get first x value and then get last x value and divide by (total number of values - 1)
-  tSR.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-  tSR.xCoord.F_Mdata.Read(s1,tSR.xCoord.SDPrec) ;
-  dt_2 := s1  ;   // this is used soon
+  tspec.ComputeFFT(1, 1) ;
+//  tspec.ScaleFFTData(1.0, tspec.FFTMemStream) ;
+  ComputeFFT(1, 1) ;
+//  ScaleFFTData(1.0, FFTMemStream) ;
 
-  if tSR.fft.FFTReverse = false then
-      tSR.fft.firstXVal := s1 ;  // only needed on forward FFT, used to offset data after reverse FFT
+  tempRange := FindXLimits(FFTMemStream) ;
+  fftScale := tempRange[1] ;  // this is the maximum real value in the memory stream
 
-  // get last x data
-  tSR.xCoord.F_Mdata.Seek(-tSR.xCoord.SDPrec,soFromEnd) ;
-  tSR.xCoord.F_Mdata.Read(s1,tSR.xCoord.SDPrec) ; // last x value
-  // calculate difference
-  dt_2 := s1 - dt_2 ;
-  dtime := dt_2 / (tSR.xCoord.numCols -1) ; // full range divided by number in range - 1
-//  if self.FFTReverse = false then nyquistFreq := 1 / (2*dt) ;
-  nyquistFreq := 1 / (2*dtime) ;
+  FFTMemStream.Seek(0, soFromBeginning) ;
+  tspec.FFTMemStream.Seek(0, soFromBeginning) ;
 
-  // calculate closest power of two
-  numberOfVals := ClosestPowofTwo(tSR.xCoord.numCols) ;
+//  pos := (FFTMemStream.Size div 2)-(FFTMemStream.Size div 4) ;
+//  FFTMemStream.Seek(pos, soFromBeginning) ;
+//  tspec.FFTMemStream.Seek(pos, soFromBeginning) ;
 
-  // add zeros to end of data to increase frequency resolution (Zero-fill)
-  if zeroFillFFT > 1 then    // data has been zero filled previously
-    numberOfVals :=  numberOfVals
-  else                      // data has not been zero filled
+//  filter :=   TSpectraRanges.Create() ;
+//  filter.FMemStream.SetSize(FFTMemStream.Size) ; // create filt of same size as FFT to be multiplied
+ // filter.FMemStream.Seek(0,soFromBeginning) ;
+ // CreateButterworthFilter(0.1, 50, filter) ;
+//  MultiplyFFT(FFTMemStream, filter) ;
+// MultiplyFFT(tspec.FFTMemStream, filter) ;
+//  filter.Free ;
+
+ // FFTMemStream.Seek(0, soFromBeginning) ;
+ // tspec.FFTMemStream.Seek(0, soFromBeginning) ;
+
+  doubleStream := TMemoryStream.Create ;
+  doubleStream.SetSize(  FFTMemStream.Size * 2 ) ;
+  doubleStream.Seek(0, soFromBeginning) ;
+  for tint := 1 to (FFTMemStream.Size div 8) do
   begin
-     zeroFillFFT := zeroFillIn   ;
-     numberOfVals :=  numberOfVals *  zeroFillFFT ;
-  end ;
+    FFTMemStream.Read(num,8) ;  // observed fft of lineshape
+  //  FFTMemStream.Seek(-8, soFromCurrent) ;  // move back so as to place result of division in original spectrum
+    tspec.FFTMemStream.Read(den,8) ;   // instrumental fft of line
+    num_d[0] := num[0]; num_d[1] := num[1];
+    den_d[0] := den[0]; den_d[1] := den[1];
 
-  dfreq  := 1 / ((numberOfVals) * dtime) ;  // this is the new XCoord data spacing
-
-  // Resize the new Y matrix
-  newYMatrix.numCols := numberOfVals ;
-  newYMatrix.numRows := tSR.yCoord.numRows ;  // this is not needed as it stays the same
-  newYMatrix.F_Mdata.SetSize(newYMatrix.numRows * newYMatrix.numCols * newYMatrix.SDPrec) ;
-
-  // Resize the new Imaginary matrix
-  newImagMatrix.numCols := numberOfVals ;
-  newImagMatrix.numRows := tSR.yCoord.numRows ;  // this is not needed as it stay the same
-  newImagMatrix.F_Mdata.SetSize(newImagMatrix.numRows * newImagMatrix.numCols * newImagMatrix.SDPrec) ;
-
-  // create temporary storage for real and imaginary data for spectral data
-  tMStr := TMemoryStream.Create ;
-  tMStr.size := 2 * sizeof(single) * numberOfVals ;
-  tMStr.Seek(0,soFromBeginning) ;
-
-// ****************************************************************************************
-//  ****************  Start for each spectrum in Y data  **********************************
-// ****************************************************************************************
-  for spectraNumber := 1 to tSR.yCoord.numRows do
-  begin
-  tMStr.Clear ;
-  tMStr.size := 2 * sizeof(single) * numberOfVals ;
-  tMStr.Seek(0,soFromBeginning) ;
-
-  tSR.yCoord.F_Mdata.Seek(((spectraNumber-1) * tSR.yCoord.numCols)* tSR.yCoord.SDPrec ,soFromBeginning) ;
-  if tSR.yImaginary <> nil then
-  tSR.yImaginary.F_Mdata.Seek(((spectraNumber-1) * tSR.yImaginary.numCols)* tSR.yImaginary.SDPrec ,soFromBeginning) ;
-
-  for t1 := 1 to newYMatrix.numCols do  // create the real:imag data from the Y data
-  begin
-     if t1 <= tSR.yCoord.numCols  then
-     begin
-       tSR.yCoord.F_Mdata.Read(s1,tSR.yCoord.SDPrec) ;
-       tMStr.Write(s1,tSR.yCoord.SDPrec);
-       if tSR.yImaginary = nil then
-         s1 := 0.0
-       else
-         tSR.yImaginary.F_Mdata.Read(s1,tSR.yCoord.SDPrec) ;
-       tMStr.Write(s1,tSR.yCoord.SDPrec);
-     end
-     else    // add zeros to the end of the power of two nmuCols (zeroFill remainder)
-     begin
-        s1 := 0.0 ;
-        tMStr.Write(s1,tSR.yCoord.SDPrec);   // real
-        tMStr.Write(s1,tSR.yCoord.SDPrec);   // imaginary
-     end ;
-  end ;
-
-  // apply Hanning window
-  if hanningWindow = true then
-  begin
-    ApplyHanningWindow(numberOfVals, tMStr) ;
-  end ;
-  // blackman window
-
-
-   // This is the bit-reversal section of the routine.
-   tMStr.Seek(0,soFromBeginning) ;
-   ii := 1 ;
-   n := numberOfVals shl 1 ;  // multiply by 2
-   j:=1;
-   for i:=1 to numberOfVals do
-   begin
-     if (j > ii) then
-     begin
-        tMStr.Seek((j-1)*tSR.yCoord.SDPrec,soFromBeginning) ;
-        tMStr.ReadBuffer(tempXY,tSR.yCoord.SDPrec*2) ;
-        tMStr.Seek((ii-1)*tSR.yCoord.SDPrec,soFromBeginning) ;
-        tMStr.ReadBuffer(tempRealImag,tSR.yCoord.SDPrec*2) ;
-        tMStr.Seek((j-1)*tSR.yCoord.SDPrec,soFromBeginning) ;
-        tMStr.Write(tempRealImag,tSR.yCoord.SDPrec*2) ;
-        tMStr.Seek((ii-1)*tSR.yCoord.SDPrec,soFromBeginning) ;
-        tMStr.Write(tempXY,tSR.yCoord.SDPrec*2) ;
-     end ;
-     m := numberOfVals ;
-    while (m >= 2) and (j > m) do
+    if (num[0] > 0.5) and (num[1] > 0.5) then // this works OK  when  num[1] > 0.5
     begin
-      j := j - m;
-      m := m shr 1;  // divide by 2
-    end ;
-    j := j + m ;
-    ii := ii + 2 ;
-  end ;
-
-// Here begins the Danielson-Lanczos section of the routine.
-tMStr.Seek(0,soFromBeginning) ;
-mmax := 2;
-while (n > mmax) do // Outer loop executed log2 nn times.
-begin
-  istep := mmax shl 1;
-  theta := ForwardOrReverse*(6.28318530717959/mmax); // Initialize the trigonometric recurrence.
-  wtemp := sin(0.5*theta);
-  wpr := -2.0*wtemp*wtemp;
-  wpi := sin(theta);
-  wr := 1.0;
-  wi := 0.0;
-  // for (m:=1;m<mmax;m+=2)  // Here are the two nested inner loops.
-  m := 1  ;
-  while m < mmax do
-  begin
-   // for (i=m;i<=n;i+=istep)
-    i := m ;
-    while i <= n do
-    begin
-      j := i+mmax; // This is the Danielson-Lanczos formula:
-      tMStr.Seek((j-1)*tSR.yCoord.SDPrec,soFromBeginning) ;
-      tMStr.ReadBuffer(dataj,tSR.yCoord.SDPrec*2) ;
-      tempRealImag[0] := wr*dataj[0]-wi*dataj[1]; // tempr := wr*data[j]-wi*data[j+1];
-      tempRealImag[1] := wr*dataj[1]+wi*dataj[0]; // tempi := wr*data[j+1]+wi*data[j];
-      tMStr.Seek((i-1)*tSR.yCoord.SDPrec,soFromBeginning) ;
-      tMStr.ReadBuffer(datai,tSR.yCoord.SDPrec*2) ;
-      dataj[0] := datai[0] - tempRealImag[0] ;   // data[j] := data[i]-tempr;
-      dataj[1] := datai[1] - tempRealImag[1] ;   // data[j+1] := data[i+1]-tempi;
-      datai[0] := datai[0] + tempRealImag[0] ;   // data[i] := data[i] + tempr;
-      datai[1] := datai[1] + tempRealImag[1] ;   // data[i+1] := data[i+1] + tempi;
-      tMStr.Seek((j-1)*tSR.yCoord.SDPrec,soFromBeginning) ;
-      tMStr.Write(dataj,tSR.yCoord.SDPrec*2) ;
-      tMStr.Seek((i-1)*tSR.yCoord.SDPrec,soFromBeginning) ;
-      tMStr.Write(datai,tSR.yCoord.SDPrec*2) ;
-      i := i + istep ;
-    end ;
-    wtemp := wr ;
-    wr := wtemp*wpr-wi*wpi+wtemp; // Trigonometric recurrence.
-    wi := wi*wpr+wtemp*wpi+wi;
-    m := m + 2 ;
-  end ;
-  mmax := istep;
-end ;
-
-  if FFTReverse = false then
-  begin
-    tMStr.Seek(0,soFromBeginning) ;
-    for t1 := 1 to (tMStr.size div (tSR.yCoord.SDPrec*2)) do     // Normalise range of data
-    begin
-      tMStr.ReadBuffer(TempXY,(tSR.yCoord.SDPrec*2)) ;
-      TempXY[0] := (TempXY[0]) / numberOfVals ;
-      TempXY[1] := (TempXY[1]) / numberOfVals ;
-      tMStr.Seek(-(tSR.yCoord.SDPrec*2),soFromCurrent) ;
-      tMStr.write(TempXY,(tSR.yCoord.SDPrec*2)) ;
-    end ;
-  end ;
-
-
-  // If first time around, place x data (frequency data) in xCoord TMatrix - clear it and resize it first
-  if (spectraNumber =  1) then
-  begin
-      tSR.xCoord.ClearData(tSR.xCoord.SDPrec) ;
-      tSR.xCoord.numCols := tMStr.Size div (tSR.xCoord.SDPrec*2) ;
-      tSR.xCoord.numRows := 1 ;
-      tSR.xCoord.F_Mdata.SetSize(tSR.xCoord.numCols * tSR.xCoord.SDPrec) ;
-      // position data in correct place
-
-      if FFTReverse = false then
+      congden_d[0] := den[0] ;      // real part of complex conjugate is just the real part unchanged
+      congden_d[1] := -1 * den[1] ; // complex conjugate is -ve of imaginary part
+      divden_d := den_d[0]*den_d[0] + den_d[1]*den_d[1] ;
+      if divden_d = 0.0 then
       begin
-        lower := -(newYMatrix.numCols div 2)+1 ;
-        upper :=  (newYMatrix.numCols div 2) ;
-       end
+        if ((num_d[0]*den_d[0]) + (num_d[1]*congden_d[1]*-1.0)) = 0.0 then
+          tempxy_d[0] := 0.0
+        else
+          tempxy_d[0] := math.MaxDouble ;
+        if (num_d[0]*congden_d[1] + num_d[1]*congden_d[0]) = 0.0 then
+          tempxy_d[1] := 0.0
+        else
+          tempxy_d[1] := math.MaxDouble ;
+        end
       else
       begin
-        lower := 1 ;
-        upper := newYMatrix.numCols ;
+        tempxy_d[0] :=  ((num_d[0]*den_d[0]) + (num_d[1]*congden_d[1]*-1.0)) / divden_d ;
+        tempxy_d[1] :=  (num_d[0]*congden_d[1] + num_d[1]*congden_d[0]) / divden_d ;
       end ;
+    end
+    else
+    begin
+      tempxy_d[0] :=  0.0 ;
+      tempxy_d[1] :=  0.0 ;
+    end ;
 
-    // write new x data (frequency data if forward FFT)
-      for t1 := lower to upper do
-      begin
-       freq :=  (t1-1) * dfreq ;
-       if FFTReverse = true then
-         freq := freq + firstXVal ;
-       tSR.xCoord.F_Mdata.Write(freq,tSR.xCoord.SDPrec) ;
-      end ;
+    doubleStream.Write(tempxy_d,16) ;
   end ;
 
-
-  // seek to correct spectum start
-  newYMatrix.F_Mdata.Seek((spectraNumber-1) * newYMatrix.SDPrec * newYMatrix.numCols , soFromBeginning) ;
-  newImagMatrix.F_Mdata.Seek((spectraNumber-1) * newYMatrix.SDPrec * newYMatrix.numCols, soFromBeginning) ;
-
-  // **** Seperate real and imaginary bits and place in new yCoord (newYMatrix) and yImaginary  *****
-  if FFTReverse = false then   // reorder data
+//  ScaleFFTDataDouble(fftScale, doubleStream) ;
+  doubleStream.Seek(0,soFromBeginning) ;
+  FFTMemStream.Seek(0,soFromBeginning) ;
+  for tint := 1 to (FMemStream.Size div 8) do
   begin
-    tMStr.Seek((tMStr.size div 2),soFromBeginning) ;
-    // ** write -ve frequency values **
-    for t1 := 1 to (tMStr.size div 16) do
-    begin
-       tMStr.ReadBuffer(TempXY,(tSR.yCoord.SDPrec*2)) ;
-       newYMatrix.F_Mdata.Write(TempXY[0],tSR.yCoord.SDPrec) ;
-       newImagMatrix.F_Mdata.Write(TempXY[1],tSR.yCoord.SDPrec) ;
-    end ;
-    // ** write +ve frequency values to rest of stream **
-    tMStr.Seek(0,soFromBeginning) ;
-    for t1 := 1 to (tMStr.size div 16) do // write +ve frquency values
-    begin
-       tMStr.ReadBuffer(TempXY,(tSR.yCoord.SDPrec*2)) ;
-       newYMatrix.F_Mdata.Write(TempXY[0],tSR.yCoord.SDPrec) ;
-       newImagMatrix.F_Mdata.Write(TempXY[1],tSR.yCoord.SDPrec) ;
-    end ;
-  end
-  else  // do not reorder data if we are doing backwards FFT (just shift back - this is done in xCoord) (FFTReverse = true)
-  begin
-      tMStr.Seek(0,soFromBeginning) ;
-      for t1 := 1 to (tMStr.size div 8) do // write all
-      begin
-         tMStr.ReadBuffer(TempXY,8) ;
-         if (t1 mod 2) = 0 then begin  TempXY[0] := -1 * TempXY[0] ;  TempXY[1] := -1 * TempXY[1] ;  end ;
-         newYMatrix.F_Mdata.Write(TempXY[0],tSR.yCoord.SDPrec) ;
-         newImagMatrix.F_Mdata.Write(TempXY[1],tSR.yCoord.SDPrec) ;
-      end ;
+     doubleStream.Read(tempxy_d,16) ;
+     tempxy[0] := tempxy_d[0]  ;
+     tempxy[1] := tempxy_d[1]  ;
+     FFTMemStream.Write(tempxy,8) ;
   end ;
 
-end ;  //  **************** end for each spectrum in Y data  **********************************
+// { for tint := 1 to (FFTMemStream.Size div 8) do
+//  begin
+//    FFTMemStream.Read(num,8) ;  // observed fft of lineshape
+//    FFTMemStream.Seek(-8, soFromCurrent) ;  // move back so as to place result of division in original spectrum
+//    tspec.FFTMemStream.Read(den,8) ;   // instrumental fft of line
+//
+//    if (num[0] > 0.5) and (num[1] > 0.5) then // this works OK  when  num[1] > 0.5
+//    begin
+//      congden[0] := den[0] ;      // real part of complex conjugate is just the real part unchanged
+//      congden[1] := -1 * den[1] ; // complex conjugate is -ve of imaginary part
+//      divden := den[0]*den[0] + den[1]*den[1] ;
+//      tempxy[0] :=  ((num[0]*den[0]) + (num[1]*congden[1]*-1.0)) / divden ;
+//      tempxy[1] :=  (num[0]*congden[1] + num[1]*congden[0]) / divden ;
+//    end
+//    else
+//    begin
+//      tempxy[0] :=  0.0 ;
+ //     tempxy[1] :=  0.0 ;
+ //   end ;
+ //
+ //   FFTMemStream.Write(tempxy,8) ;
+//  end ;
 
-finally
-    tMStr.Free ;
-end ;
+// { filter :=   TSpectraRanges.Create() ;
+//  filter.FMemStream.SetSize(FFTMemStream.Size) ; // create filt of same size as FFT to be multiplied
+ // filter.FMemStream.Seek(0,soFromBeginning) ;
 
- FFTReverse := not FFTReverse ;
- tSR.yCoord.Free ;
- tSR.yCoord := newYMatrix ;
- if tSR.yImaginary <> nil then
-   tSR.yImaginary.Free  ;
- tSR.yImaginary := newImagMatrix ;
-//  ShiftData(firstXVal) ; // shift data back to original position
+//  CreateButterworthFilter(0.05, 50, filter) ;
+//  MultiplyFFT(Self.FFTMemStream, filter) ;
 
-end ;
+  hanningWindow := false ;
+  ComputeFFT(-1,1) ;
+  FMemStream.SetSize(origSize) ;  // this chops off any extra points that were added for FFT
 
+  filter :=   TSpectraRanges.Create() ;
+  filter.FMemStream.SetSize(FMemStream.Size) ; // create filt of same size as FFT to be multiplied
+  filter.FMemStream.Seek(0,soFromBeginning) ;
+  CreateButterworthFilter(0.8, 50, filter) ;
+  MultiplySpectra(FMemStream, filter.FMemStream) ;
+  filter.Free ;
+
+  // rescale data to same height as original
+  tempRange := FindYLimits(FMemStream) ;
+  scaleFact :=   scaleFact / (tempRange[3] - tempRange[2]) ;
+  FMemStream.Seek(0,soFromBeginning) ;
+  for tint := 1 to (FMemStream.Size div 8) do
+  begin
+     FMemStream.Read(tempxy,8) ;
+     FMemStream.Seek(-8, soFromCurrent) ;
+     tempxy[1] := tempxy[1] * scaleFact ;
+     FMemStream.Write(tempxy,8) ;
+  end ;
+
+  doubleStream.Free ;
+end ;        }
 
 
 procedure TFFTFunctions.DeconvolveByFFT(tspec : TMemoryStream) ;
@@ -710,8 +565,7 @@ procedure TFFTFunctions.DeconvolveByFFT(tspec : TMemoryStream) ;
   filter :  TSpectraRanges ;
   doubleStream : TMemoryStream ;  }
 begin
-  Form4.StatusBar1.Panels[1].Text := 'FFTDeconvolution() not fully implemented yet -  multi y data spectra handling needed' ;
-//  writeln('FFTDeconvolution() not fully implemented yet -  multi y data spectra handling needed' ) ;
+  messagedlg('FFTDeconvolution() not fully implemented yet -  multi y data spectra handling needed' ,mtInformation,[mbOK],0) ;
 {  origSize := FMemStream.Size ;
 
   // for rescale
@@ -764,7 +618,7 @@ begin
 //     tempxy[0] := tempxy_d[0]  ;
 //     tempxy[1] := tempxy_d[1]  ;
 //     FFTMemStream.Write(tempxy,8) ;
-//  end ;
+//  end ; 
 
 
   hanningWindow := false ;
@@ -870,8 +724,7 @@ var
    writeval : Array [0..1] of single ;
    multVal, resVal :  Array [0..1] of single ;
 begin
-Form4.StatusBar1.Panels[1].Text := 'MultiplySpectra() not fully implemented yet -  multi y data spectra handling needed' ;
- //  writeln('MultiplySpectra() not fully implemented -  multi y data spectra handling needed') ;
+   messagedlg('MultiplySpectra() not fully implemented -  multi y data spectra handling needed' ,mtInformation,[mbOK],0) ;
 {  spec1.Seek(0,soFromBeginning) ;
   spec2.Seek(0,soFromBeginning) ;
   for tint := 1 to (spec1.Size div 8) do
@@ -887,7 +740,6 @@ end ;
 
 
 // multiplys a Re()IM() pair in p1 by Re() value in filter (p1)
-// Used in FFTBandPass function to apply the attenuation function
 procedure TFFTFunctions.MultiplyFFT( bw_p, p1 : pointer) ;
 var
    t1, t2 : integer ;
@@ -939,7 +791,7 @@ begin
 
   ComputeFFTSingle(1, zeroFill, tSR) ;  // FFT *all* of the original spectra
 
-  convFunc :=  TSpectraRanges.Create(1,1,tSR.xCoord.numCols,p1) ;
+  convFunc :=  TSpectraRanges.Create(1,1,tSR.xCoord.numCols,nil) ;
 
   CreateButterworthFilter(percentage, pow, convFunc) ;
   MultiplyFFT( convFunc, tSR ) ;
@@ -1002,15 +854,15 @@ begin
 end ;   }
 
 
-procedure TFFTFunctions.SaveFFT ;
+procedure TFFTFunctions.SaveFFT(SaveDialog : TSaveDialog) ;
 var
   List1 : TStringList ;
   FloatX, FloatY, freq  : single ;
   tempStr : string ;
   tint : integer ;
 begin
-  Form4.StatusBar1.Panels[1].Text := 'SaveFFT() not fully implemented yet' ;
-  writeln('SaveFFT() not fully implemented') ;
+
+  messagedlg('SaveFFT() not fully implemented' ,mtInformation,[mbOK],0) ;
 
 {  With SaveDialog DO
   begin
@@ -1055,19 +907,14 @@ begin
 end ;
 
 
-function TFFTFunctions.MultiplyRealImagReturnReal( ri1, ri2 : array of single) : single ;
+function TFFTFunctions.MultiplyRealImagReal( ri1, ri2 : array of single) : single ;
 begin
   result := (ri1[0] * ri2[0]) - (ri1[1] * ri2[1]) ;
 end ;
-function TFFTFunctions.MultiplyRealImagReturnImag( ri1, ri2 : array of single) : single ;
+function TFFTFunctions.MultiplyRealImagImag( ri1, ri2 : array of single) : single ;
 begin
   result := (ri1[0] * ri2[1]) + (ri1[1] * ri2[0]) ;
 end ;
-
-{function TFFTFunctions.MultiplyRealImagReturnRealImag( ri1, ri2 : array of single) : TSingle ;
-begin
-  result := (ri1[0] * ri2[0]) - (ri1[1] * ri2[1]) ;
-end ; }
 
 
 // differentiation in fourier space is done by multiplying each frequency by (i * freq)
@@ -1076,15 +923,16 @@ end ; }
 procedure TFFTFunctions.DiffOrIntUsingFFT( p1 : pointer; order : integer; zeroFillIn : integer ) ;
 var
   t1, t2, t3, t4, origSize1 : integer ;
-  tXYrYi: array[0..2] of single ;  // xCoord data, yCoord Real+Imaginary
+  tXYrYi: array[0..2] of single ;
   ta0, ta1, ta2 : array[0..1] of single ;
   freq, tempSwap : single ;
   tspec : TSpectraRanges  ;
   tempRange : TGLRangeArray ;  // array[0..3] of single - 0,1 are min,max of X data, 2,3 are min,max of Y data    }
 begin
 
+//  origSize1 := tspec.yCoord.numCols ;
   tspec := TSpectraRanges( p1 ) ;
-
+  
   if  tspec.yCoord.SDPrec = 4 then
   begin
     if FFTReverse then
@@ -1104,19 +952,16 @@ begin
          ta2[0] :=  tXYrYi[1]  ;  // Y real
          ta2[1] :=  tXYrYi[2]  ;  // Y imaginary
 
-         ta0[0] := 0.0 ;          // Real      = 0.0
-         ta0[1] := tXYrYi[0] ;    // Imaginary = i * frequency
-
-         // this raises ta0[] to the correct power (dependent upon what derivative is required)
+         ta0[0] := 0.0 ;                     // Real      = 0.0
+         ta0[1] := {-2 * pi * }tXYrYi[0] ;   // Imaginary = -2 * frequency
          for t4 := 2 to  Abs(order) do   // calculate the multiplicand value for the current frequency
          begin
-            ta1[0] := MultiplyRealImagReturnReal(ta0,ta0) ;
-            ta1[1] := MultiplyRealImagReturnImag(ta0,ta0) ;
+            ta1[0] := MultiplyRealImagReal(ta0,ta0) ;
+            ta1[1] := MultiplyRealImagImag(ta0,ta0) ;
             ta0[0] := ta1[0] ;
             ta0[1] := ta1[1] ;
          end ;
 
-         // inverse multiplicand to produce a division in next step (if integration is required)
          if (order < 0) and ((ta0[0] <> 0) or (ta0[1] <> 0)) then
          begin
            ta1[0] :=     ta0[0] / ((ta0[0] * ta0[0]) + (ta0[1] * ta0[1]))  ;
@@ -1126,8 +971,8 @@ begin
          end ;
 
 
-         ta1[0] :=  MultiplyRealImagReturnReal( ta0, ta2 ) ;
-         ta1[1] :=  MultiplyRealImagReturnImag( ta0, ta2 ) ;
+         ta1[0] :=  MultiplyRealImagReal( ta0, ta2 ) ;
+         ta1[1] :=  MultiplyRealImagImag( ta0, ta2 ) ;
 
          tspec.Write_YrYi_Data(t3,t2,@ta1,true) ;
       end ;
@@ -1154,8 +999,7 @@ procedure TFFTFunctions.CorrelateByFFT(Spec1, Spec2 : TMemoryStream) ;
   tempRange : TGLRangeArray ;
   scaleFact : single ;    }
 begin
-  Form4.StatusBar1.Panels[1].Text := 'CorrelateByFFT() not fully implemented yet' ;
-//  writeln('CorrelateByFFT() not fully implemented yet -  multi y data spectra handling needed') ;
+  messagedlg('CorrelateByFFT() not fully implemented yet -  multi y data spectra handling needed' ,mtInformation,[mbOK],0) ;
 {  origSize1 := Spec1.FMemStream.Size ;
   origSize2 := Spec2.FMemStream.Size ;
 
@@ -1207,8 +1051,8 @@ end ;
 
 // the Fourier transform of the convolution of two functions is the (complex) product of their Fourier transforms.
 {                 (5 + 6i) * (7 + 8i)
-This equals       35 + 40i + 42i + 48i^2
-As we saw above,  i^2 = -1 so 48i^2 = -48
+This equals       35 + 40i + 42i + 48i2
+As we saw above,  i2 = -1 so 48i2 = -48
 So answer         = -13 + 82i}
 procedure TFFTFunctions.ConvolveByFFT(Spec1, Spec2 : TMemoryStream) ;
 {var
@@ -1217,8 +1061,7 @@ procedure TFFTFunctions.ConvolveByFFT(Spec1, Spec2 : TMemoryStream) ;
   tempRange : TGLRangeArray ;
   scaleFact : single ;   }
 begin
-  Form4.StatusBar1.Panels[1].Text := 'ConvolveeByFFT() not fully implemented yet' ;
-  //writeln('ConvolveByFFT() not fully implemented yet -  multi y data spectra handling needed') ;
+  messagedlg('ConvolveByFFT() not fully implemented yet -  multi y data spectra handling needed' ,mtInformation,[mbOK],0) ;
 {  origSize1 := Spec1.FMemStream.Size ;
   origSize2 := Spec2.FMemStream.Size ;
 
@@ -1560,4 +1403,4 @@ end ;
 
 end ;        }
 
-
+ 

@@ -1,12 +1,9 @@
 unit TBatchBasicFunctions;
-//{$define FREEPASCAL=1}
-{$ifdef FREEPASCAL}
-{$mode delphi}
-{$endif}
+
 interface
 
 uses
- SysUtils, Classes,  TMatrixObject ;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, TMatrixObject ;
 
 type
   TBatchBasics  = class
@@ -42,10 +39,7 @@ end;
 
 function  TBatchBasics.LeftSideOfEqual(tStr : string) : string ;
 begin
-  if tStr <> '' then
-  result := lowerCase(trim(copy(tStr,1,pos('=',tStr)-1)))
-  else
-  result := '' ;
+  result := lowerCase(trim(copy(tStr,1,pos('=',tStr)-1))) ;
 end ;
 
 
@@ -171,7 +165,6 @@ begin
       dec(posNum1) ;
 
     xCoordData.F_Mdata.Read(s1,4) ;
-    xCoordData.F_Mdata.Seek(0,soFromBeginning) ;
     while (s1 < s_f2) {and (xCoordData.F_Mdata.Position < xCoordData.numCols )} do
     begin
       xCoordData.F_Mdata.Read(s1,4) ;

@@ -1,11 +1,8 @@
 unit TASMTimerUnit;
-//{$define FREEPASCAL=1}
-{$ifdef FREEPASCAL}
-{$mode delphi}
-{$endif}
+
 interface
 
-uses SysUtils ;
+uses SysUtils, Dialogs ;
 
 type
   TASMTimer  = class
@@ -24,7 +21,7 @@ type
       function     returnCPUSpeedMHz : Int64 ;
       function     returnCPUSpeedGHz : single ;
 
-      function    outputTimeSec(mssg : string) : string ;
+      procedure    outputTimeSec(mssg : string) ;
 
   private
       T1 : Int64 ;
@@ -32,7 +29,7 @@ type
       lastRecordedTime : single ;
       lastRecordedTic  : Int64 ;
       cpuSpeedHz : Int64 ;
-      function Ticker() : Int64 ; register ;
+      function Ticker() : Int64 ;
 
   end;
 
@@ -61,7 +58,7 @@ begin
        T1 := Ticker ;
     end;
 
-
+    
     self.cpuSpeedHz :=  CPU_Hz_input * 4 ;
 end;
 
@@ -73,7 +70,6 @@ end;
 
 
 procedure    TASMTimer.setTimeDifSec ;
-// use to determine the time from last time T1 was set
 begin
   T2 := Ticker ;
   lastRecordedTic := (T2 - T1) ;
@@ -82,7 +78,6 @@ end;
 
 
 procedure    TASMTimer.setTimeDifSecUpdateT1  ;
-// use this to reset the initial time to calculate the time from (i.e. reset T1)
 begin
   T2 := Ticker ;
   lastRecordedTic := (T2 - T1) ;
@@ -117,18 +112,16 @@ begin
    result := lastRecordedTic  ;
 end;
 
-function    TASMTimer.outputTimeSec(mssg : string) : string ;
+procedure    TASMTimer.outputTimeSec(mssg : string) ;
 begin
- result := mssg + floattostrf(getRecordedTime,ffGeneral,4,5) ;
-
+  messagedlg(mssg + floattostrf(getRecordedTime,ffGeneral,4,5) ,mtInformation,[mbOK],0) ;
 end;
 
 {$O-}
-function TASMTimer.Ticker() : Int64; register;
+function TASMTimer.Ticker() : Int64;
 begin
   asm
     db $0F, $31  //opcode for RDTSC
-//     rdtsc
     mov dword ptr [result+00],eax
     mov dword ptr [result+04],edx
   end;

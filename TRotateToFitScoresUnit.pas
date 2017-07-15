@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   TBatchBasicFunctions, TSpectraRangeObject, TMatrixObject, TMatrixOperations,
-  TBatch, BLASLAPACKfreePas ;
+  TBatch, AtlusBLASLAPACLibrary ;
 
 {
    Need original data in X column, Evectors in Y and a section of scores to try to fit in Z column')
@@ -160,7 +160,7 @@ begin
              if bB.LeftSideOfEqual(tstr1) = 'pcs to rotate' then
                XYZ_PCs :=  bB.RightSideOfEqual(tstr1) ;
              tMemStr := TMemoryStream.Create ;
-             tMat := TMatrix.Create(4)  ;
+             tMat := TMatrix.Create(1)  ;
              numVects := tmat.GetTotalRowsColsFromString(XYZ_PCs,tMemStr) ;
              tMemStr.Free ;
              tMat.Free ;

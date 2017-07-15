@@ -141,7 +141,7 @@ begin
              if bB.LeftSideOfEqual(tstr1) = 'pcs to rotate' then
                XYZ_PCs :=  bB.RightSideOfEqual(tstr1) ;
              tMemStr := TMemoryStream.Create ;
-             tMat := TMatrix.Create(4)  ;
+             tMat := TMatrix.Create(1)  ;
              numVects := tmat.GetTotalRowsColsFromString(XYZ_PCs,tMemStr) ;
              tMemStr.Free ;
              tMat.Free ;

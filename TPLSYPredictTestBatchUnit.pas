@@ -1,8 +1,5 @@
 unit TPLSYPredictTestBatchUnit;
-//{$define FREEPASCAL=1}
-{$ifdef FREEPASCAL}
-{$mode delphi}
-{$endif}
+
 // Used to predict Y data from a multivariate model (either PCR or PLS).
 // Needs <X Data> <Y data (optional)> <Regression coeficients>
 // If Y data present then calculates differences between predicted and actual data
@@ -12,9 +9,9 @@ unit TPLSYPredictTestBatchUnit;
 interface
 
 uses
-  SysUtils, Classes, TBatchBasicFunctions, TSpectraRangeObject, TMatrixObject,
-  TMatrixOperations, TPLSResultsObjects, TPreprocessUnit, TVarAndCoVarOperations,
-  BLASLAPACKfreePas ;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  TBatchBasicFunctions, TSpectraRangeObject, TMatrixObject, TMatrixOperations,
+  PLSResultsObjects, TBatch, TPreprocessUnit, TVarAndCoVarOperations, AtlusBLASLAPACLibrary ;
 
 type
   TPLSYPredictTestBatch  = class
@@ -23,12 +20,10 @@ type
      resultsFileName : string ;
      YDataExists : boolean ;
 
-     xFilename : string ;
      XsampleRange : string ;  //
      xVarRange : string ;     // variable range or filled in by ConvertValueStringToPosString()
      xVarRangeIsPositon : boolean ;
 
-     yFilename : string ;
      YsampleRange : string ;  //
      yVarRange : string ;     // variable range or filled in by ConvertValueStringToPosString()
      YinXData  : boolean ;
@@ -36,6 +31,7 @@ type
      meanCentre : boolean ;
      colStd     : boolean ;
 
+     LineColor : TGLLineColor ;
 
 
      // if not empty then preprocess data with smoothing and derivatives
@@ -48,7 +44,6 @@ type
 
      allXData                : TSpectraRanges ;  //
      allYData                : TSpectraRanges ;  // for display in column 2 and 3 - The original data sets
-     regresCoefFilename      : string ;
      regresCoefSpectra       : TSpectraRanges ;  // These come from previous model creation using  PLS or PCR
 
      predYSpectra            : TSpectraRanges ;  // this is a scatter plot of actual vs predicted
@@ -72,8 +67,8 @@ type
      function  GetAllXData( sourceSpecRange : TSpectraRanges ) : string  ; // TBatch virtual method
      function  GetAllYData( sourceSpecRange : TSpectraRanges )  : string  ; // TBatch virtual method
      function  PreProcessData  : string ; // override  ;
-     function  CreateDisplayDataWithResiduals : string ;   // lc is pointer to TGLLineColor type, holding the line colour TSpectraRange.LineColor
-     function  CreateDisplayNoRefYData  : string ;   //
+     function  CreateDisplayDataWithResiduals(lc : pointer )  : string ;   // lc is pointer to TGLLineColor type, holding the line colour TSpectraRange.LineColor
+     function  CreateDisplayNoRefYData(lc : pointer )  : string ;   //
 end;
 
 
@@ -82,7 +77,7 @@ implementation
 
 constructor TPLSYPredictTestBatch.Create(SDPrec : integer);  // need SDPrec
 begin
-//   inherited Create ;
+   inherited Create ;
    pp := TPreprocess.Create ;
    mo := TMatrixOps.Create ;
    bb := TBatchBasics.Create ;
@@ -97,7 +92,7 @@ begin
   mo.Free ;
   bb.Free ;
   vcv.Free ;
-//  inherited Free ;
+  inherited Free ;
 end ;
 
 procedure TPLSYPredictTestBatch.Free;
@@ -143,31 +138,6 @@ var
  tstr1  : string ;
 begin
        try
-
-        // ********************** X data file name ******************************************
-{             repeat
-               inc(lineNum) ;
-               tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
-             until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
-             if bB.LeftSideOfEqual(tstr1) = 'x data file' then
-               xFilename :=  bB.RightSideOfEqual(tstr1) ;
-
-        // ********************** Y data file name ******************************************
-             repeat
-               inc(lineNum) ;
-               tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
-             until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
-             if bB.LeftSideOfEqual(tstr1) = 'y data file' then
-               yFilename :=  bB.RightSideOfEqual(tstr1) ;
-
-        // ********************** Regression Coef ******************************************
-             repeat
-               inc(lineNum) ;
-               tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
-             until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
-             if bB.LeftSideOfEqual(tstr1) = 'reg coef file' then
-               regresCoefFilename :=  bB.RightSideOfEqual(tstr1) ;    }
-
         // ********************** X Samples ******************************************
         repeat
           inc(lineNum) ;
@@ -276,7 +246,7 @@ begin
          tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
        until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
        if bB.LeftSideOfEqual(tstr1) = 'results file' then
-         resultsFileName :=  bB.RightSideOfEqual(tstr1) ;
+         resultsFileName :=  bB.RightSideOfEqual(tstr1) ;  
 
        repeat
          inc(lineNum) ;
@@ -327,23 +297,15 @@ begin
      allXData :=  sourceSpecRange ;   // this only works because no new line is created in Y predict code
      exit ;
   end;
+  
 
-
-  // if the data is exactly as recieved in sourceSpecRange then do not copy (saves memory)
-  if (sourceSpecRange.yCoord.numRows = sourceSpecRange.yCoord.GetTotalRowsColsFromString(XsampleRange)) and (sourceSpecRange.yCoord.numCols = sourceSpecRange.yCoord.GetTotalRowsColsFromString(xVarRange))then
-  begin
-    allXData := sourceSpecRange ;
-    exit ;
-  end;
-
-
-  allXData := TSpectraRanges.Create(sourceSpecRange.yCoord.SDPrec,1,1,@sourceSpecRange.LineColor) ;
+  allXData := TSpectraRanges.Create(sourceSpecRange.yCoord.SDPrec div 4,1,1,@self.LineColor) ;
 
   // *****************  This actually retrieves the data  ********************
   allXData.yCoord.FetchDataFromTMatrix( XsampleRange, xVarRange , sourceSpecRange.yCoord ) ;
   if sourceSpecRange.yImaginary <> nil then
   begin
-    allXData.yImaginary := TMatrix.Create(allXData.yCoord.SDPrec) ;
+    allXData.yImaginary := TMatrix.Create(allXData.yCoord.SDPrec div 4) ;
     allXData.yImaginary.FetchDataFromTMatrix( XsampleRange, xVarRange , sourceSpecRange.yImaginary ) ;
   end ;
 
@@ -403,14 +365,14 @@ begin
   if pos('-',YsampleRange) = length(trim(YsampleRange)) then       // sampleRange string is open ended (e.g. '12-')
     YsampleRange := YsampleRange + inttostr(sourceSpecRange.yCoord.numRows) ;
 
-  allYData := TSpectraRanges.Create(sourceSpecRange.yCoord.SDPrec,1,1,@sourceSpecRange.lineColor) ;
+  allYData := TSpectraRanges.Create(sourceSpecRange.yCoord.SDPrec div 4,1,1,@self.LineColor) ;
 
   // *****************  This actually retrieves the data  ********************
   allYData.yCoord.FetchDataFromTMatrix( YsampleRange, yVarRange , sourceSpecRange.yCoord ) ;
-//allYData.yCoord.SaveMatrixDataTxt('ydata_1.txt',',') ;
+//allYData.yCoord.SaveMatrixDataTxt('ydata_1.txt',',') ;  // 1
   if sourceSpecRange.yImaginary <> nil then
   begin
-    allYData.yImaginary := TMatrix.Create(allYData.yCoord.SDPrec) ;
+    allYData.yImaginary := TMatrix.Create(allYData.yCoord.SDPrec div 4) ;
     allYData.yImaginary.FetchDataFromTMatrix( YsampleRange, yVarRange , sourceSpecRange.yImaginary ) ;
   end ;
 
@@ -461,7 +423,7 @@ begin
 
 //     if not noYData then
 //       self.allYData.yCoord.MeanCentre ; // Y data has to be mean centred (i think)
-
+       
      if  meanCentre then
         self.allXData.yCoord.MeanCentre ;
 
@@ -483,7 +445,7 @@ begin
 
      if length(result) > 0 then
      result := result +  #13 ;
-
+     
 end ;
 
 
@@ -643,7 +605,7 @@ begin
       tMemStr.Free ;
 
      // this calculates the "predictive value" of the model created above i.e. the R^2 value
-     tMat1 := TMatrix.Create(allXData.yCoord.SDPrec) ;
+     tMat1 := TMatrix.Create(allXData.yCoord.SDPrec div 4) ;
      R_sqrd.yCoord.F_Mdata.Seek(0,soFromBeginning) ;
      for t1 := 1 to predYSpectra.yCoord.numCols do  // join together each predicted and original Y data into 1 matrix
      begin
@@ -661,8 +623,8 @@ begin
        else if R_sqrd.yCoord.SDPrec = 4 then
          R_sqrd.yCoord.F_Mdata.Write(d1,8) ;
 
-       tMat1.ClearData(tMat1.SDPrec) ;
-//       tMat2.ClearData(tMat2.SDPrec) ;
+       tMat1.ClearData(tMat1.SDPrec div 4) ;
+//       tMat2.ClearData(tMat2.SDPrec div 4) ;
        tMat2.Free ;
 //         tMat1.Free ;
      end ;
@@ -717,10 +679,10 @@ begin
      end ;
 
      numPCs := inputRegresCoef.yCoord.numRows ;
-     regresCoefSpectra := TSpectraRanges.Create( inputRegresCoef.yCoord.SDPrec, 1,1,@inputY.lineColor ) ;
+     regresCoefSpectra := TSpectraRanges.Create( inputRegresCoef.yCoord.SDPrec div 4, 1,1, @inputRegresCoef.LineColor ) ;
      regresCoefSpectra.CopySpectraObject(inputRegresCoef)  ; // These come from previous model creation using  PLS or PCR
 
-     predYSpectra       := TSpectraRanges.Create(inputX.yCoord.SDPrec,allXData.yCoord.numRows,numPCs,@inputY.lineColor)    ;  // this is a scatter plot of actual vs predicted
+     predYSpectra       := TSpectraRanges.Create(inputX.yCoord.SDPrec div 4,allXData.yCoord.numRows,numPCs, @self.LineColor)    ;  // this is a scatter plot of actual vs predicted
 
      if allXData.yImaginary = nil then
      begin
@@ -728,28 +690,28 @@ begin
        tMat  := PredictYFromModel(allXData.yCoord, regresCoefSpectra.yCoord ); // returns predicted Y data
        predYSpectra.yCoord.CopyMatrix(tMat) ;
        tMat.Free ;
-
+       
        if predYSpectra.yCoord = nil then
        begin
           result := 'Exception in PredictYFromModel()' ;
-          predYSpectra.yCoord := TMatrix.Create(inputX.yCoord.SDPrec) ;  // recreate the yCoord data
+          predYSpectra.yCoord := TMatrix.Create(inputX.yCoord.SDPrec div 4) ;  // recreate the yCoord data
           exit ;
        end ;
 
        if  YDataExists = true then  // there is Y data so calculate statistics
        begin
-         YresidualsSpectra  := TSpectraRanges.Create(inputX.yCoord.SDPrec,allXData.yCoord.numRows,numPCs,@inputY.lineColor) ; // this is where we get PRESS data from
-         SEPSpectra         := TSpectraRanges.Create(inputX.yCoord.SDPrec,1                      ,numPCs,@inputY.lineColor) ;
-         R_sqrd             := TSpectraRanges.Create(inputX.yCoord.SDPrec,1                      ,numPCs,@inputY.lineColor) ;
+         YresidualsSpectra  := TSpectraRanges.Create(inputX.yCoord.SDPrec div 4,allXData.yCoord.numRows,numPCs, @self.LineColor) ; // this is where we get PRESS data from
+         SEPSpectra         := TSpectraRanges.Create(inputX.yCoord.SDPrec div 4,1                      ,numPCs, @self.LineColor) ;
+         R_sqrd             := TSpectraRanges.Create(inputX.yCoord.SDPrec div 4,1                      ,numPCs, @self.LineColor) ;
 
          resultString := resultString + CalcYResidualData(true) ;  // calculates data for "YresidualsSpectra"
          resultString := resultString + CalcSEPData(YresidualsSpectra.yCoord, SEPSpectra.yCoord) ;
          resultString := resultString + CalcRSqrd(true) ;
-         CreateDisplayDataWithResiduals() ;  // may have problems with this
+         CreateDisplayDataWithResiduals(@self.LineColor) ;  // may have problems with this
        end
        else
        begin
-         CreateDisplayNoRefYData ;
+         CreateDisplayNoRefYData( @self.LineColor) ;
        end ;
 
        result := '' ;
@@ -765,7 +727,7 @@ begin
 end ;
 
 
-function  TPLSYPredictTestBatch.CreateDisplayNoRefYData  : string ;
+function  TPLSYPredictTestBatch.CreateDisplayNoRefYData(lc : pointer )  : string ;
 var
  t1 : integer ;
  s1 : single ;
@@ -776,9 +738,9 @@ begin
     if allXData.yCoord.complexMat = 2 then
     begin
          // not sure if these are ever going to be complex
-         regresCoefSpectra.yImaginary := TMatrix.Create2(regresCoefSpectra.yCoord.SDPrec, regresCoefSpectra.yCoord.numRows, regresCoefSpectra.yCoord.numCols) ;
+         regresCoefSpectra.yImaginary := TMatrix.Create2(regresCoefSpectra.yCoord.SDPrec div 4, regresCoefSpectra.yCoord.numRows, regresCoefSpectra.yCoord.numCols) ;
          regresCoefSpectra.yCoord.MakeUnComplex( regresCoefSpectra.yImaginary ) ;
-         predYSpectra.yImaginary := TMatrix.Create2(predYSpectra.yCoord.SDPrec, predYSpectra.yCoord.numRows, predYSpectra.yCoord.numCols) ;
+         predYSpectra.yImaginary := TMatrix.Create2(predYSpectra.yCoord.SDPrec div 4, predYSpectra.yCoord.numRows, predYSpectra.yCoord.numCols) ;
          predYSpectra.yCoord.MakeUnComplex( predYSpectra.yImaginary ) ;
     end ;
 
@@ -815,23 +777,22 @@ end ;
 
 
 
-function  TPLSYPredictTestBatch.CreateDisplayDataWithResiduals : string  ;
+function  TPLSYPredictTestBatch.CreateDisplayDataWithResiduals(lc : pointer)  : string  ;
 var
  t1 : integer ;
  s1 : single ;
  d1 : double ;
 begin
-    result := '' ;
+    // 1/ ****  Create display objects for calculated data ****  Then just add Y data matric from PLSResultsObject
 
-      // 1/ ****  Create display objects for calculated data ****  Then just add Y data matric from PLSResultsObject
     if allXData.yCoord.complexMat = 2 then
     begin
-         YresidualsSpectra.yImaginary := TMatrix.Create2(YresidualsSpectra.yCoord.SDPrec, YresidualsSpectra.yCoord.numRows, YresidualsSpectra.yCoord.numCols) ;
+         YresidualsSpectra.yImaginary := TMatrix.Create2(YresidualsSpectra.yCoord.SDPrec div 4, YresidualsSpectra.yCoord.numRows, YresidualsSpectra.yCoord.numCols) ;
          YresidualsSpectra.yCoord.MakeUnComplex( YresidualsSpectra.yImaginary ) ;
          // not sure if these are ever going to be complex
-         regresCoefSpectra.yImaginary := TMatrix.Create2(regresCoefSpectra.yCoord.SDPrec, regresCoefSpectra.yCoord.numRows, regresCoefSpectra.yCoord.numCols) ;
+         regresCoefSpectra.yImaginary := TMatrix.Create2(regresCoefSpectra.yCoord.SDPrec div 4, regresCoefSpectra.yCoord.numRows, regresCoefSpectra.yCoord.numCols) ;
          regresCoefSpectra.yCoord.MakeUnComplex( regresCoefSpectra.yImaginary ) ;
-         predYSpectra.yImaginary := TMatrix.Create2(predYSpectra.yCoord.SDPrec, predYSpectra.yCoord.numRows, predYSpectra.yCoord.numCols) ;
+         predYSpectra.yImaginary := TMatrix.Create2(predYSpectra.yCoord.SDPrec div 4, predYSpectra.yCoord.numRows, predYSpectra.yCoord.numCols) ;
          predYSpectra.yCoord.MakeUnComplex( predYSpectra.yImaginary ) ;
     end ;
 
@@ -908,4 +869,4 @@ end ;
 
 
 end.
-
+ 

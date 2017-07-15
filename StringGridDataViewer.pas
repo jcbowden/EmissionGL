@@ -10,8 +10,8 @@ type
   TSGDataView = class(TForm)
     SG2: TStringGrid;
     Panel1: TPanel;
-    ColStrTextTB: TEdit;
-    RowStrTextTB: TEdit;
+    ColStrText: TEdit;
+    RowStrText: TEdit;
     Label1: TLabel;
     Label2: TLabel;
 
@@ -42,7 +42,6 @@ type
     procedure FormActivate(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure CombineSelected1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -243,13 +242,6 @@ begin
 
   result :=  t1 ;
 end ;
-
-procedure TSGDataView.CombineSelected1Click(Sender: TObject);
-var
- t1 : integer ;
-begin
-
-end;
 
 function TSGDataView.CreateStringFromTMemStream(rowcolList : TMemoryStream) : string ;
 var
@@ -585,14 +577,14 @@ begin
   end ;
 
 
-// This determines which cell was selected
+// This determine which cell was selected
   SG2.MouseToCell(X, Y,  colInput, rowInput ) ;
   // these are the new row/col selected
   sROW :=  rowInput ;
   sCOL :=  colInput ;
 
-  rowStr :=   RowStrTextTB.Text   ;
-  colStr :=   ColStrTextTB.Text   ;
+  rowStr :=   RowStrText.Text   ;
+  colStr :=   ColStrText.Text   ;
 
   rowcolList := TMemoryStream.Create ;
 
@@ -816,8 +808,8 @@ begin
 
   end ;
 
-  RowStrTextTB.Text :=  rowStr ;
-  ColStrTextTB.Text :=  colStr ;
+  RowStrText.Text :=  rowStr ;
+  ColStrText.Text :=  colStr ;
 
 // *******   This selects rows/cols for display   ****** //
 // this redraws each cell that is visible
@@ -830,7 +822,7 @@ begin
     end ;
   end ;
 
-  form4.StringGrid1.Cells[ownersCol,ownersRow] := RowStrTextTB.Text +':'+ ColStrTextTB.Text ;
+  form4.StringGrid1.Cells[ownersCol,ownersRow] := RowStrText.Text +':'+ ColStrText.Text ;
 
   SG1_ROW := ownersRow ;
   SG1_COL := ownersCol  ;
@@ -840,7 +832,7 @@ begin
   
 //  Form4.StringGrid1SelectCell(sender,ownersCol,ownersRow,b1) ;
 
-  TSpectraRanges(form4.StringGrid1.Objects[ownersCol,ownersRow]).CreateGLList(RowStrTextTB.Text, Form1.Canvas.Handle, RC,  Form2.GetWhichLineToDisplay(), TSpectraRanges(form4.StringGrid1.Objects[ownersCol,ownersRow]).lineType) ;
+  TSpectraRanges(form4.StringGrid1.Objects[ownersCol,ownersRow]).CreateGLList(RowStrText.Text, Form1.Canvas.Handle, RC,  Form2.GetWhichLineToDisplay(), TSpectraRanges(form4.StringGrid1.Objects[ownersCol,ownersRow]).lineType) ;
 
   if Form4.CheckBox7.Checked = false then
     Form1.UpdateViewRange() ;  // updates  OrthoVarXMax, OrthoVarXMin, OrthoVarYMax, OrthoVarYMin. Used when XY data is modified
@@ -955,7 +947,7 @@ end;
 
 procedure TSGDataView.Button1Click(Sender: TObject);
 begin
-   form4.StringGrid1.Cells[ownersCol,ownersRow] := RowStrTextTB.Text +':'+ ColStrTextTB.Text ;
+   form4.StringGrid1.Cells[ownersCol,ownersRow] := RowStrText.Text +':'+ ColStrText.Text ;
 end;
 
 

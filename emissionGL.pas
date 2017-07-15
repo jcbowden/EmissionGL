@@ -41,7 +41,6 @@ type
     Procedure UpdateViewRange ;
     procedure Revert1Click(Sender: TObject);
     procedure Image1Click(Sender: TObject);
-    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 
   private
     procedure WMEraseBkgnd(var Message: TWMEraseBkgnd); message WM_ERASEBKGND;
@@ -582,15 +581,12 @@ end ;
 
 procedure TForm1.FormPaint(Sender: TObject);
 Var
-  TempInt1, t1, t2 : Integer ;
-  tcol, trow : integer ;
+  TempInt1 : Integer ;
   ScalePerX : Single ;
   TempStr : String ;
   XorYData : integer ;
   scaleY, centreY, scaleZ : single ;
   tSR : TSpectraRanges ;
-  dendroOffset : single ;
-  selectedRowNum,TraceCol : integer ;
 begin  // draw somthing useful
   Screen.Cursor := crHourglass ;
   ActivateRenderingContext(Canvas.Handle,RC); // make context drawable
@@ -600,7 +596,7 @@ begin  // draw somthing useful
   glMatrixMode(GL_ModelView); // activate the transformation matrix
   glLoadIdentity;             // set it to initial state
   ScalePerX := (StrtoFloat(Form2.Edit7.Text) - StrToFloat(Form2.Edit6.Text))/Form1.Width ;
-  If MouseDownBool and Not Form2.Speedbutton5.down and Not Form2.SpeedButton7.Down and Not Form2.SpeedButton6.Down and Not Form2.SpeedButton8.Down and Not Form2.BaselineCorrSB9.Down then
+  If MouseDownBool and Not Form2.Speedbutton2.down and Not Form2.SpeedButton3.Down and Not Form2.SpeedButton6.Down and Not Form2.SpeedButton8.Down and Not Form2.BaselineCorrSB9.Down then
   begin //  moving spectra left or right
      CenterX := CenterX - (MouseArrayX[1]-MouseArrayX[0])* ScalePerX  ;
      EyeX := CenterX ;
@@ -629,20 +625,15 @@ begin  // draw somthing useful
   end ;
 
 //  glEnable(GL_DEPTH_TEST); // enable depth testing
-
-{
-// this works well, pre-dendro additions
-    for t1 := 0 to SelectStrLst.Count -1 Do
+  If Form4.CheckBox6.Checked Then   // display selected files
+  begin
+    For TempInt1 := 1 to SelectStrLst.Count Do
     begin
-    trow := StrToInt(SelectStrLst.Strings[t1]) ;
-    for t2 := 0 to SelectColList.Count - 1 do
-    begin
-      tcol := StrToInt(SelectColList.Strings[t2]) ;
       glPushMatrix() ;
         glTranslatef(0,0,0) ;
-        if Form4.StringGrid1.Objects[tcol , trow] is TSpectraRanges  Then
+        If Form4.StringGrid1.Objects[SG1_COL ,StrToInt(SelectStrLst.Strings[TempInt1-1])] is TSpectraRanges  Then
         begin
-          tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[tcol,trow]) ;
+          tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,StrToInt(SelectStrLst.Strings[TempInt1-1])]) ;
           if Form4.CheckBox8.checked then  // all spectra full screen
           begin
            // scaleY := (tSR.yHigh+(5*HeightPerPix1)) - (tSR.yLow-(41*HeightPerPix1))  ;
@@ -650,60 +641,34 @@ begin  // draw somthing useful
             scaleY := (OrthoVarYMax - OrthoVarYMin) / scaleY ;
             glScalef(1.0,scaleY,1.0) ;
           end ;
+        //  if tSR.
+ //       scaleZ :=
           glCallList(tSR.GLListNumber) ;
         end ;
-        glCallList(REF_LIST) ;  // these are the reference spectra that can be selected on TForm2 tab page
+        glCallList(REF_LIST) ;
       glPopMatrix() ;
-    end;
     end ;
-
-    t1 :=  strtoint(copy(DendroOffsetTracePercent.Text,1,length(trim(DendroOffsetTracePercent.Text))-1)) ;
- }
- //  SelectColList.SortListNumeric ;
- //  SelectStrLst.SortListNumeric ;
-   if SelectColList.Count > 0 then
-    TraceCol := StrToInt(SelectColList.Strings[0]);
-   selectedRowNum := strtoint(Form2.DendroAddPointsToRowEB.Text) -1 ;
-   if (SelectStrLst.Count > 0) and (SelectStrLst.Count > selectedRowNum) then
-     selectedRowNum := StrToInt(SelectStrLst.Strings[ selectedRowNum  ]) ;
-
-   for t1 := 0 to SelectStrLst.Count -1 Do
+  end
+  else  // display all files
     begin
-    trow := StrToInt(SelectStrLst.Strings[t1]) ;
-    for t2 := 0 to SelectColList.Count - 1 do
-    begin
-      tcol := StrToInt(SelectColList.Strings[t2]) ;
-      glPushMatrix() ;
-        glTranslatef(0,0,0) ;
-        if Form4.StringGrid1.Objects[tcol , trow] is TSpectraRanges  Then
-        begin
-          tSR :=  TSpectraRanges(Form4.StringGrid1.Objects[tcol,trow]) ;
-          if Form4.CheckBox8.checked then  // all spectra full screen
-          begin
-           if tSR.yHigh <> tSR.yLow then
-            scaleY := tSR.yHigh - tSR.yLow { +(46*HeightPerPix1) }
-           else
-             scaleY := 1.0 ;
-            scaleY := (OrthoVarYMax - OrthoVarYMin) / scaleY ;
-            glScalef(1.0,scaleY/1.1,1.0) ;
-            glCallList(tSR.GLListNumber) ;
-          end
-          else if Form2.DendroPlacePeakstCB.Checked and (trow=selectedRowNum)  then
-          begin
-            dendroOffset :=  strtofloat(copy(Form2.DendroOffsetTracePercent.Text,1,length(trim(Form2.DendroOffsetTracePercent.Text))-1)) ;
-            dendroOffset := dendroOffset / 100 ;  // get into unit ratio
-            glTranslatef(0,EyeY+((OrthoVarYMax - OrthoVarYMin)*dendroOffset),0) ;
-            glCallList(tSR.GLListNumber) ;
-          end
-          else
-          begin
-            glScalef(1.0,1.0,1.0) ;
-            glCallList(tSR.GLListNumber) ;
-          end;
-        end ;
-        glCallList(REF_LIST) ;  // these are the reference spectra that can be selected on TForm2 tab page
-      glPopMatrix() ;
-    end;
+    For TempInt1 := 1 to Form4.StringGrid1.RowCount-1 Do
+      begin
+        glPushMatrix() ;
+         glTranslatef(0,0,0) ;
+           If Form4.StringGrid1.Objects[SG1_COL,TempInt1] is TSpectraRanges Then
+           begin
+              tSR := TSpectraRanges(Form4.StringGrid1.Objects[SG1_COL,TempInt1])  ;
+             if Form4.CheckBox8.checked then  // all spectra full screen
+             begin
+               scaleY := tSR.yHigh - tSR.yLow ;
+               scaleY := (OrthoVarYMax - OrthoVarYMin) / scaleY ;
+               glScalef(1.0,scaleY,1.0) ;
+             end ;
+             glCallList(tSR.GLListNumber) ;
+           end ;
+         glCallList(REF_LIST) ;
+        glPopMatrix() ;
+      end ;
     end ;
 
   glPushMatrix() ;
@@ -711,9 +676,10 @@ begin  // draw somthing useful
     glCallList(PRESENT_LIST) ;   // list containing names of reference spectra for top LHS corner
   glPopMatrix() ;
 
+ // SurroundRectangle ; //draw surrounding box
+  glColor3f(0.0,0.0,0.0) ;
 
-  glColor3f(0.0,0.0,0.0) ;  // black line color
-  if (Form2.Checkbox6.Checked) Then   // draw x scale
+  If (Form2.Checkbox6.Checked) Then   // draw x scale
   begin
     if (Form4.StringGrid1.Objects[SG1_COL, Form4.StringGrid1.Selection.Top]) is  TSpectraRanges then
     begin
@@ -728,10 +694,10 @@ begin  // draw somthing useful
   DrawYScale ;
 
   TempStr := FloatToStrf(abs(StartLineX-EndLineX),ffFixed,5,3)+ ' nm' ;
-  if (Form2.SpeedButton5.Down) or (Form2.SpeedButton8.Down) Then // Draw vertical lines for zoom between lines tool
+  If (Form2.SpeedButton2.Down) or (Form2.SpeedButton8.Down) Then // Draw vertical lines for zoom between lines tool
     begin
       ZoomLines ; // procedure "zoomlines"
-      if StartLineX < EndLineX Then
+      If StartLineX < EndLineX Then
         glRasterPos2f(StartLineX+((EndLineX-StartLineX)/3),StartLineY)
       else
         glRasterPos2f(EndLineX+((StartLineX-EndLineX)/3),StartLineY) ;
@@ -745,7 +711,7 @@ begin  // draw somthing useful
   If Form2.BaselineCorrSB9.Down and MouseDownBool Then // draw baseline and range for baseline subtraction
       IntegrateDrawLines(StartLineX,StartLineY, EndLineX, EndLineY) ;
 
-  If Form2.SpeedButton7.Down and MouseDownBool Then    // draw rectangle
+  If Form2.SpeedButton3.Down and MouseDownBool Then    // draw rectangle
       ZoomRectangle ;
 
   If MouseDown_DrawLine Then
@@ -769,19 +735,26 @@ begin  // draw somthing useful
  end ;
 
 
+
+//
   glBlendFunc(GL_ONE_MINUS_SRC_ALPHA,GL_SRC_ALPHA) ;
 
-  if Form2.ShowCursor.Checked  then // draw XY cross hairs accross visible range
+  if Form2.ShowCursor.Checked  then
   begin
     glEnable( GL_BLEND  ) ;
      if tSR <> nil then
      begin
+ {  glPointsize(3.0) ;
+    glbegin(GL_POINTS) ;
+      glColor3f(1.0,0.0,0.0) ;
+      glVertex2f(drawDotX ,drawDotY) ;
+   glEnd ;  }
        glbegin(GL_LINES) ;
        glColor4f(1.0,0.0,0.0,0.5) ;
-       glVertex2f(drawDotX , OrthoVarYMin+EyeY) ;
-       glVertex2f(drawDotX , OrthoVarYMax+EyeY) ;
-       glVertex2f(OrthoVarXMin+EyeX ,drawDotY) ;
-       glVertex2f(OrthoVarXMax+EyeX ,drawDotY) ;
+       glVertex2f(drawDotX , tSR.YHigh) ;
+       glVertex2f(drawDotX ,tSR.YLow) ;
+       glVertex2f(tSR.XHigh ,drawDotY) ;
+       glVertex2f(tSR.XLow ,drawDotY) ;
        glEnd ;
      end ;
      glDisable( GL_BLEND  ) ;
@@ -796,50 +769,9 @@ end;
 
 
 
-procedure TForm1.FormKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-var
-  s1 : single ;
-begin
-try
-  s1 :=  strtoint(Form2.DendroYearEB.Text) ;
-  if ((Key) = 38) or ((Key)=39) then  // arrow key on keyboard increment image number
-  begin
-       s1 := s1 + 1 ;
-       Form2.DendroYearEB.Text := floattostr(s1) ;    // max is checked in FrequencySlider1Change()
-       // shift viewable range and update screen
-       Form2.DendroStretchViewToYear( s1-1, s1) ;
-  end
-  else
-  if ((Key) = 37) or ((Key)=40) then  // arrow key on keyboard decrement image number
-  begin
-     if s1 > 1 then
-     begin
-       s1 := s1 - 1 ;
-       Form2.DendroYearEB.Text := floattostr(s1) ;
-     end;
-      Form2.DendroStretchViewToYear( s1-1, s1) ;
-   end ;
-  except
-   Form2.DendroYearEB.Text := '1'  ;
-  end;
-end;
-
 procedure TForm1.FormKeyPress(Sender: TObject; var Key: Char);
-var
-  s1 : single ;
 begin
   if Key = #27 then Application.Terminate;   // terminate if escape kill pressed
-  if (Key = 'a') or (Key = 'A') then
-     Form2.DendroAddSB.Down :=  not Form2.DendroAddSB.Down ;
-  if (Key = 's') or (Key = 'S') then
-     Form2.DendroSubtractSB.Down :=  not Form2.DendroSubtractSB.Down ;
-  if (Key = 'r') or (Key = 'R') then
-  begin
-     s1 := strtofloat(Form2.DendroYearEB.Text) ;
-     Form2.DendroStretchViewToYear( s1-1, s1) ;
-     Form1.Refresh ;
-  end;
 end;
 
 
@@ -942,8 +874,7 @@ var
 begin
     GridRow :=  Form4.StringGrid1.Selection.Top ; // the file i am messing with is in this row of the stringgrid
     GridCol :=  Form4.StringGrid1.Selection.Left ;
-
-    // for each selected spectrum
+    
     if Form4.StringGrid1.Objects[GridCol,GridRow] is TSpectraRanges then
     begin
         tSR := TSpectraRanges(Form4.StringGrid1.Objects[GridCol,GridRow]) ;
@@ -1138,13 +1069,13 @@ If MouseDownBool Then
     if (tSR.frequencyImage = true) or (tSR.nativeImage = true) then
     begin
       i1_x :=   Round(CursorPosX /  tSR.xPixSpacing) ;
-      i1_x := i1_x ; //+ 1;  // form2.Edit22.Text is 'image number' for multi image files (files with more spectra than pixels)
+      i1_x := i1_x + (tSR.xPix * tSR.yPix  * (strtoint(form2.ImageNumberTB1.Text)-1)) + 1;  // form2.Edit22.Text is 'image number' for multi image files (files with more spectra than pixels)
       if i1_x < 1 then i1_x := 1
       else
       if i1_x > tSR.xPix then i1_x := tSR.xPix ;
 
       i1_y :=   Round(CursorPosY /  tSR.yPixSpacing) ;
-      i1_y := i1_y ; // + 1 ;
+      i1_y := i1_y + (tSR.xPix * tSR.yPix  * (strtoint(form2.ImageNumberTB1.Text)-1)) + 1 ;
       if i1_y < 1 then i1_y := 1
       else
       if i1_y > tSR.yPix then i1_y := tSR.yPix ;
@@ -1153,7 +1084,7 @@ If MouseDownBool Then
 
       if tSR.nativeImage then
       begin
-        i1_x := (i1_x) + ((i1_y -1)* tSR.xPix) + (tSR.xPix * tSR.yPix * (strtoint(form2.ImageNumberTB1.Text)-1)); // this is position of data
+        i1_x := (i1_x) + ((i1_y -1)* tSR.xPix) ; // this is position of data
         tSR.yCoord.F_Mdata.Seek((i1_x-1) *  tSR.yCoord.SDPrec, soFromBeginning) ;
         tSR.yCoord.F_Mdata.Read(s1_x,4) ;
       end
@@ -1193,7 +1124,7 @@ begin
   end ;  
   MouseDown_DrawLine := False ;
 
-  If Form2.SpeedButton7.Down Then  // draw box around area selected
+  If Form2.SpeedButton3.Down Then  // draw box around area selected
      begin
        If  (StartLineX < MaxGL(StartLineXO,EndLineXO)) and (StartLineX > MinGL(StartLineXO,EndLineXO)) and (StartLineY <  MaxGL(StartLineYO,EndLineYO)) and (StartLineY > MinGL(StartLineYO,EndLineYO)) Then
          begin
@@ -1229,7 +1160,7 @@ begin
      end ;
 
 
-  If Form2.SpeedButton5.Down Then  // zoom to correct width
+  If Form2.SpeedButton2.Down Then  // zoom to correct width
   begin
     If  (StartLineX < MaxGL(StartLineXO,EndLineXO)) and (StartLineX > MinGL(StartLineXO,EndLineXO)) Then
       begin
@@ -1392,124 +1323,41 @@ end;
 
 
 
-procedure TForm1.Image1Click(Sender: TObject);
-Var
-  t0, t1, t2, selectedRowNum, TraceCol, FalseRingCol  : integer ;
-  posAddedorRemoved : integer ;
-  s1, s2, year  : single ;
-  TraceSR, FalseRingSR, newSR : TSpectraRanges ;
-  tMS : TMemoryStream ;
-  dendroOffset : single ;
+{procedure TForm1.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
 begin
-
-  drawDotX := EndLineX ; // this is where the mouse clicked - useful for cross hairs
-  drawDotY := EndLineY ;
-
-  // calculate offset to subtract
-  dendroOffset :=  strtofloat(copy(Form2.DendroOffsetTracePercent.Text,1,length(trim(Form2.DendroOffsetTracePercent.Text))-1)) ;
-  dendroOffset := dendroOffset / 100 ;  // get into unit ratio
-  dendroOffset := -(EyeY+((OrthoVarYMax - OrthoVarYMin)*dendroOffset)) ;
-  dendroOffset := (EndLineY+dendroOffset) ;
-
-  // adding peak placements to a new column
-  if Form2.DendroPlacePeakstCB.Checked then
-  begin
-
-  SelectStrLst.SortListNumeric ;
-  SelectColList.SortListNumeric ;
-  if SelectColList.Count = 2 then
-  begin
-  // for data in the first column selected
-  TraceCol := StrToInt(SelectColList.Strings[0]);
-  FalseRingCol  := StrToInt(SelectColList.Strings[1]);
-
-  // for this single row (depends on value in the editbox on form2 'Dendro' section)
-  // this is the row that the data is added to
-  selectedRowNum := strtoint(Form2.DendroAddPointsToRowEB.Text) -1 ;
-  selectedRowNum := StrToInt(SelectStrLst.Strings[ selectedRowNum  ]) ;
-  // 1st column is the trace data data
-  if Form4.StringGrid1.Objects[ TraceCol ,selectedRowNum] is  TSpectraRanges  then
-  begin
-    TraceSR  :=  TSpectraRanges(Form4.StringGrid1.Objects[ TraceCol,selectedRowNum]) ;
-    // if 2nd column is the new false-ring data - add data to it (otherwise, create TSpectraRange and then add data point to it)
-    if Form4.StringGrid1.Objects[ FalseRingCol ,selectedRowNum] is  TSpectraRanges  then
-    begin
-
-      FalseRingSR   :=  TSpectraRanges(Form4.StringGrid1.Objects[ FalseRingCol ,selectedRowNum]) ;
-      posAddedorRemoved := -1 ;
-      if Form2.DendroAddSB.Down then // add data to TSpectraRange
-      begin
-        tMS := TMemoryStream.Create ;
-        tMS.Size := FalseRingSR.xCoord.SDPrec  ;
-        tMS.Write(dendroOffset,sizeof(single))   ;
-        posAddedorRemoved := FalseRingSR.AddData(EndLineX,tMS) ;
-        tMS.Free ;
-      end
-      else
-      if Form2.DendroSubtractSB.Down then // subtract data from TSpectraRange
-      begin
-        posAddedorRemoved := FalseRingSR.RemoveData(EndLineX) ;
-      end;
-
-      if posAddedorRemoved <> -1  then  // do display and interface stuff
-      begin
-       // if FalseRingSR.fft.dtime  <> 0 then
-       //   FalseRingSR.fft.CopyFFTObject(TraceSR.fft) ;
-        if FalseRingSR.SGDataView <> nil then  // remove form holdinf any original test based view of data
-        begin
-          FalseRingSR.SGDataView.Free ;
-          FalseRingSR.SGDataView := nil ;
-        end ;
-        Form4.StringGrid1.Cells[FalseRingCol, selectedRowNum ] := '1-'+inttostr(FalseRingSR.yCoord.numRows)+' : '+'1-'+inttostr(FalseRingSR.yCoord.numCols) ;
-        FalseRingSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-        FalseRingSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 13) ;
-        Form4.StatusBar1.Panels[1].Text := 'Data modified at position: ' + inttostr(posAddedorRemoved)  ;
-        Form4.StatusBar1.Panels[0].Text := 'x,y : ' + floattostrf(EndLineX,ffGeneral,5,3)+','+ floattostrf(EndLineY,ffGeneral,5,3);  ;
-      end
-      else
-         Form4.StatusBar1.Panels[1].Text := 'No data added or removed!'  ;
-   end  // if it is a TSpectraRanges object
-   else // no object exists so create TSpectraRange object
-   begin
-     if Form2.DendroAddSB.Down then // add data to new TSpectraRange
-     begin
-      // create new line in stringgrid and create TSpectraRanges object for each TSpectraRanges selected (one at a time)
-      // DoStuffWithStringGrid('', 2, tSR2.yCoord.numRows, tSR2.yCoord.numCols , true, StringGrid1.RowCount-1 ) ;
-      newSR :=  TSpectraRanges.Create(TraceSR.yCoord.SDPrec,1, 1,@TraceSR.LineColor );
-      // point pointer newSR to the new TSpectraRange object
-      Form4.StringGrid1.Objects[FalseRingCol, selectedRowNum] := newSR ;
-
-      // create 1st point in data the original data
-      newSR.xCoord.F_Mdata.Write(drawDotX,newSR.xCoord.SDPrec) ;
-      newSR.yCoord.F_Mdata.Write(dendroOffset,newSR.xCoord.SDPrec) ;
-
-      // create display data
-      newSR.GLListNumber := Form4.GetLowestListNumber ;
-      if TraceSR.fft.dtime  <> 0 then
-        newSR.fft.CopyFFTObject(TraceSR.fft) ;
-      Form4.StringGrid1.Cells[FalseRingCol, selectedRowNum ] := '1-'+inttostr(newSR.yCoord.numRows)+' : '+'1-'+inttostr(newSR.yCoord.numCols) ;
-      newSR.xCoord.Filename :=  'Dendro_added_peak_data.bin'   ;
-      newSR.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ; // finds max and min values in xy data
-      newSR.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(), 13) ;
-     end;
-   end;  // end creating new object to add data point to (i.e. 2nd column is not a TSpectraRanges object)
-   end ; // if it is a TSpectraRanges object in 1st column
-
-   // do not UpdateViewRange() as we have a special view across a year for the dendro work
-   //   if not Form4.CheckBox7.Checked then
-   //   form1.UpdateViewRange() ;
-
-   //   do not refresh until MouseArrayX is reset to = 0  (in mouseup())
-//   form1.Refresh ; // do refresh tho as we have added a point and we want to see where it is
-
-  end  // if SelectColList.Count = 2
+  if (ssCtrl in Shift) and not ((ssAlt in Shift) or (ssShift in Shift)) then  // only Ctrl is down
+    keyDownV := 1   // Ctrl is down
   else
-  begin
-    Form4.StatusBar1.Panels[1].Text := 'Error: Select 2 columns of data only'  ;
-  end;
-  end;  // if Form2.DendroPlacePeakstCB.Checked  - adding data to a TSpectraRange object
+  if (ssShift in Shift) and not ((ssAlt in Shift) or (ssCtrl in Shift)) then  // only Shift is down
+    keyDownV := 2   // Shift is down
+  else
+  if ((ssCtrl in Shift) and  (ssShift in Shift)) and not (ssAlt in Shift) then  //  Ctrl and Shift are down
+    keyDownV := 3   // Ctrl and Shift are down
+  else
+    keyDownV := 0 ;
+end;    }
+{
+procedure TForm1.FormKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+   if (ssCtrl in Shift) and not ((ssAlt in Shift) or (ssShift in Shift)) then  // only Ctrl is down
+    keyDownV := 1   // Ctrl is down
+  else
+  if (ssShift in Shift) and not ((ssAlt in Shift) or (ssCtrl in Shift)) then  // only Shift is down
+    keyDownV := 2   // Shift is down
+  else
+  if ((ssCtrl in Shift) and  (ssShift in Shift)) and not (ssAlt in Shift) then  // Ctrl and Shift are down
+    keyDownV := 3   // Ctrl and Shift are down
+  else
+    keyDownV := 0 ;
+end;   }
 
-
+procedure TForm1.Image1Click(Sender: TObject);
+begin
+  drawDotX := EndLineX ;
+  drawDotY := EndLineY ;
+//  refresh ;
 end;
 
 

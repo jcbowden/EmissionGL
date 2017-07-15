@@ -1,67 +1,51 @@
 unit TPCRPredictBatchUnit ;
-//{$define FREEPASCAL=1}
-{$ifdef FREEPASCAL}
-{$mode delphi}
-{$endif}
+
 interface
 
 uses
-   SysUtils, Classes, TBatchBasicFunctions, TSpectraRangeObject, TMatrixObject,
-   TMatrixOperations, TPCResultsObjects, TPreprocessUnit, TASMTimerUnit ;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  TBatchBasicFunctions, TSpectraRangeObject, TMatrixObject, TMatrixOperations,
+  PCResultsObjects, TBatch, TPreprocessUnit ;
 
 type
-  TPCRYPredictBatch  = class
+  TPCRYPredictBatch  = class(TBatchMVA)
   public
-     numPCsPCR : integer ;
+     numPCs : integer ;
+ //    PCsString : string;  // inherited from TBatchMVA
 
      // the X data versions of these are inherited from TBatchMVA
-     yFilename : string ;  // this where data is stored on disk
      YsampleRange : string ;  //  not needed in IR-pol of PCA units
      yVarRange : string ; // variable range or filled in by ConvertValueStringToPosString()
      YinXData  : boolean ;
+     LineColor : TGLLineColor ;
 //     GLListNumber : integer ;
-     SDPrecPCR      : integer ;  // 4 or 8 depeding on floating point precission
-
-     resultsFileName : string;
-     PCsString : string;
-     firstSpectra : integer ;  // not needed in PCA, PCR, PLS... it is first value in sampleRange
-
-     xFilename : string ; // used in command line version
-     XsampleRange : string ;  //  not needed in IR-pol
-     xVarRange : string ; // variable range or filled in by ConvertValueStringToPosString()
-     xVarRangeIsPositon : boolean ;
-
-     normalisedEVects, meanCentre, colStd : boolean ;
-     xDiskEQxData  : boolean ; // if data from disk is identical to what is processed then this is 'true'
-     interleaved : integer ;
 
      // if not empty then preprocess data with smoothing and derivatives
-     smooth     :   string  ; // = average 15  // fourier 15,50 remove complex  // %,power
-     derivative :   string  ; // = fourier 2 : remove complex // fourier only available
+     smooth       :   string  ; // = average 15  // fourier 15,50 remove complex  // %,power
+     derivative   :   string  ; // = fourier 2 : remove complex // fourier only available
 
      // not used:
      flipRange : string ; // section of e-vector of interest. if  flipRange = '' then do not do test
-     positive  : boolean ; // if true then area of e-vect should be positive else area should be negative. Flip if not true.
+     positive : boolean ; // if true then area of e-vect should be positive else area should be negative. Flip if not true.
 
-     bB                 : TBatchBasics ;  // functions like : LeftSideOfEqual() etc
-     pp                 : TPreprocess ;
+     pp                      : TPreprocess ;
 
-     PCRResults         : TPCResults  ;      // does the calculations
+     PCRResults              : TPCResults  ;      // does the calculations
 
-     allXData           : TSpectraRanges ;
-     allYData           : TSpectraRanges ;  // for display in column 2 and 3 - The original data sets
+//   allXData                : TSpectraRanges ;  // this is inherited
+     allYData                : TSpectraRanges ;  // for display in column 2 and 3 - The original data sets
 
-     scoresSpectra      : TSpectraRanges ;
-     eigenVSpectra      : TSpectraRanges ;
-//    XresidualsSpectra : TSpectraRanges ;
-     eigenValSpectra    : TSpectraRanges ;  // Eigenvalue = scores(PCx)' * scores(PCx)  ==  variance of each PC
-//    regenSpectra      : TSpectraRanges ;  // Data made from specific PCs using  RegenerateData() function
+//   scoresSpectra           : TSpectraRanges ;  // this is inherited
+//   eigenVSpectra         : TSpectraRanges ;  // this is inherited
+//    XresidualsSpectra      : TSpectraRanges ;  // this is inherited
+//    eigenValSpectra        : TSpectraRanges ;  // this is inherited  // Eigenvalue = scores(PCx)' * scores(PCx)  ==  variance of each PC
+//    regenSpectra           : TSpectraRanges ;  // Data made from specific PCs using  RegenerateData() function
 
-     YresidualsSpectra  : TSpectraRanges ;
-//     modelPCRSpectra    : TSpectraRanges ;  // this is PCR/MLR specific
-     regresCoefSpectra  : TSpectraRanges ;  // X Coefficients for regression with a cirtain number of PCs for known Y values
-     predictedYPCR      : TSpectraRanges ;
-     R_sqrd_PCR         : TSpectraRanges ;
+     YresidualsSpectra       : TSpectraRanges ;
+     modelPCRSpectra         : TSpectraRanges ;  // this is PCR/MLR specific
+     regresCoefSpectra       : TSpectraRanges ;  // X Coefficients for regression with a cirtain number of PCs for known Y values
+     predictedYPCR           : TSpectraRanges ;
+     R_sqrd_PCR              : TSpectraRanges ;
 
      constructor Create(SDPrec : integer) ;  //
      destructor  Destroy; // override;
@@ -70,44 +54,42 @@ type
      // get input data from memo1 text. Returns final line number of String list
      function  GetBatchArguments(lineNum, iter : integer; tStrList : TStringList ) : string ;
      function  ProcessPCRBatchFile(inputX, inputY : TSpectraRanges)   : string ;  // this calls private functions and creates model
-     procedure  SaveSpectra(filenameIn : string)  ;
+//     function  PredictYFromModel( xData, regressCoef : TMatrix) : TMatrix   ;
+
   private
+
      function  DetermineNumPCs : string ;
      function  GetAllXData( interleavedOrBlocked : integer;  sourceSpecRange : TSpectraRanges ) : string  ; // TBatch virtual method
      function  GetAllYData( interleavedOrBlocked : integer;  sourceSpecRange : TSpectraRanges )  : string  ; // TBatch virtual method
      function  PreProcessData  : string ; // override  ;
      function  CreatePCRDisplayData(lc : pointer )  : boolean ;   // lc is pointer to TGLLineColor type, holding the line colour TSpectraRange.LineColor
-     procedure CheckResult(resultStringIn : string) ;
-  end;
+end;
+
 implementation
 
 
 constructor TPCRYPredictBatch.Create(SDPrec : integer);  // need SDPrec
 begin
-   SDPrecPCR := SDPrec ;
-   bB := TBatchBasics.Create ;
+   inherited Create ;
    pp := TPreprocess.Create ;
-   PCRResults := TPCResults.Create('PCR_Results.out',SDPrecPCR)  ;
-   xDiskEQxData  := false ;
-   YinXData := false ;
+   PCRResults := TPCResults.Create('PCR_Results.out',SDPrec)  ;
 end ;
 
 
 destructor  TPCRYPredictBatch.Destroy; // override;
 begin
-
-  scoresSpectra.free ;
-  eigenVSpectra.free  ;
-  eigenValSpectra.free  ;
+//  allXData.Free ; // created in  GetAllXData
+  allYData.Free ; // created in  GetAllYData
   YresidualsSpectra.Free ;
+  modelPCRSpectra.Free ;
   regresCoefSpectra.Free ;
   predictedYPCR.Free ;
   R_sqrd_PCR.Free ;
 
-  bb.Free;
   pp.Free ;
   PCRResults.Free ;
-
+  
+  inherited Free ;
 end ;
 
 procedure TPCRYPredictBatch.Free;
@@ -155,23 +137,6 @@ var
  tstr1  : string ;
 begin
        try
-{ this is used in command line version
-        // ********************** X data file name ******************************************
-             repeat
-               inc(lineNum) ;
-               tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
-             until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
-             if bB.LeftSideOfEqual(tstr1) = 'x data file' then
-               xFilename :=  bB.RightSideOfEqual(tstr1) ;
-
-        // ********************** Y data file name ******************************************
-             repeat
-               inc(lineNum) ;
-               tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
-             until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
-             if bB.LeftSideOfEqual(tstr1) = 'y data file' then
-               yFilename :=  bB.RightSideOfEqual(tstr1) ;             }
-
         // ********************** X Samples ******************************************
         repeat
           inc(lineNum) ;
@@ -372,24 +337,16 @@ begin
   if pos('-',XsampleRange) = length(trim(XsampleRange)) then
     XsampleRange := XsampleRange + inttostr(sourceSpecRange.yCoord.numRows) ;
 
-  // if the data is exactly as recieved in sourceSpecRange then do not copy (saves memory)
-  if (sourceSpecRange.yCoord.numRows = sourceSpecRange.yCoord.GetTotalRowsColsFromString(XsampleRange)) and (sourceSpecRange.yCoord.numCols = sourceSpecRange.yCoord.GetTotalRowsColsFromString(xVarRange))then
-  begin
-    allXData :=  sourceSpecRange ;
-    xDiskEQxData := true ;
-    exit ;
-  end;
-
-  // otherwise copy the data wanted
-  allXData := TSpectraRanges.Create(sourceSpecRange.yCoord.SDPrec,1,1, @sourceSpecRange.LineColor) ;
+  allXData := TSpectraRanges.Create(sourceSpecRange.yCoord.SDPrec div 4,1,1,@self.LineColor) ;
 
   // *****************  This actually retrieves the data  ********************
   allXData.yCoord.FetchDataFromTMatrix( XsampleRange, xVarRange , sourceSpecRange.yCoord ) ;
   if sourceSpecRange.yImaginary <> nil then
   begin
-    allXData.yImaginary := TMatrix.Create(allXData.yCoord.SDPrec) ;
+    allXData.yImaginary := TMatrix.Create(allXData.yCoord.SDPrec div 4) ;
     allXData.yImaginary.FetchDataFromTMatrix( XsampleRange, xVarRange , sourceSpecRange.yImaginary ) ;
   end ;
+
 
   // *****************   Get the x data of TSpectraRanges object - X data can be disjoint (it just will display disjoint) *****************
   allXData.xString := sourceSpecRange.xString ;
@@ -445,13 +402,13 @@ begin
   if pos('-',YsampleRange) = length(trim(YsampleRange)) then       // sampleRange string is open ended (e.g. '12-')
     YsampleRange := YsampleRange + inttostr(sourceSpecRange.yCoord.numRows) ;
 
-  allYData := TSpectraRanges.Create(sourceSpecRange.yCoord.SDPrec,1,1, @sourceSpecRange.LineColor) ;
+  allYData := TSpectraRanges.Create(sourceSpecRange.yCoord.SDPrec div 4,1,1,@self.LineColor) ;  
 
   // *****************  This actually retrieves the data  ********************
   allYData.yCoord.FetchDataFromTMatrix( YsampleRange, yVarRange , sourceSpecRange.yCoord ) ;
   if sourceSpecRange.yImaginary <> nil then
   begin
-    allYData.yImaginary := TMatrix.Create(allYData.yCoord.SDPrec) ;
+    allYData.yImaginary := TMatrix.Create(allYData.yCoord.SDPrec div 4) ;
     allYData.yImaginary.FetchDataFromTMatrix( YsampleRange, yVarRange , sourceSpecRange.yImaginary ) ;
   end ;
 
@@ -498,46 +455,31 @@ function  TPCRYPredictBatch.PreProcessData : string ;
    smooth       :   string   // = average 15  // fourier 15,50 remove complex  // %,power
    derivative   :   string   // = fourier 2 : remove complex // fourier only available
 }
-var
-     tTimer : TASMTimer ;
 begin
-//     tTimer := TASMTimer.Create(0) ;
+
      self.allYData.yCoord.MeanCentre ; // Y data has to be mean centred (i think)
-
      if  meanCentre then
-     begin
-//     tTimer.setTimeDifSecUpdateT1 ;
-//write('Mean centering X data: ') ;
         self.allXData.yCoord.MeanCentre ;
-//tTimer.setTimeDifSecUpdateT1 ;
-//write('Done ') ;
-//writeln( floattostrf(tTimer.getRecordedTime,ffGeneral,5,4) ) ;
-
-     end ;
 
      if  colStd then
        self.allXData.yCoord.ColStandardize ; // not sure what to do with y data with col standardise
 
      if length(trim(smooth)) > 0 then
      begin
-//write('Smoothing X data: ') ;
         result := pp.Smooth(smooth,allXData) ;
-//writeln('Done') ;
      end ;
 
      if length(trim(derivative)) > 0 then
      begin
-//write('Taking derivative of X data: ') ;
         if length(result) > 0 then
           result := result + #13 + pp.Differentiate(derivative,allXData)
         else
           result :=  pp.Differentiate(derivative,allXData)   ;
-//writeln('Done ') ;
      end  ;
 
      if length(result) > 0 then
      result := result +  #13 ;
-
+     
 end ;
 
 
@@ -553,9 +495,9 @@ begin
     t1 := allXData.yCoord.GetTotalRowsColsFromString(PCsString, pcsToFitMemStrm) ; // number of PCs to fit
 
     pcsToFitMemStrm.Seek(-4,soFromEnd) ;
-    pcsToFitMemStrm.Read(numPCsPCR,4) ; // read final number in range (don't use t1 as it is number in set, not the maximum PC needed)
-    numPCsPCR := numPCsPCR + 1 ;        // add one because the numbers returned are zero based
-    if numPCsPCR > allXData.yCoord.numRows then
+    pcsToFitMemStrm.Read(numPCs,4) ; // read final number in range (don't use t1 as it is number in set, not the maximum PC needed)
+    numPCs := numPCs + 1 ;    // add one because the numbers returned are zero based
+    if numPcs > allXData.yCoord.numRows then
     begin
       result :=  'Have to exit batch process, number of PCs wanted is greater than number of spectra'  ;
       pcsToFitMemStrm.free ;
@@ -571,14 +513,6 @@ begin
 end ;
 
 
-procedure   TPCRYPredictBatch.CheckResult(resultStringIn : string) ;
-begin
-     if  length(resultStringIn) > 0 then
-     begin
-       writeln('ProcessPCRBatchFile failed:' + #13 + resultStringIn ) ;
-       exit ;
-     end ;
-end ;
 
 
 function  TPCRYPredictBatch.ProcessPCRBatchFile(inputX, inputY : TSpectraRanges)  : string ;  // this calls all above functions and creates model
@@ -586,56 +520,36 @@ var
   resultString : string ;
 begin
    result := '' ;
-   // N.B. if YinXData is true then inputX points to inputY
+
    try
-     Self.xFilename := inputX.yCoord.Filename ;
-     resultString := resultString + GetAllXData( interleaved,  inputX ) ;  //
-     if (xDiskEQxData  = false) and (YinXData = false) then  // input (disk) file and matrix data are identical so do not delete
-       inputX.Free ;
-
+     resultString := resultString + GetAllXData( interleaved,  inputX ) ;
      resultString := resultString + GetAllYData( interleaved,  inputY ) ;
-     PCRResults.YMatrix.CopyMatrix(allYData.yCoord) ;    // copy the Y data
-
-     if (xDiskEQxData  = false) and (YinXData = true) then  // input (disk) file and matrix data are identical so do not delete
-       inputX.Free
-     else
-       inputY.Free ;
-
      resultString := resultString + PreProcessData  ;
      resultString := resultString + DetermineNumPCs ;
-     CheckResult(resultString) ;
+
+     if  length(resultString) > 0 then
+     begin
+       result := 'ProcessPLSBatchFile failed:' + #13 + resultString ;
+       exit ;
+     end ;
 
      if allXData.yImaginary = nil then  // do not have code for complex data type
      begin
        // Do PCR regression
-       // PCA first - allXData.yCoord will be altered (into residuals) therfore reload after
-       resultString := PCRResults.DoPCAFirst(allXData.yCoord,numPCsPCR,meanCentre, colStd) ;
-       CheckResult(resultString) ;
-
-       // Reset and read in data again
-       allXData.Free ;   // this will free inputX if 'xIsIdentical' = true
-       allXData := TSpectraRanges.Create(SDPrecPCR,0,0,nil) ;
-       inputX   := TSpectraRanges.Create(SDPrecPCR,0,0,nil) ;   // this has to be OK as inputX was freed either during GetAllXData, GetAllXData or allXData.Free above
-       inputX.LoadSpectraRangeDataBinV2(Self.xFilename);
-       GetAllXData( interleaved,  inputX ) ;
-       if (xDiskEQxData = false) then  // input (disk) file and matrix data are identical so do not delete
-         inputX.Free ;
-       resultString :=  PreProcessData  ;
-       CheckResult(resultString) ;
-
-       PCRResults.CreatePCRModelSecond(allXData.yCoord, allYData.yCoord {PCRResults.YMatrix} , PCsString ) ; // PCsString has been checked
-
+       PCRResults.DoPCAFirst(allXData.yCoord,numPCs,meanCentre, colStd) ;
+//       PCRResults.XResiduals.ClearData(allXData.yCoord.SDPrec div 4)  ;
+//       PCRResults.XResiduals.CopyMatrix(allXData.yCoord) ;
+       allXData.yCoord.ClearData(allXData.yCoord.SDPrec div 4)  ;
+       allXData.yCoord.CopyMatrix(PCRResults.XMatrix) ;
+       PCRResults.CreatePCRModelSecond( allYdata.yCoord, PCsString ) ; // PCsString has been checked
      end
      else  // data is complex
      begin
-       writeln('PCR code does not accept complex data. Remove imaginary component first') ;
+       messagedlg('PLS code does not work with complex data. Remove imaginary component first',mtError,[mbOK],0) ;
        exit ;
      end ;
 
-     CreatePCRDisplayData(@inputY.LineColor) ;  // may have problems with this
-     allXData.Free ; // this will remove inputX.Free if "xDiskEQxData = true"
-     allYData.Free ; // created in  GetAllYData
-
+     CreatePCRDisplayData(@allXData.LineColor) ;  // may have problems with this
 
     except on Exception do
     begin
@@ -648,25 +562,24 @@ end ;
 
 
 
-function  TPCRYPredictBatch.CreatePCRDisplayData(lc : pointer )  : boolean ;   // lc is pointer to TGLLineColor type, holding the line colour TSpectraRange.LineColor
+function  TPCRYPredictBatch.CreatePCRDisplayData(lc : pointer)  : boolean ;
 var
  t1 : integer ;
  s1 : single ;
  d1 : double ;
- tstr : string ;
 begin
       // 1/ ****  Create display objects for calculated data ****  Then just add Y data matric from PLSResultsObject
-    scoresSpectra     := TSpectraRanges.Create(self.allXData.yCoord.SDPrec,  allXData.yCoord.numRows , numPCsPCR,                    lc )  ;
-    eigenVSpectra   := TSpectraRanges.Create(self.allXData.yCoord.SDPrec,  numPCsPCR                  ,  allXData.yCoord.numCols,    lc )  ;
-//    XresidualsSpectra := TSpectraRanges.Create(self.allXData.yCoord.SDPrec, allXData.yCoord.numRows ,  allXData.yCoord.numCols )  ;
-    YresidualsSpectra := TSpectraRanges.Create(self.allXData.yCoord.SDPrec,allXData.yCoord.numRows                   ,  numPCsPCR,   lc  )  ; // numPCs by number of Samples
-    eigenValSpectra   := TSpectraRanges.Create(self.allXData.yCoord.SDPrec,  1                       ,  numPCsPCR                ,   lc)  ;
-//    regenSpectra      := TSpectraRanges.Create(self.allXData.yCoord.SDPrec,  allXData.yCoord.numRows ,  allXData.yCoord.numCols )  ;
+    scoresSpectra     := TSpectraRanges.Create(self.allXData.yCoord.SDPrec div 4,  allXData.yCoord.numRows , numPCs                  , lc )  ;
+    eigenVSpectra   := TSpectraRanges.Create(self.allXData.yCoord.SDPrec div 4,  numPCs                  ,  allXData.yCoord.numCols, lc )  ;
+XresidualsSpectra := TSpectraRanges.Create(self.allXData.yCoord.SDPrec div 4, 1 ,  1, lc )  ;
+    YresidualsSpectra := TSpectraRanges.Create(self.allXData.yCoord.SDPrec div 4,allXData.yCoord.numRows                   ,  numPCs , lc )  ; // numPCs by number of Samples
+    eigenValSpectra   := TSpectraRanges.Create(self.allXData.yCoord.SDPrec div 4,  1                       ,  numPcs                 , lc )  ;
+regenSpectra      := TSpectraRanges.Create(self.allXData.yCoord.SDPrec div 4,  1 , 1, lc )  ;
 
-//    modelPCRSpectra   := TSpectraRanges.Create(self.allXData.yCoord.SDPrec,  numPCsPCR                  , allXData.yCoord.numCols )  ;
-    regresCoefSpectra:= TSpectraRanges.Create(self.allXData.yCoord.SDPrec,  numPCsPCR                  , allXData.yCoord.numCols ,   lc)  ;
-    predictedYPCR  := TSpectraRanges.Create(self.allXData.yCoord.SDPrec,  numPCsPCR                  , allXData.yCoord.numRows   ,   lc)  ;
-    R_sqrd_PCR       := TSpectraRanges.Create(self.allXData.yCoord.SDPrec,  1                       , numPCsPCR                  ,   lc )  ;
+    modelPCRSpectra   := TSpectraRanges.Create(self.allXData.yCoord.SDPrec div 4,  numPCs                  , allXData.yCoord.numCols,  lc )  ;
+    regresCoefSpectra:= TSpectraRanges.Create(self.allXData.yCoord.SDPrec div 4,  numPCs                  , allXData.yCoord.numCols,  lc )  ;
+    predictedYPCR  := TSpectraRanges.Create(self.allXData.yCoord.SDPrec div 4,  numPCs                  , allXData.yCoord.numRows,  lc )  ;
+    R_sqrd_PCR       := TSpectraRanges.Create(self.allXData.yCoord.SDPrec div 4,  1                       , numPCs                 ,  lc )  ;
 
     // 2/ ****  Copy calculated data to output display objects ****
     scoresSpectra.yCoord.CopyMatrix( PCRResults.ScoresPCR ) ;
@@ -677,7 +590,7 @@ begin
 //    regenSpectra.yCoord.CopyMatrix( PCRResults.XRegenMatrix ) ;
 //    XresidualsSpectra.yCoord.CopyMatrix( PCRResults.XResiduals )   ;
 
-//    modelPCRSpectra.yCoord.CopyMatrix( PCRResults.Model ) ;
+    modelPCRSpectra.yCoord.CopyMatrix( PCRResults.Model ) ;
     regresCoefSpectra.yCoord.CopyMatrix( PCRResults.RegressionCoef ) ;
     predictedYPCR.yCoord.CopyMatrix( PCRResults.PredictedY ) ;
     YresidualsSpectra.yCoord.CopyMatrix( PCRResults.YResidualsPCR )   ;
@@ -686,24 +599,24 @@ begin
 
     if eigenVSpectra.yCoord.complexMat = 2 then
     begin
-         scoresSpectra.yImaginary := TMatrix.Create2(scoresSpectra.yCoord.SDPrec, scoresSpectra.yCoord.numRows, scoresSpectra.yCoord.numCols ) ;
+         scoresSpectra.yImaginary := TMatrix.Create2(scoresSpectra.yCoord.SDPrec div 4, scoresSpectra.yCoord.numRows, scoresSpectra.yCoord.numCols ) ;
          scoresSpectra.yCoord.MakeUnComplex( scoresSpectra.yImaginary ) ;
-         eigenVSpectra.yImaginary := TMatrix.Create2(eigenVSpectra.yCoord.SDPrec, eigenVSpectra.yCoord.numRows, eigenVSpectra.yCoord.numCols ) ;
+         eigenVSpectra.yImaginary := TMatrix.Create2(eigenVSpectra.yCoord.SDPrec div 4, eigenVSpectra.yCoord.numRows, eigenVSpectra.yCoord.numCols ) ;
          eigenVSpectra.yCoord.MakeUnComplex( eigenVSpectra.yImaginary ) ;
-//         XresidualsSpectra.yImaginary := TMatrix.Create2(XresidualsSpectra.yCoord.SDPrec, XresidualsSpectra.yCoord.numRows, XresidualsSpectra.yCoord.numCols) ;
-//         XresidualsSpectra.yCoord.MakeUnComplex( XresidualsSpectra.yImaginary ) ;
-         YresidualsSpectra.yImaginary := TMatrix.Create2(YresidualsSpectra.yCoord.SDPrec, YresidualsSpectra.yCoord.numRows, YresidualsSpectra.yCoord.numCols) ;
+ //        XresidualsSpectra.yImaginary := TMatrix.Create2(XresidualsSpectra.yCoord.SDPrec div 4, XresidualsSpectra.yCoord.numRows, XresidualsSpectra.yCoord.numCols) ;
+ //        XresidualsSpectra.yCoord.MakeUnComplex( XresidualsSpectra.yImaginary ) ;
+         YresidualsSpectra.yImaginary := TMatrix.Create2(YresidualsSpectra.yCoord.SDPrec div 4, YresidualsSpectra.yCoord.numRows, YresidualsSpectra.yCoord.numCols) ;
          YresidualsSpectra.yCoord.MakeUnComplex( YresidualsSpectra.yImaginary ) ;
-         eigenValSpectra.yImaginary := TMatrix.Create2(eigenValSpectra.yCoord.SDPrec, eigenValSpectra.yCoord.numRows, eigenValSpectra.yCoord.numCols) ;
+         eigenValSpectra.yImaginary := TMatrix.Create2(eigenValSpectra.yCoord.SDPrec div 4, eigenValSpectra.yCoord.numRows, eigenValSpectra.yCoord.numCols) ;
          eigenValSpectra.yCoord.MakeUnComplex( eigenValSpectra.yImaginary ) ;
-//         regenSpectra.yImaginary := TMatrix.Create2(regenSpectra.yCoord.SDPrec, regenSpectra.yCoord.numRows, regenSpectra.yCoord.numCols) ;
+//         regenSpectra.yImaginary := TMatrix.Create2(regenSpectra.yCoord.SDPrec div 4, regenSpectra.yCoord.numRows, regenSpectra.yCoord.numCols) ;
 //         regenSpectra.yCoord.MakeUnComplex( regenSpectra.yImaginary ) ;
-//         modelPCRSpectra.yImaginary := TMatrix.Create2(modelPCRSpectra.yCoord.SDPrec, modelPCRSpectra.yCoord.numRows, modelPCRSpectra.yCoord.numCols) ;
-//         modelPCRSpectra.yCoord.MakeUnComplex( modelPCRSpectra.yImaginary ) ;
+         modelPCRSpectra.yImaginary := TMatrix.Create2(modelPCRSpectra.yCoord.SDPrec div 4, modelPCRSpectra.yCoord.numRows, modelPCRSpectra.yCoord.numCols) ;
+         modelPCRSpectra.yCoord.MakeUnComplex( modelPCRSpectra.yImaginary ) ;
          // not sure if these are ever going to be complex
-         regresCoefSpectra.yImaginary := TMatrix.Create2(regresCoefSpectra.yCoord.SDPrec, regresCoefSpectra.yCoord.numRows, regresCoefSpectra.yCoord.numCols) ;
+         regresCoefSpectra.yImaginary := TMatrix.Create2(regresCoefSpectra.yCoord.SDPrec div 4, regresCoefSpectra.yCoord.numRows, regresCoefSpectra.yCoord.numCols) ;
          regresCoefSpectra.yCoord.MakeUnComplex( regresCoefSpectra.yImaginary ) ;
-         predictedYPCR.yImaginary := TMatrix.Create2(predictedYPCR.yCoord.SDPrec, predictedYPCR.yCoord.numRows, predictedYPCR.yCoord.numCols) ;
+         predictedYPCR.yImaginary := TMatrix.Create2(predictedYPCR.yCoord.SDPrec div 4, predictedYPCR.yCoord.numRows, predictedYPCR.yCoord.numCols) ;
          predictedYPCR.yCoord.MakeUnComplex( predictedYPCR.yImaginary ) ;
      //    R_sqrd_PLS
     end ;
@@ -711,7 +624,7 @@ begin
     // 3/ ****  Create X data for output display objects  ****
     // A/ add 'sample number' to scores matrix (may be able to reference a 'string' value from this value in the future)
     scoresSpectra.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
-//    modelPCRSpectra.SeekFromBeginning(3,1,0) ;
+    modelPCRSpectra.SeekFromBeginning(3,1,0) ;
     YresidualsSpectra.SeekFromBeginning(3,1,0) ;
     for t1 := 1 to allXData.yCoord.numRows do
     begin
@@ -719,14 +632,14 @@ begin
       begin
         s1 := t1 ;
         scoresSpectra.xCoord.F_Mdata.Write(s1,4) ;
-//        modelPCRSpectra.xCoord.F_Mdata.Write(s1,4) ;
+        modelPCRSpectra.xCoord.F_Mdata.Write(s1,4) ;
       end
       else
       if self.allXData.yCoord.SDPrec = 8 then
       begin
         d1 := t1 ;
         scoresSpectra.xCoord.F_Mdata.Write(d1,8) ;
- //       modelPCRSpectra.xCoord.F_Mdata.Write(d1,8) ;
+        modelPCRSpectra.xCoord.F_Mdata.Write(d1,8) ;
       end
     end ;
     // B/ add wavelength values as xCoord for EVects matrix storage
@@ -759,8 +672,8 @@ begin
         allXData.xCoord.F_Mdata.Read(d1,8) ;
 
         eigenVSpectra.xCoord.F_Mdata.Write(d1,8) ;
-//        XresidualsSpectra.xCoord.F_Mdata.Write(d1,8) ;
-//        regenSpectra.xCoord.F_Mdata.Write(d1,8) ;
+ //       XresidualsSpectra.xCoord.F_Mdata.Write(d1,8) ;
+ //       regenSpectra.xCoord.F_Mdata.Write(d1,8) ;
         regresCoefSpectra.xCoord.F_Mdata.Write(d1,8) ;
       end  ;
     end ;
@@ -771,7 +684,7 @@ begin
     YresidualsSpectra.xCoord.F_Mdata.Seek(0,soFromBeginning) ;
     if self.allXData.yCoord.SDPrec = 4 then
     begin
-       for t1 := 1 to self.numPCsPCR do
+       for t1 := 1 to self.numPCs do
        begin
          s1 := t1 ;
          eigenValSpectra.xCoord.F_Mdata.Write(s1,4) ;
@@ -782,7 +695,7 @@ begin
     else
     if self.allXData.yCoord.SDPrec = 8 then
     begin
-      for t1 := 1 to self.numPCsPCR do
+      for t1 := 1 to self.numPCs do
       begin
         d1 := t1 ;
         eigenValSpectra.xCoord.F_Mdata.Write(d1,8) ;
@@ -816,35 +729,27 @@ begin
 
   //
     // reset data to first positions
-//    allXData.SeekFromBeginning(3,1,0) ;
-//    allYData.SeekFromBeginning(3,1,0) ;
-    scoresSpectra.SeekFromBeginning(3,1,0) ;
+    allXData.SeekFromBeginning(3,1,0) ;
+    allYData.SeekFromBeginning(3,1,0) ;
     eigenVSpectra.SeekFromBeginning(3,1,0) ;
-    eigenValSpectra.SeekFromBeginning(3,1,0) ;
 //    XresidualsSpectra.SeekFromBeginning(3,1,0) ;
     YresidualsSpectra.SeekFromBeginning(3,1,0) ;
 //    regenSpectra.SeekFromBeginning(3,1,0) ;
-//    modelPCRSpectra.SeekFromBeginning(3,1,0) ;
+    modelPCRSpectra.SeekFromBeginning(3,1,0) ;
+
     regresCoefSpectra.SeekFromBeginning(3,1,0) ;
+
     predictedYPCR.SeekFromBeginning(3,1,0) ;
+
     R_sqrd_PCR.SeekFromBeginning(3,1,0) ;
-
-    tstr := copy(self.xFilename,1,pos(extractfileext(self.xFilename),self.xFilename))  ;
-
 end ;
 
 
-
-procedure TPCRYPredictBatch.SaveSpectra(filenameIn : string)  ;
+{
+function TPCRYPredictBatch.PredictYFromModel(xData, regressCoef : TMatrix) : TMatrix ; // returns predicted Y data
 begin
-    scoresSpectra.SaveSpectraRangeDataBinV2(filenameIn+'_scoresPCR.bin') ;
-    eigenVSpectra.SaveSpectraRangeDataBinV2(filenameIn+'_eigenVectPCR.bin') ;
-    eigenValSpectra.SaveSpectraRangeDataBinV2(filenameIn+'_eigenValPCR.bin') ;
-    regresCoefSpectra.SaveSpectraRangeDataBinV2(filenameIn+'_regCoefPCR.bin') ;
-    predictedYPCR.SaveSpectraRangeDataBinV2(filenameIn+'_predictedYPCR.bin') ;
-    YresidualsSpectra.SaveSpectraRangeDataBinV2(filenameIn+'_residualsYPCR.bin') ;
-    R_sqrd_PCR.SaveSpectraRangeDataBinV2(filenameIn+'_R_sqrd_PCR.bin') ;
+  //result :=  mo.MultiplyMatrixByMatrix(xData,regressCoef, false, true, 1.0, false) ;
 end ;
-
+}
 
 end.
