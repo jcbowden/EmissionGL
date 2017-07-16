@@ -110,21 +110,10 @@ try
   dataM2.Transpose  ;   // have to untranspose  after
   // do this so matrix multiplication will give us the variance and covariance matrix
   //(do not need to subtract the mean as this zeros it)
-  if dataM1.meancentred = true  then
-    originallyMC_M1 := true
-  else
-    originallyMC_M1 := false ;
-  if dataM2.meancentred = true  then
-    originallyMC_M2 := true
-  else
-    originallyMC_M2 := false ;
-
+  if dataM1.meancentred = true  then  originallyMC_M1 := true else originallyMC_M1 := false ;
+  if dataM2.meancentred = true  then  originallyMC_M2 := true else originallyMC_M2 := false ;
   dataM1.MeanCentre ;   // have to unmeancentre after
   dataM2.MeanCentre ;   // have to unmeancentre after
- // dataM1.SaveMatrixDataBin('D:\aa_NIR_correlation\M1.bin', 1,10);
- // dataM2.SaveMatrixDataBin('D:\aa_NIR_correlation\M2.bin', 1,10);
-
-
   dataM1.Stddev(true) ;
   dataM2.Stddev(true) ;
 
@@ -195,19 +184,14 @@ try
   dataM2.F_MStdDev.Seek(0,soFromBeginning) ;
 
   // undo everything done to original matricies
-  MultiplyAverages( dataM1, 1.0/dataM1.numRows ) ;
-  MultiplyAverages( dataM2, 1.0/dataM2.numRows ) ;
-
-
-
-
-  if originallyMC_M1 = true  then
-  else dataM1.AddVectToMatrixRows(dataM1.F_MAverage) ;   // unmeancentre;
-  if originallyMC_M2 = true  then
-  else dataM2.AddVectToMatrixRows(dataM2.F_MAverage) ;   // unmeancentre
-
+  MultiplyAverages( dataM1, 1/dataM1.numRows ) ;
+  MultiplyAverages( dataM2, 1/dataM2.numRows ) ;
+  dataM1.AddVectToMatrixRows(dataM1.F_MAverage) ;   // unmeancentre
+  dataM2.AddVectToMatrixRows(dataM2.F_MAverage) ;   // unmeancentre
   dataM1.Transpose  ;   // have to untranspose  after
   dataM2.Transpose  ;   // have to untranspose  after
+  if originallyMC_M1 = true  then  dataM1.MeanCentre else dataM1.meancentred := false ;
+  if originallyMC_M2 = true  then  dataM2.MeanCentre else dataM2.meancentred := false ;
 
   finally
      Result := tMat ;

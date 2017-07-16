@@ -35,9 +35,7 @@ uses
   TMatrixObject in 'TMatrixObject.pas',
   TMaxMinObject in 'TMaxMinObject.pas',
   fftw_interface in 'fftw_interface.pas',
-  TPassBatchFileToExecutableUnit in 'TPassBatchFileToExecutableUnit.pas',
-  netCDFUnit in 'netCDFUnit.pas',
-  netCDFFileImport in 'netCDFFileImport.pas' {NetCDFForm};
+  TPassBatchFileToExecutableUnit in 'TPassBatchFileToExecutableUnit.pas';
 
 {$R *.RES}
 
@@ -49,7 +47,6 @@ const IMAGE_FILE_LARGE_ADDRESS_AWARE = $0020;
 begin
   Application.Initialize;
   Application.CreateForm(TForm4, Form4);
-  Application.CreateForm(TNetCDFForm, NetCDFForm);
   // FileInfo
   Application.CreateForm(TForm2, Form2);    // colorsEM
   Application.CreateForm(TForm1, Form1);    // emissionGL

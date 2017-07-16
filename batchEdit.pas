@@ -8,7 +8,7 @@ uses
   TBatch, TPCABatchObject, TIRPolAnalysisObject2, TBatchBasicFunctions, T2DCorrelObject,
   TAreaRatioUnit, TMathBatchUnit, TPLMAnalysisUnit1, TDichroicRatioUnit, TPLSPredictBatchUnit,
   TPCRPredictBatchUnit, TPLSYPredictTestBatchUnit, TAutoProjectEVectsUnit, TRotateFactorsUnit,
-  TMatrixOperations, TRotateToFitScoresUnit, ShellAPI, TASMTimerUnit, SPCFileUnit, Math  ;
+  TMatrixOperations, TRotateToFitScoresUnit, ShellAPI, TASMTimerUnit, SPCFileUnit  ;
 type
   TForm3 = class(TForm)
     BatchMemo1: TMemo;
@@ -65,7 +65,6 @@ type
     RegressionFunctions1: TMenuItem;
     MicroscopyFunctions1: TMenuItem;
     emplateInterleaveSpectra1: TMenuItem;
-    emplateMatrixmultdivbypoint1: TMenuItem;
     procedure BatchMemo1Change(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Open1Click(Sender: TObject);
@@ -129,7 +128,6 @@ type
     procedure SetExecutable2Click(Sender: TObject);
     procedure emplateSaveRows1Click(Sender: TObject);
     procedure emplateInterleaveSpectra1Click(Sender: TObject);
-    procedure emplateMatrixmultdivbypoint1Click(Sender: TObject);
  
 
   private
@@ -151,12 +149,11 @@ type
 
     procedure FreeStringGridSpectraRanges(col, row : integer );
 
-    function MatrixPointMultiply(initialLineNum : integer; multordiv : boolean) : integer ;
     function AddOrSub(initialLineNum : integer; addorsubtract : integer) : integer ;
     // MultAndSub(): multiplies a data matrix by a vector to return the scores of the vectore on the data matrix and the residuals
     function MultAndSub(initialLineNum : integer) : integer ;  // returns the line number of the batch file
     // MatrixMultiply(): does a ordinary matrix multiplication between to matricies where the #cols of 1st = #row 2nd
-    function MatrixMultiply(initialLineNum : integer; addYOffset : boolean) : integer ;  // returns the line number of the batch file
+    function MatrixMultiply(initialLineNum : integer) : integer ;  // returns the line number of the batch file
     // CorrelateMatrix(): Calculates correlations between elements of matricies where the #cols of 1st = #row 2nd
     function CorrelateMatrix(initialLineNum : integer) : integer ;  // returns the line number of the batch file
     // Leverage(): Calculates the Leverage of samples
@@ -198,11 +195,8 @@ end;
 
 procedure TForm3.FormCreate(Sender: TObject);
 begin
-
-  Form3.SendToBack ;
-
+// textModified := false ;
 end;
-
 
 procedure TForm3.Open1Click(Sender: TObject);
 begin
@@ -403,18 +397,8 @@ end;
 procedure TForm3.emplateMatrixcorrelation1Click(Sender: TObject);
 begin
   BatchMemo1.Lines.Add('type = matrix correlation') ; // matrix multiply
-  BatchMemo1.Lines.Add('// Input:   two matricies (# cols of first = # cols of second) ') ;
-  BatchMemo1.Lines.Add('// Output:  the cross correlation matrix (R^2 values on diagonal)') ;
-  BatchMemo1.Lines.Add('// N.B.: transpose+mean centre+transpose each matrix by hand as it does not seem to want to work') ;
-  BatchMemo1.Lines.Add('') ;
-end;
-
-procedure TForm3.emplateMatrixmultdivbypoint1Click(Sender: TObject);
-begin
-  BatchMemo1.Lines.Add('type = point multiply') ;
-  BatchMemo1.Lines.Add('operation = multiply  // divide ') ;
-  BatchMemo1.Lines.Add('// Input:   x data and y data matricies (same size)') ;
-  BatchMemo1.Lines.Add('// Output:  x.row.col (* or /) y.row.col') ;
+  BatchMemo1.Lines.Add('// Input:   two matricies (# cols of first = # rows of second) ') ;
+  BatchMemo1.Lines.Add('// Output:  the cross correlation matrix') ;
   BatchMemo1.Lines.Add('') ;
 end;
 
@@ -436,7 +420,7 @@ begin
   BatchMemo1.Lines.Add('3:1- tandiam_aveyear') ;
   BatchMemo1.Lines.Add('4:1- coarsness_aveyear') ;
   BatchMemo1.Lines.Add('5:1- cellpop_aveyear') ;
-  BatchMemo1.Lines.Add('6:1- rayangle_aveyear') ;
+  BatchMemo1.Lines.Add('6:1-  rayangle_aveyear') ;
   BatchMemo1.Lines.Add('7:1- isopynic_aveyear') ;
   BatchMemo1.Lines.Add('8:1- MFA_aveyear') ;
   BatchMemo1.Lines.Add('9:1- diffintens_aveyear') ;
@@ -648,89 +632,10 @@ begin
 end ;
 
 
-function TForm3.MatrixPointMultiply(initialLineNum : integer; multordiv : boolean) : integer ;
-var
-  xData, yData, resultData : TSpectraRanges ;
-  multiftrue : boolean ;
-  ps1, ps2 : ^single ;
-  res_double : double ;
-  t1, t2 : integer ;
-begin
-//    try
-      result := initialLineNum + 1 ;
 
-      xData      := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Row]) ;
-      yData      := TSpectraRanges(Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row]) ;
-
-
-      // make sure matricies are the same dimension
-      if ((xData.yCoord.numRows = yData.yCoord.numRows) and (xData.yCoord.numCols = yData.yCoord.numCols)) then
-      begin
-        resultData := TSpectraRanges.Create(xData.yCoord.SDPrec div 4, xData.yCoord.numRows, xData.yCoord.numCols, @xData.LineColor) ;
-        resultData.CopySpectraObject(xData) ;
-
-        ps1  :=  resultData.yCoord.F_Mdata.Memory ;
-        ps2  :=  yData.yCoord.F_Mdata.Memory ;
-
-        if multordiv then
-        begin
-          for t1 := 0 to ( resultData.yCoord.numRows * resultData.yCoord.numCols ) - 1 do
-          begin
-             ps1^ := ps1^ * ps2^ ;
-             inc(ps1) ;
-             inc(ps2);
-          end;
-        end
-        else
-        begin  //  multordiv is false so divide ps1^ by ps2^
-          for t1 := 0 to ( resultData.yCoord.numRows * resultData.yCoord.numCols ) - 1 do
-          begin
-            if ps2^ <> 0 then
-            begin
-               res_double := ps1^ / ps2^ ;
-             //  if (res_double < Math.MaxSingle) then
-                 ps1^ :=  res_double
-            //   else
-            //     ps1^ := Math.MaxSingle / 10.0 ;
-             end
-            else  // ps^ is zero
-            begin
-           //  messagedlg('denominator value is zero, cannot perform division' ,mtinformation,[mbOK, mbCancel],0) ;
-             Case  messagedlg('denominator value is zero, cannot perform division' ,mtinformation,[mbOK, mbCancel],0) of
-             idCancel:
-              begin
-                resultData.Free ;
-                exit ;
-              end ;
-            end ;
-            end;
-           //  break ;
-
-           inc(ps1) ;
-           inc(ps2);
-          end;
-
-        end;  //  multordiv is false so divide ps1^ by ps2^
-
-        if Form4.StringGrid1.Objects[4,Form4.StringGrid1.Row] <> nil then
-          FreeStringGridSpectraRanges( 4,Form4.StringGrid1.Row ) ;
-
-        Form4.StringGrid1.Objects[4,Form4.StringGrid1.Row] := resultData ;  // assign object to the cell
-        resultData.GLListNumber := Form4.GetLowestListNumber ;              // get openGL list number
-        SetupallXDataAs1D_or_2D(1, resultData , xData) ;                    // create GL objects in 1D or 2D
-        Form4.StringGrid1.Cells[4,Form4.StringGrid1.Row] := '1-'+ inttostr(xData.yCoord.numRows) +' : 1-' + inttostr(xData.yCoord.numCols) ;
-        resultData.xString := xData.xString ;
-        resultData.yString := xData.yString  ;
-        if xData.fft.dtime <> 0 then
-         resultData.fft.CopyFFTObject(xData.fft) ;
-      end;
-//    except
-
-//    end ;
-end ;
 
 //  '  type = add or subtract'
-//  '  operation = add  // subtract'
+//  '  opperation = add  // subtract'
 //  '// Input:   x data and y data (same size)'
 //  '// Output:  x +/- y'
 function  TForm3.AddOrSub(initialLineNum : integer; addorsubtract : integer) : integer ;   // returns the line number of the batch file
@@ -772,7 +677,7 @@ end ;
 function  TForm3.MultAndSub(initialLineNum : integer) : integer ; // returns the line number of the batch file
 // multiplies a data matrix by a vector to return the scores of the vectore on the data matrix and the residuals
 var
-  origX, tEVects, tScores, tResiduals : TSpectraRanges ;
+  origX, copyX, tEVects, tEVectsCopy, tScores, tResiduals : TSpectraRanges ;
   mo : TMatrixOps ;
   MKLalpha : single ;
   MKLEVects, MKLscores, MKLdata : pointer ;
@@ -792,28 +697,28 @@ begin
       tEVects    := TSpectraRanges(Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row]) ;
       Form4.StringGrid1.Cells[1,Form4.StringGrid1.RowCount-1] :=  Form4.StringGrid1.Cells[1,Form4.StringGrid1.Row] ;
 
- //     copyX := TSpectraRanges.Create(origX.yCoord.SDPrec div 4, origX.yCoord.numRows, origX.yCoord.numCols, @origX.LineColor) ;
- //     copyX.CopySpectraObject(origX) ;
- //     copyX.GLListNumber := Form4.GetLowestListNumber ;
+      copyX := TSpectraRanges.Create(origX.yCoord.SDPrec div 4, origX.yCoord.numRows, origX.yCoord.numCols, @origX.LineColor) ;
+      copyX.CopySpectraObject(origX) ;
+      copyX.GLListNumber := Form4.GetLowestListNumber ;
 
- //     copyX.LineColor:= CreateStringGridRowAndObjects8( ) ;  // creates new string grid line and gets new spectra line colour
- //     SetupallXDataAs1D_or_2D(1, copyX , copyX) ;
- //     Form4.StringGrid1.Cells[2,Form4.StringGrid1.RowCount-2] := '1-'+ inttostr(copyX.yCoord.numRows) +' : 1-' + inttostr(copyX.yCoord.numCols) ;
+      copyX.LineColor:= CreateStringGridRowAndObjects8( ) ;  // creates new string grid line and gets new spectra line colour
+      SetupallXDataAs1D_or_2D(1, copyX , copyX) ;
+      Form4.StringGrid1.Cells[2,Form4.StringGrid1.RowCount-2] := '1-'+ inttostr(copyX.yCoord.numRows) +' : 1-' + inttostr(copyX.yCoord.numCols) ;
 
- //     tEVectsCopy := TSpectraRanges.Create(origX.yCoord.SDPrec div 4, origX.yCoord.numRows, origX.yCoord.numCols, @origX.LineColor) ;
- //     tEVectsCopy.CopySpectraObject(tEVects) ;
- //     tEVectsCopy.GLListNumber := Form4.GetLowestListNumber ;
+      tEVectsCopy := TSpectraRanges.Create(origX.yCoord.SDPrec div 4, origX.yCoord.numRows, origX.yCoord.numCols, @origX.LineColor) ;
+      tEVectsCopy.CopySpectraObject(tEVects) ;
+      tEVectsCopy.GLListNumber := Form4.GetLowestListNumber ;
 
 
       // create scores by projection of EVects onto original data
-      tScores := TSpectraRanges.Create(origX.yCoord.SDPrec div 4, origX.yCoord.numRows, 1, @origX.LineColor) ;
+      tScores := TSpectraRanges.Create(copyX.yCoord.SDPrec div 4, copyX.yCoord.numRows, 1, @copyX.LineColor) ;
       tScores.yCoord.Free ;
-      tScores.yCoord := mo.MultiplyMatrixByMatrix(origX.yCoord,tEVects.yCoord,false,true,1.0,false) ;
+      tScores.yCoord := mo.MultiplyMatrixByMatrix(copyX.yCoord,tEVects.yCoord,false,true,1.0,false) ;
 
 
       // copy original data so we can subtract the scores x EVects
-      tResiduals := TSpectraRanges.Create(origX.yCoord.SDPrec div 4, origX.yCoord.numRows, origX.yCoord.numCols, @origX.LineColor) ;
-      tResiduals.CopySpectraObject(origX) ;
+      tResiduals := TSpectraRanges.Create(copyX.yCoord.SDPrec div 4, copyX.yCoord.numRows, copyX.yCoord.numCols, @copyX.LineColor) ;
+      tResiduals.CopySpectraObject(copyX) ;
 
       // use BLAS level 2 routine - subtract reconstructed data from original data
       MKLEVects   := tEVects.yCoord.F_Mdata.Memory ;
@@ -823,37 +728,37 @@ begin
       MKLtint     :=  1 ;
       MKLalpha    := -1.0 ;
       // sger: a := alpha * x * y’ + a
-      sger (origX.yCoord.numCols , origX.yCoord.numRows, MKLalpha, MKLEVects, MKLtint, MKLscores , MKLtint, MKLdata, MKLlda) ;
+      sger (copyX.yCoord.numCols , copyX.yCoord.numRows, MKLalpha, MKLEVects, MKLtint, MKLscores , MKLtint, MKLdata, MKLlda) ;
 
       mo.Free ;
 
- //     Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row] := tEVectsCopy ;
- //     SetupallXDataAs1D_or_2D(1, tEVectsCopy , copyX) ;
- //     Form4.StringGrid1.Cells[3,Form4.StringGrid1.Row] := '1-'+ inttostr(tEVectsCopy.yCoord.numRows) +' : 1-' + inttostr(tEVectsCopy.yCoord.numCols) ;
+      Form4.StringGrid1.Objects[3,Form4.StringGrid1.RowCount-2] := tEVectsCopy ;
+      SetupallXDataAs1D_or_2D(1, tEVectsCopy , copyX) ;
+      Form4.StringGrid1.Cells[3,Form4.StringGrid1.RowCount-2] := '1-'+ inttostr(tEVectsCopy.yCoord.numRows) +' : 1-' + inttostr(tEVectsCopy.yCoord.numCols) ;
 
       // tScores is the scores spectra
       tScores.Transpose ;
 
-      Form4.StringGrid1.Objects[4,Form4.StringGrid1.Row] := tScores ;
+      Form4.StringGrid1.Objects[4,Form4.StringGrid1.RowCount-2] := tScores ;
       tScores.GLListNumber := Form4.GetLowestListNumber ;
       tScores.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ;
       tScores.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(),  1)   ;
       tScores.XHigh :=  tScores.XHigh * tScores.yCoord.numRows  ; // show all length of scores
-      Form4.StringGrid1.Cells[4,Form4.StringGrid1.Row] := '1-'+ inttostr(tScores.yCoord.numRows) +' : 1-' + inttostr(tScores.yCoord.numCols) ;
+      Form4.StringGrid1.Cells[4,Form4.StringGrid1.RowCount-2] := '1-'+ inttostr(tScores.yCoord.numRows) +' : 1-' + inttostr(tScores.yCoord.numCols) ;
       tScores.xString := 'Sample Number' ;
       tScores.yString := 'Score' ;
 
       // tResiduals is the 'residuals' matrix
-      Form4.StringGrid1.Objects[5,Form4.StringGrid1.Row] := tResiduals ;
+      Form4.StringGrid1.Objects[5,Form4.StringGrid1.RowCount-2] := tResiduals ;
       tResiduals.GLListNumber := Form4.GetLowestListNumber ;
-      if origX.frequencyImage then
+      if copyX.frequencyImage then
         tResiduals.frequencyImage := true ;
-      SetupallXDataAs1D_or_2D(1, tResiduals , origX) ;
-      Form4.StringGrid1.Cells[5,Form4.StringGrid1.Row] := '1-'+ inttostr(tResiduals.yCoord.numRows) +' : 1-' + inttostr(tResiduals.yCoord.numCols) ;
-      tResiduals.xString := origX.xString ;
-      tResiduals.yString := origX.yString  ;
-      if origX.fft.dtime <> 0 then
-        tResiduals.fft.CopyFFTObject(origX.fft) ;
+      SetupallXDataAs1D_or_2D(1, tResiduals , copyX) ;
+      Form4.StringGrid1.Cells[5,Form4.StringGrid1.RowCount-2] := '1-'+ inttostr(tResiduals.yCoord.numRows) +' : 1-' + inttostr(tResiduals.yCoord.numCols) ;
+      tResiduals.xString := copyX.xString ;
+      tResiduals.yString := copyX.yString  ;
+      if copyX.fft.dtime <> 0 then
+        tResiduals.fft.CopyFFTObject(copyX.fft) ;
 
     except
       mo.Free ;
@@ -863,7 +768,7 @@ end ;
 
 
 
-function  TForm3.MatrixMultiply(initialLineNum : integer; addYOffset : boolean) : integer ;
+function  TForm3.MatrixMultiply(initialLineNum : integer) : integer ;
 var
   m1, m2, tResult : TSpectraRanges ;
   mo : TMatrixOps ;
@@ -879,18 +784,6 @@ begin
       tResult := TSpectraRanges.Create(m1.yCoord.SDPrec div 4, 1, m2.yCoord.numCols, @m1.LineColor) ;
       tResult.yCoord.Free ;
       tResult.yCoord := mo.MultiplyMatrixByMatrix(m1.yCoord,m2.yCoord,false,false,1.0,false) ;
-
-      if addYOffset then
-      begin
-        if m1.predYdataYOffsetRegCoef[1] <> 0.0 then
-             tResult.yCoord.AddScalar(m1.predYdataYOffsetRegCoef[1])
-        else
-        if m2.predYdataYOffsetRegCoef[1] <> 0.0 then
-             tResult.yCoord.AddScalar(m2.predYdataYOffsetRegCoef[1]) ;
-      end;
-
-      
-
       tResult.xCoord.CopyMatrix( m2.xCoord ) ;
 
       // add to column 3 (4) of TStringGrid
@@ -928,32 +821,27 @@ begin
 
       m1      := TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Row]) ;
       m2      := TSpectraRanges(Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row]) ;
-      if  TSpectraRanges(Form4.StringGrid1.Objects[2,Form4.StringGrid1.Row]) is  TSpectraRanges then
-      begin
-      if   TSpectraRanges(Form4.StringGrid1.Objects[3,Form4.StringGrid1.Row]) is  TSpectraRanges then
-      begin
-        // create scores by projection of EVects onto original data
-        tResult := TSpectraRanges.Create(m1.yCoord.SDPrec div 4, 1, m2.yCoord.numRows, @m1.LineColor) ;
-        tResult.yCoord.Free ;
-        tResult.yCoord := vcv.GetSampleVarCovarOfTwoMatrix( m1.yCoord, m2.yCoord ) ;
 
-        // Set up xcoord data
-        tResult.FillXCoordData(1,1,1);
+      // create scores by projection of EVects onto original data
+      tResult := TSpectraRanges.Create(m1.yCoord.SDPrec div 4, 1, m2.yCoord.numRows, @m1.LineColor) ;
+      tResult.yCoord.Free ;
+      tResult.yCoord := vcv.GetSampleVarCovarOfTwoMatrix( m1.yCoord, m2.yCoord ) ;
 
-        // add to column 3 (4) of TStringGrid
-        Form4.StringGrid1.Objects[4,Form4.StringGrid1.Row] := tResult ;
-        tResult.GLListNumber := Form4.GetLowestListNumber ;
+      // Set up xcoord data
+      tResult.FillXCoordData(1,1,1);
 
-        tResult.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ;
-        tResult.zHigh :=  0 ;
-        tResult.zLow :=   0  ;
-        if (tResult.lineType > MAXDISPLAYTYPEFORSPECTRA) or (tResult.lineType < 1)  then tResult.lineType := 1 ;  //
-        tResult.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(),  tResult.lineType )   ;
-        Form4.StringGrid1.Cells[4,Form4.StringGrid1.Row] := '1-'+ inttostr(tResult.yCoord.numRows) +' : 1-' + inttostr(tResult.yCoord.numCols) ;
-        tResult.xString := m2.xString ;
-        tResult.yString := m1.yString  ;
-      end;
-      end;
+      // add to column 3 (4) of TStringGrid
+      Form4.StringGrid1.Objects[4,Form4.StringGrid1.Row] := tResult ;
+      tResult.GLListNumber := Form4.GetLowestListNumber ;
+
+      tResult.SetOpenGLXYRange(Form2.GetWhichLineToDisplay()) ;
+      tResult.zHigh :=  0 ;
+      tResult.zLow :=   0  ;
+      if (tResult.lineType > MAXDISPLAYTYPEFORSPECTRA) or (tResult.lineType < 1)  then tResult.lineType := 1 ;  //
+      tResult.CreateGLList('1-',Form1.Canvas.Handle, RC, Form2.GetWhichLineToDisplay(),  tResult.lineType )   ;
+      Form4.StringGrid1.Cells[4,Form4.StringGrid1.Row] := '1-'+ inttostr(tResult.yCoord.numRows) +' : 1-' + inttostr(tResult.yCoord.numCols) ;
+      tResult.xString := m2.xString ;
+      tResult.yString := m1.yString  ;
 
     finally
       vcv.Free ;
@@ -1826,17 +1714,7 @@ begin
           end
           else if (bB.RightSideOfEqual(tstr1) = 'matrix multiply') then     //   type = matrix multiply
           begin
-             repeat
-                 inc(lineNum) ;
-                 tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
-            until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
-            if bB.LeftSideOfEqual(tstr1) = 'add y offset' then
-              if bB.RightSideOfEqual(tstr1) = 'true' then
-                lineNum :=  MatrixMultiply(lineNum, true)
-              else
-                lineNum :=  MatrixMultiply(lineNum, false) ;
-
-          //  lineNum :=  MatrixMultiply(lineNum) ; // function defined above
+            lineNum :=  MatrixMultiply(lineNum) ; // function defined above
             repeat
                  inc(lineNum) ;
                  tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
@@ -2108,23 +1986,6 @@ begin
               end ;
 
 
-          end
-          else if (bB.RightSideOfEqual(tstr1) = 'point multiply') then     //   type = add or subtract
-          begin
-            repeat
-                 inc(lineNum) ;
-                 tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
-            until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
-            if bB.LeftSideOfEqual(tstr1) = 'operation' then
-              if bB.RightSideOfEqual(tstr1) = 'multiply' then
-                lineNum :=  MatrixPointMultiply(lineNum, true)
-              else
-                lineNum :=  MatrixPointMultiply(lineNum, false) ;
-
-            repeat
-                 inc(lineNum) ;
-                 tstr1 := bB.GetStringFromStrList(tStrList, lineNum) ;
-            until (trim(tstr1) <> '') or (linenum > tStrList.Count)  ;
           end
           else if (bB.RightSideOfEqual(tstr1) = 'add or subtract') then     //   type = add or subtract
           begin
@@ -3362,7 +3223,6 @@ end;
 procedure TForm3.TemplateMultiplyMatrices1Click(Sender: TObject);
 begin
   BatchMemo1.Lines.Add('type = matrix multiply') ; // matrix multiply
-  BatchMemo1.Lines.Add('add y offset = true  // false  // used to add back a PLS models y data offset (= average value of calibration data)') ; // matrix multiply
   BatchMemo1.Lines.Add('// Input:   two matricies ') ;
   BatchMemo1.Lines.Add('// Output:  the product of the two matricies') ;
   BatchMemo1.Lines.Add('') ;

@@ -171,7 +171,6 @@ begin
       dec(posNum1) ;
 
     xCoordData.F_Mdata.Read(s1,4) ;
-    xCoordData.F_Mdata.Seek(0,soFromBeginning) ;
     while (s1 < s_f2) {and (xCoordData.F_Mdata.Position < xCoordData.numCols )} do
     begin
       xCoordData.F_Mdata.Read(s1,4) ;

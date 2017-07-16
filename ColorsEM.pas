@@ -487,11 +487,10 @@ begin
     Except
       on EFOpenError Do
     end ;
-    lastFileExt := TempList.Strings[1] ;
-    Form2.MVA_executable := TempList.Strings[2] ;  // this is the executable to run externalanalyses
-    Edit1.Text := TempList.Strings[3] ;
-    Edit2.Text := TempList.Strings[4] ;
-    Edit3.Text := TempList.Strings[5] ;
+    Form2.MVA_executable := TempList.Strings[1] ;  // this is the executable to run externalanalyses
+    Edit1.Text := TempList.Strings[2] ;
+    Edit2.Text := TempList.Strings[3] ;
+    Edit3.Text := TempList.Strings[4] ;
     BKGRed   :=  StrToFloat(Edit1.Text)  ;
     BKGGreen :=  StrToFloat(Edit2.Text)   ;
     BKGBlue  :=  StrToFloat(Edit3.Text)   ;
@@ -511,8 +510,7 @@ begin
       CheckListBox1.Items.Add(TempStr1) ;
     end ;
 
-    // *** Remember to change the 10 here if the header strings are added/subtracted ****
-    For TempInt1 := 10 to TempList.Count-1 Do                  // FileListBox1.Items.Count-1
+    For TempInt1 := 9 to TempList.Count-1 Do                  // FileListBox1.Items.Count-1
     begin
        IntensityList.Add(TempList.Strings[TempInt1]) ; // color data starts here *************************
     end ;
@@ -521,16 +519,16 @@ begin
   ComboBox3.Items.Clear  ;
   ComboBox4.Items.Clear  ;
 
-  TempStr1 := TempList.Strings[6] ;
+  TempStr1 := TempList.Strings[5] ;
 
 // X data values
-  ComboBox2.Items.CommaText := TempList.Strings[6] ;
-  ComboBox3.Items.CommaText := TempList.Strings[6] ;
-  ComboBox2.text := TempList.Strings[7] ;
-  ComboBox3.text := TempList.Strings[7] ;
+  ComboBox2.Items.CommaText := TempList.Strings[5] ;
+  ComboBox3.Items.CommaText := TempList.Strings[5] ;
+  ComboBox2.text := TempList.Strings[6] ;
+  ComboBox3.text := TempList.Strings[6] ;
 // Y data values
-  ComboBox4.Items.CommaText := TempList.Strings[8] ;
-  ComboBox4.text :=  TempList.Strings[9] ;
+  ComboBox4.Items.CommaText := TempList.Strings[7] ;
+  ComboBox4.text :=  TempList.Strings[8] ;
 
 {$I-}
   if SetCurrentDir(TempList.Strings[0]) = false then
@@ -560,8 +558,6 @@ begin
   end ;
 
   Image1.Picture.Bitmap :=   PalletColorsBitMap ;
-
-
 
 //   If (IsNative2DdataRB.Checked) or (Is2DdataRB.Checked) Then  Checkbox4.Checked := false ;  // initially no y scale for 2D images
 end;
@@ -5403,7 +5399,7 @@ try
         Exit ;  // exit out of subroutine
       end
       else
-      if ((StrToFloat(CropMinTB.Text) < 1) or (StrToFloat(CropMaxTB.Text) > tSR.xCoord.numCols )) and (xUnitsCB.Checked = false) then
+      if (StrToFloat(CropMinTB.Text) < 1) or (StrToFloat(CropMaxTB.Text) > tSR.xCoord.numCols ) and (xUnitsCB.Checked = false) then
       begin
         messagedlg('Error: Baseline points are beyond the data',mtInformation,[mbOk],0) ;
         Exit ;  // exit out of subroutine
